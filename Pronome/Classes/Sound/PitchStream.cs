@@ -60,7 +60,14 @@ namespace Pronome
         /// </summary>
         double InitialOffset;
 
+        /// <summary>
+        /// The length of the wave in samples.
+        /// </summary>
         double WaveLength;
+
+		private float pan;
+		private float left; // left channel coeficient
+		private float right; // right channel coeficient
         #endregion
 
         #region public properties
@@ -68,6 +75,10 @@ namespace Pronome
 
         public AudioStreamBasicDescription Format { get => _format; }
 
+        /// <summary>
+        /// Gets or sets the volume.
+        /// </summary>
+        /// <value>The volume.</value>
         public double Volume 
         { 
             get => _volume; 
@@ -79,6 +90,10 @@ namespace Pronome
             }
         }
 
+        /// <summary>
+        /// Gets or sets the offset in samples.
+        /// </summary>
+        /// <value>The offset.</value>
         public double Offset
         {
             get => CurrentOffset;
@@ -88,11 +103,33 @@ namespace Pronome
             }
         }
 
+        /// <summary>
+        /// Gets or sets the interval loop which provides the beat cell duration values in samples.
+        /// </summary>
+        /// <value>The interval loop.</value>
         public SampleIntervalLoop IntervalLoop { get; set; }
+
+        /// <summary>
+        /// Gets or sets the pan from -1 to 1.
+        /// </summary>
+        /// <value>The pan.</value>
+        public float Pan
+        {
+			get { return pan; }
+			set
+			{
+				pan = value;
+
+				left = (Pan + 1f) / 2;
+				right = (2 - (Pan + 1f)) / 2;
+			}
+        }
+
+        public Layer Layer { get; set; }
         #endregion
 
         #region constructors
-        public PitchStream(StreamInfoProvider info)
+        public PitchStream(StreamInfoProvider info, Layer layer)
         {
             _info = info;
 
@@ -101,13 +138,15 @@ namespace Pronome
             {
                 SampleRate = Metronome.SampleRate,
                 Format = AudioFormatType.LinearPCM,
-                FormatFlags = AudioFormatFlags.IsFloat | AudioFormatFlags.IsPacked,
+                FormatFlags = AudioFormatFlags.IsFloat | AudioFormatFlags.IsPacked | AudioFormatFlags.IsNonInterleaved,
                 BitsPerChannel = 16,
-                ChannelsPerFrame = 1,
+                ChannelsPerFrame = 2,
                 FramesPerPacket = 1,
-                BytesPerFrame = 2,
-                BytesPerPacket = 2
+                BytesPerFrame = sizeof(short),
+                BytesPerPacket = sizeof(short)
             };
+
+            Layer = layer;
         }
         #endregion
 
@@ -121,9 +160,24 @@ namespace Pronome
             _frequencies.AddLast(freq);
         }
 
-        public void Read(float[] leftBuffer, float[] rightBuffer, int count)
+        public unsafe void Read(short* leftBuffer, short* rightBuffer, uint count)
         {
-            for (int i = 0; i < count; i++)
+            if (CurrentOffset > 0)
+            {
+                // account for the offset
+                int amount = (int)Math.Min(CurrentOffset, count);
+                CurrentOffset -= amount;
+                count -= (uint)amount;
+
+                // add remainder to the layer
+                if (CurrentOffset < 1)
+                {
+                    Layer.SampleRemainder += CurrentOffset;
+                    CurrentOffset = 0;
+                }
+            }
+
+            for (uint i = 0; i < count; i++)
             {
                 if (SampleInterval == 0)
                 {
@@ -144,8 +198,11 @@ namespace Pronome
 
                 if (Gain > 0)
                 {
-                    float sampleValue = (float)(Math.Sin(_sample / WaveLength * TwoPI));
-                    leftBuffer[i] = rightBuffer[i] = sampleValue;
+                    double sampleValue = Math.Sin(_sample * TwoPI / WaveLength) * Gain;
+                    _sample++;
+                    Gain -= GainStep;
+                    leftBuffer[i] = (short)(sampleValue * left);
+                    rightBuffer[i] = (short)(sampleValue * right);
                 }
             }
         }

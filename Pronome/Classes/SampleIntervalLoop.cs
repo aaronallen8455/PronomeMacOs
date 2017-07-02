@@ -36,11 +36,11 @@ namespace Pronome
 
                 long whole = (long)raw;
 
-                Layer.ByteRemainder += raw - whole;
+                Layer.SampleRemainder += raw - whole;
 
-                while (Layer.ByteRemainder >= 1)
+                while (Layer.SampleRemainder >= 1)
                 {
-                    Layer.ByteRemainder--;
+                    Layer.SampleRemainder--;
                     whole++;
                 }
 

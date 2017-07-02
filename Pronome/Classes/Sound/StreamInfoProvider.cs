@@ -6,6 +6,9 @@ namespace Pronome
         #region private variables
         private string _uri;
         private bool _isPitch;
+        private int _index;
+        private string _title;
+        private bool _isInternal;
         #endregion
 
         #region public properties
@@ -20,14 +23,32 @@ namespace Pronome
         /// </summary>
         /// <value><c>true</c> if is pitch; otherwise, <c>false</c>.</value>
         public bool IsPitch { get => _isPitch; }
+
+        public int Index { get => _index; }
+
+        public string Title { get => _title; }
+
+        /// <summary>
+        /// Whether this is an internal or user defined source
+        /// </summary>
+        /// <value><c>true</c> if is internal; otherwise, <c>false</c>.</value>
+        public bool IsInternal { get => _isInternal; }
+
+        public HiHatStatuses HiHatStatus { get; set; }
         #endregion
 
         #region constructors
-        public StreamInfoProvider(string uri)
+        public StreamInfoProvider(string uri, int index, string title, bool isInternal = true)
         {
             _uri = uri;
 
             _isPitch = IsPitchUri(uri);
+
+            _index = index;
+
+            _title = title;
+
+            _isInternal = isInternal;
         }
         #endregion
 
@@ -41,5 +62,22 @@ namespace Pronome
             return !uri.Contains(".wav");
         }
         #endregion
+
+        /// <summary>
+        /// The string that will be displayed in the source selectors.
+        /// </summary>
+        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Pronome.StreamInfoProvider"/>.</returns>
+        public override string ToString()
+        {
+            if (IsPitch)
+            {
+                // Don't include index number for pitch source
+                return Title;
+            }
+            string prefix = IsInternal ? "" : "u";
+            return $"{prefix}{Index}.".PadRight(4) + Title;
+        }
+
+        public enum HiHatStatuses { Open, Down };
     }
 }

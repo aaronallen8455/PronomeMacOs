@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16D32" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -9,6 +8,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="LayerItemController">
             <connections>
+                <outlet property="SoundSourceSelector" destination="jkd-i5-9PW" id="eGg-Pz-Dxl"/>
                 <outlet property="view" destination="4" id="17"/>
             </connections>
         </customObject>
@@ -75,14 +75,6 @@
                                     <binding destination="-2" name="value" keyPath="self.Layer.Volume" id="FuT-H8-yyo"/>
                                 </connections>
                             </slider>
-                            <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="fZG-Tj-3vq">
-                                <rect key="frame" x="181" y="27" width="28" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" alignment="left" minValue="-1" maxValue="1" allowsTickMarkValuesOnly="YES" sliderType="circular" id="sVO-G5-Qc3"/>
-                                <connections>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.Pan" id="peO-Z3-zQd"/>
-                                </connections>
-                            </slider>
                             <button misplaced="YES" id="pWO-cI-YwS">
                                 <rect key="frame" x="18" y="18" width="61" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -116,6 +108,23 @@
                                     <action selector="CloseLayerAction:" target="-2" id="eCs-CS-aMQ"/>
                                 </connections>
                             </button>
+                            <comboBox verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="jkd-i5-9PW">
+                                <rect key="frame" x="100" y="53" width="99" height="26"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="7rG-IB-dDR">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </comboBoxCell>
+                            </comboBox>
+                            <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="fZG-Tj-3vq">
+                                <rect key="frame" x="212" y="27" width="28" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <sliderCell key="cell" alignment="left" minValue="-1" maxValue="1" allowsTickMarkValuesOnly="YES" sliderType="circular" id="sVO-G5-Qc3"/>
+                                <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Pan" id="peO-Z3-zQd"/>
+                                </connections>
+                            </slider>
                         </subviews>
                     </view>
                 </box>

@@ -68,6 +68,16 @@ namespace Pronome
 
             Layer = null;
         }
+
+        public override void AwakeFromNib()
+        {
+            // add sources to source selector
+            SoundSourceSelector.DataSource = new SourceSelectorDataSource();
+
+            // autoselect the first source
+            SoundSourceSelector.StringValue = 
+                (NSString)SoundSourceSelector.DataSource.ObjectValueForItem(SoundSourceSelector, 0);
+        }
         #endregion
 
         //strongly typed view accessor

@@ -11,6 +11,8 @@ namespace Pronome
 
         double Volume { get; set; }
 
+        float Pan { get; set; }
+
         /// <summary>
         /// Gets or sets the offset in samples.
         /// </summary>
@@ -18,5 +20,7 @@ namespace Pronome
         double Offset { get; set; }
 
         SampleIntervalLoop IntervalLoop { get; set; }
+
+        Layer Layer { get; }
     }
 }

@@ -12,11 +12,18 @@ namespace Pronome
 	[Register ("LayerItemController")]
 	partial class LayerItemController
 	{
+		[Outlet]
+		AppKit.NSComboBox SoundSourceSelector { get; set; }
+
 		[Action ("CloseLayerAction:")]
 		partial void CloseLayerAction (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (SoundSourceSelector != null) {
+				SoundSourceSelector.Dispose ();
+				SoundSourceSelector = null;
+			}
 		}
 	}
 }
