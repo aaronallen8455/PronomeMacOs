@@ -110,8 +110,8 @@ namespace Pronome.Classes.Sound
 		{
             IStreamProvider source = Streams[(int)busNumber];
 
-            var outLeft = (short*)data[0].Data;
-            var outRight = (short*)data[1].Data;
+            var outLeft = (float*)data[0].Data;
+            var outRight = (float*)data[1].Data;
 
             if (source.Info.IsPitch)
             {

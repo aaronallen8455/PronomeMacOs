@@ -1,5 +1,7 @@
 ﻿using System;
 using Foundation;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace Pronome
 {
@@ -10,6 +12,10 @@ namespace Pronome
         #region Private variables
         private nfloat _volume = 1f;
         private nfloat _tempo = 120f;
+        #endregion
+
+        #region Public variables
+        public List<Layer> Layers = new List<Layer>();
         #endregion
 
         #region Computed Properties
@@ -70,7 +76,7 @@ namespace Pronome
         /// </summary>
         /// <returns>The to bytes.</returns>
         /// <param name="bpm">Bpm.</param>
-        public double ConvertToBytes(double bpm)
+        public double ConvertBpmToSamples(double bpm)
         {
             double result = 60 / Tempo * bpm * SampleRate;
 
@@ -78,6 +84,22 @@ namespace Pronome
 
             return result;
         }
+		#endregion
+
+		#region Public Static Methods
+		/** <summary>Used for random muting.</summary> */
+		protected static ThreadLocal<Random> Rand;
+		/**<summary>Get random number btwn 0 and 99.</summary>*/
+		public static int GetRandomNum()
+		{
+			if (Rand == null)
+			{
+				Rand = new ThreadLocal<Random>(() => new Random());
+			}
+
+			int r = Rand.Value.Next(0, 99);
+			return r;
+		}
         #endregion
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using System;
 using AudioToolbox;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pronome
 {
@@ -138,16 +139,51 @@ namespace Pronome
             {
                 SampleRate = Metronome.SampleRate,
                 Format = AudioFormatType.LinearPCM,
-                FormatFlags = AudioFormatFlags.IsFloat | AudioFormatFlags.IsPacked | AudioFormatFlags.IsNonInterleaved,
-                BitsPerChannel = 16,
+                FormatFlags = AudioStreamBasicDescription.AudioFormatFlagsAudioUnitNativeFloat, //AudioFormatFlags.IsFloat | AudioFormatFlags.IsPacked | AudioFormatFlags.IsNonInterleaved,
+                BitsPerChannel = 32,
                 ChannelsPerFrame = 2,
                 FramesPerPacket = 1,
-                BytesPerFrame = sizeof(short),
-                BytesPerPacket = sizeof(short)
+                BytesPerFrame = 4,
+                BytesPerPacket = 4
             };
 
             Layer = layer;
         }
+		#endregion
+
+		#region Static Methods
+		/**<summary>Convert a pitch symbol or raw number into a hertz value.</summary>
+         * <param name="symbol">The symbol to convert from.</param>
+         */
+		public static double ConvertFromSymbol(string symbol)
+		{
+			// Remove leading P of raw pitch symbols
+			symbol = symbol.TrimStart(new char[] { 'p', 'P' });
+
+			string note = new string(symbol.TakeWhile((x) => !char.IsNumber(x)).ToArray()).ToLower();
+			if (note == string.Empty) // raw pitch value
+			{
+				return Convert.ToDouble(symbol);
+			}
+			string o = new string(symbol.SkipWhile((x) => !char.IsNumber(x)).ToArray());
+			int octave;
+			if (o != string.Empty) octave = Convert.ToInt32(o) - 5;
+			else octave = 4;
+
+			float index = Notes[note];
+			index += octave * 12;
+			double frequency = 440 * Math.Pow(2, index / 12);
+			return frequency;
+		}
+
+		/**<summary>Used in converting symbols to pitches.</summary>*/
+		protected static Dictionary<string, int> Notes = new Dictionary<string, int>
+		{
+			{ "a", 12 }, { "a#", 13 }, { "bb", 13 }, { "b", 14 }, { "c", 3 },
+			{ "c#", 4 }, { "db", 4 }, { "d", 5 }, { "d#", 6 }, { "eb", 6 },
+			{ "e", 7 }, { "f", 8 }, { "f#", 9 }, { "gb", 9 }, { "g", 10 },
+			{ "g#", 11 }, { "ab", 11 }
+		};
         #endregion
 
         #region public methods
@@ -155,12 +191,18 @@ namespace Pronome
         /// Adds to the list of frequencies in order.
         /// </summary>
         /// <param name="freq">Freq.</param>
-        public void AddFrequency(double freq)
+        public void AddFrequency(string symbol)
         {
+            double freq = ConvertFromSymbol(symbol);
             _frequencies.AddLast(freq);
         }
 
-        public unsafe void Read(short* leftBuffer, short* rightBuffer, uint count)
+        public void ClearFrequencies()
+        {
+            _frequencies.Clear();
+        }
+
+        public unsafe void Read(float* leftBuffer, float* rightBuffer, uint count)
         {
             if (CurrentOffset > 0)
             {
@@ -184,25 +226,34 @@ namespace Pronome
                     MoveToNextByteInterval();
 
                     double oldFreq = Frequency;
+                    double oldWavelength = WaveLength;
+					
                     MoveToNextFrequency();
-                    // set the sample index
-                    if (_sample != 0) {
-                        if (WaveLength.Equals(0.0f)) {
-                            WaveLength = Metronome.SampleRate / oldFreq;
-                        }
-                        double positionRatio = (_sample % WaveLength) / WaveLength;
-                        WaveLength = Metronome.SampleRate / Frequency;
+                    if (!oldFreq.Equals(Frequency))
+                    {
+						WaveLength = Metronome.SampleRate / Frequency;
+                    }
+                    // set the sample index if transitioning from an active note
+                    if (Gain > 0) 
+                    {
+                        double positionRatio = (_sample % oldWavelength) / oldWavelength;
                         _sample = (int)(WaveLength * positionRatio);
                     }
+                    else
+                    {
+                        _sample = 0;
+                    }
+
+					Gain = Volume; // back to full volume
                 }
 
                 if (Gain > 0)
                 {
-                    double sampleValue = Math.Sin(_sample * TwoPI / WaveLength) * Gain;
+                    float sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
                     _sample++;
                     Gain -= GainStep;
-                    leftBuffer[i] = (short)(sampleValue * left);
-                    rightBuffer[i] = (short)(sampleValue * right);
+                    leftBuffer[i] = sampleValue * left;
+                    rightBuffer[i] = sampleValue * right;
                 }
             }
         }

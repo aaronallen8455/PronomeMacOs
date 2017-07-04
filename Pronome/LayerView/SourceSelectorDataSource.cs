@@ -12,12 +12,8 @@ namespace Pronome
         public List<string> Data
         {
             get; set;
-        } = new List<StreamInfoProvider> 
-        {
-            new StreamInfoProvider("", 1, "Option 1"),
-            new StreamInfoProvider("", 2, "Option 2"),
-            new StreamInfoProvider("", 3, "Option 3")
-        }.Select(x => x.ToString()).ToList();
+        } = new List<StreamInfoProvider>(StreamInfoProvider.CompleteSourceLibrary)
+            .Select(x => x.ToString()).ToList();
         #endregion
 
         public SourceSelectorDataSource()

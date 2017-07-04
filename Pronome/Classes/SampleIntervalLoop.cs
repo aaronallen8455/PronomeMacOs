@@ -58,7 +58,7 @@ namespace Pronome
         /// </summary>
         public void ConvertBpmValues()
         {
-            Beats = Bpm.Select(x => Metronome.Instance.ConvertToBytes(x)).ToArray();
+            Beats = Bpm.Select(x => Metronome.Instance.ConvertBpmToSamples(x)).ToArray();
         }
         #endregion
     }

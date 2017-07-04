@@ -110,6 +110,7 @@
     <Compile Include="DataModels\Layer.cs" />
     <Compile Include="Classes\Sound\Mixer.cs" />
     <Compile Include="LayerView\SourceSelectorDataSource.cs" />
+    <Compile Include="Classes\Sound\WavFileStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
