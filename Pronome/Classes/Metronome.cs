@@ -12,10 +12,16 @@ namespace Pronome
         #region Private variables
         private nfloat _volume = 1f;
         private nfloat _tempo = 120f;
+
+        protected Mixer Mixer = new Mixer();
         #endregion
 
         #region Public variables
         public List<Layer> Layers = new List<Layer>();
+
+        public enum PlayStates { Playing, Paused, Stopped };
+
+        public PlayStates PlayState = PlayStates.Stopped;
         #endregion
 
         #region Computed Properties
@@ -83,6 +89,29 @@ namespace Pronome
             if (result > long.MaxValue) throw new Exception(bpm.ToString());
 
             return result;
+        }
+
+        public void Play()
+        {
+            Mixer.Start();
+        }
+
+        public void Stop()
+        {
+            Mixer.Stop();
+        }
+
+        public void Pause()
+        {
+            
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            // Dispose the mixer
+            Mixer.Dispose();
+
+            base.Dispose(disposing);
         }
 		#endregion
 

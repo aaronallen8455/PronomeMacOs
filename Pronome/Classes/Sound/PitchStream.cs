@@ -197,10 +197,15 @@ namespace Pronome
             _frequencies.AddLast(freq);
         }
 
+        /// <summary>
+        /// Clears the frequencies.
+        /// </summary>
         public void ClearFrequencies()
         {
             _frequencies.Clear();
         }
+
+        private float sampleValue = 0;
 
         public unsafe void Read(float* leftBuffer, float* rightBuffer, uint count)
         {
@@ -226,7 +231,7 @@ namespace Pronome
                     MoveToNextByteInterval();
 
                     double oldFreq = Frequency;
-                    double oldWavelength = WaveLength;
+                    //double oldWavelength = WaveLength;
 					
                     MoveToNextFrequency();
                     if (!oldFreq.Equals(Frequency))
@@ -236,8 +241,10 @@ namespace Pronome
                     // set the sample index if transitioning from an active note
                     if (Gain > 0) 
                     {
-                        double positionRatio = (_sample % oldWavelength) / oldWavelength;
-                        _sample = (int)(WaveLength * positionRatio);
+                        //double positionRatio = (_sample % oldWavelength) / oldWavelength;
+                        //_sample = (int)(WaveLength * positionRatio);
+
+                        _sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
                     }
                     else
                     {
@@ -249,7 +256,7 @@ namespace Pronome
 
                 if (Gain > 0)
                 {
-                    float sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
+                    sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
                     _sample++;
                     Gain -= GainStep;
                     leftBuffer[i] = sampleValue * left;
