@@ -9,11 +9,21 @@ namespace Pronome
     public class SourceSelectorDataSource : NSComboBoxDataSource
     {
         #region Static Properties
+        private List<string> _data =
+            new List<StreamInfoProvider>(StreamInfoProvider.CompleteSourceLibrary)
+			.Select(x => x.ToString()).ToList();
+        /// <summary>
+        /// Gets or sets the data. From the Complete Source Library
+        /// </summary>
+        /// <value>The data.</value>
         public List<string> Data
         {
-            get; set;
-        } = new List<StreamInfoProvider>(StreamInfoProvider.CompleteSourceLibrary)
-            .Select(x => x.ToString()).ToList();
+            get => _data;
+            set
+            {
+                _data = value;
+            }
+        }
         #endregion
 
         public SourceSelectorDataSource()

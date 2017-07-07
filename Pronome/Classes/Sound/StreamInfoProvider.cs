@@ -56,6 +56,13 @@ namespace Pronome
 
             _isInternal = isInternal;
         }
+
+		static StreamInfoProvider()
+		{
+            // initialize the source library
+			CompleteSourceLibrary =
+				new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSourceLibrary);
+		}
         #endregion
 
         #region static methods
@@ -155,8 +162,9 @@ namespace Pronome
 
         public enum HiHatStatuses { None, Open, Down };
 
-        public static IEnumerable<StreamInfoProvider> CompleteSourceLibrary =
-            new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSourceLibrary);
+        public static IEnumerable<StreamInfoProvider> CompleteSourceLibrary;// =
+            //InternalSourceLibrary.Concat(UserSourceLibrary);
+            //new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSourceLibrary);
 
         /// <summary>
         /// The user source library.
@@ -166,7 +174,7 @@ namespace Pronome
         /// <summary>
         /// The internal source library for audio files.
         /// </summary>
-        public static List<StreamInfoProvider> InternalSourceLibrary = new List<StreamInfoProvider>()
+        public static List<StreamInfoProvider> InternalSourceLibrary = new List<StreamInfoProvider>
 		{
 			new StreamInfoProvider(0, "Pronome.wav.silent.wav", "Silent"),
 			new StreamInfoProvider(1, "Pronome.wav.crash1_edge_v5.wav", "Crash Edge V1"),

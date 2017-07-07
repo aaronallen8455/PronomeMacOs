@@ -71,6 +71,7 @@ namespace Pronome
 
         public override void AwakeFromNib()
         {
+            var x = SoundSourceSelector;
             // add sources to source selector
             SoundSourceSelector.DataSource = new SourceSelectorDataSource();
 

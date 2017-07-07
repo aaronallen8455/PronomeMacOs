@@ -33,6 +33,7 @@ namespace Pronome
         #region Constructors
         public Mixer()
         {
+            BuildAUGraph();
         }
         #endregion
 
@@ -43,10 +44,13 @@ namespace Pronome
         /// <param name="stream">Stream.</param>
         public void AddStream(IStreamProvider stream)
         {
+            if (Streams.Contains(stream)) return;
+
             Streams.Add(stream);
 
             if (MixerNode != null)
             {
+                // bus index of new stream
                 uint i = (uint)(Streams.Count - 1);
 
                 // add input to the mixer
@@ -63,14 +67,34 @@ namespace Pronome
 			
 				// set input stream format
 				var desc = stream.Format;
-				//desc = MixerNode.GetAudioFormat(AudioUnitScopeType.Input, i);
-				//desc.SampleRate = Metronome.SampleRate;
 			
 				if (MixerNode.SetFormat(desc, AudioUnitScopeType.Input, i) != AudioUnitStatus.OK)
 				{
 					throw new ApplicationException();
 				}
             }
+        }
+
+        /// <summary>
+        /// Removes the stream.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        public void RemoveStream(IStreamProvider stream)
+        {
+            if (!Streams.Contains(stream)) return;
+
+            Streams.Remove(stream);
+
+            // re-configure the mixer inputs
+            ConfigureMixerInputs();
+        }
+
+        /// <summary>
+        /// Reset this instance.
+        /// </summary>
+        public void Reset()
+        {
+            Streams.Clear();
         }
 
         /// <summary>
@@ -214,34 +238,8 @@ namespace Pronome
             MixerNode = Graph.GetNodeInfo(mixerNode);
 
             ConfigureMixerInputs();
-            //// set bus count
-            //uint numBuses = (uint)Streams.Count;
-			//
-            //if (MixerNode.SetElementCount(AudioUnitScopeType.Input, numBuses) != AudioUnitStatus.OK)
-            //{
-            //    throw new ApplicationException();
-            //}
-			//
+
             AudioStreamBasicDescription desc;
-			//
-            //for (uint i = 0; i < numBuses; ++i)
-            //{
-            //    // setup render callback
-            //    if (Graph.SetNodeInputCallback(mixerNode, i, HandleRenderDelegate) != AUGraphError.OK)
-            //    {
-            //        throw new ApplicationException();
-            //    }
-			//
-            //    // set input stream format
-            //    desc = Streams[(int)i].Format;
-            //    //desc = MixerNode.GetAudioFormat(AudioUnitScopeType.Input, i);
-            //    //desc.SampleRate = Metronome.SampleRate;
-			//
-            //    if (MixerNode.SetFormat(desc, AudioUnitScopeType.Input, i) != AudioUnitStatus.OK)
-            //    {
-            //        throw new ApplicationException();
-            //    }
-            //}
 
             // set output stream format
             desc = MixerNode.GetAudioFormat(AudioUnitScopeType.Output);

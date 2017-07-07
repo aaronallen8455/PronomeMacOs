@@ -22,11 +22,36 @@ namespace Pronome
         public enum PlayStates { Playing, Paused, Stopped };
 
         public PlayStates PlayState = PlayStates.Stopped;
+
+        /// <summary>
+        /// Is the random mute engaged?
+        /// </summary>
+        public bool IsRandomMuteEngaged = false;
+
+        /// <summary>
+        /// The randomness factor from 0 to 1.
+        /// </summary>
+        public float RandomnessFactor;
+
+        /// <summary>
+        /// Is the silent interval engaged?
+        /// </summary>
+        public bool IsSilentIntervalEngaged = false;
+
+        /// <summary>
+        /// The audible interval in BPM.
+        /// </summary>
+        public double AudibleInterval;
+
+        /// <summary>
+        /// The silent interval in BPM.
+        /// </summary>
+        public double SilentInterval;
         #endregion
 
         #region Computed Properties
         /// <summary>
-        /// Gets or sets the volume.
+        /// Gets or sets the master volume.
         /// </summary>
         /// <value>The volume. 0 to 1</value>
         [Export("Volume")]
@@ -37,6 +62,8 @@ namespace Pronome
             {
                 WillChangeValue("Volume");
                 _volume = value;
+                // set the output volume of the mixer
+                Mixer.SetOutputVolume((float)value);
                 DidChangeValue("Volume");
             }
         }
@@ -93,18 +120,110 @@ namespace Pronome
 
         public void Play()
         {
-            Mixer.Start();
+            if (PlayState != PlayStates.Playing)
+            {
+				Mixer.Start();
+
+                PlayState = PlayStates.Playing;
+            }
         }
 
         public void Stop()
         {
-            Mixer.Stop();
+            if (PlayState != PlayStates.Stopped)
+            {
+				Mixer.Stop();
+                // reset the streams to starting position
+
+                PlayState = PlayStates.Stopped;
+            }
         }
 
         public void Pause()
         {
-            
+            if (PlayState == PlayStates.Playing)
+            {
+				Mixer.Stop();
+
+                PlayState = PlayStates.Paused;
+            }
         }
+
+        /// <summary>
+        /// Sets the pan of a mixer input.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="value">Value.</param>
+        public void SetPanOfMixerInput(IStreamProvider stream, float value)
+        {
+            Mixer.SetPan(stream, value);
+        }
+
+        /// <summary>
+        /// Sets the volume of a mixer input.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="value">Value.</param>
+        public void SetVolumeOfMixerInput(IStreamProvider stream, float value)
+        {
+            Mixer.SetInputVolume(stream, value);
+        }
+
+        /// <summary>
+        /// Adds a layer.
+        /// </summary>
+        /// <param name="layer">Layer.</param>
+        public void AddLayer(Layer layer)
+        {
+            Layers.Add(layer);
+        }
+
+        /// <summary>
+        /// Removes the audio source.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        public void RemoveAudioSource(IStreamProvider stream)
+        {
+            Mixer.RemoveStream(stream);
+        }
+
+        /// <summary>
+        /// Adds the audio source.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        public void AddAudioSource(IStreamProvider stream)
+        {
+            Mixer.AddStream(stream);
+        }
+
+		/** <summary>Add all the audio sources from each layer.</summary>
+         * <param name="layer">Layer to add sources from.</param> */
+		public void AddSourcesFromLayer(Layer layer)
+		{
+			// add sources to mixer
+			foreach (IStreamProvider src in layer.AudioSources.Values)
+			{
+				AddAudioSource(src);
+			}
+
+			AddAudioSource(layer.BaseAudioSource);
+			AddAudioSource(layer.PitchSource);
+
+			// transfer silent interval if exists
+            //if (IsSilentIntervalEngaged)
+			//{
+			//	foreach (IStreamProvider src in layer.AudioSources.Values)
+			//	{
+            //        
+			//		src.SetSilentInterval(AudibleInterval, SilentInterval);
+			//	}
+			//
+			//	layer.BaseAudioSource.SetSilentInterval(AudibleInterval, SilentInterval);
+			//
+			//	if (layer.BasePitchSource != default(PitchStream) && !layer.IsPitch)
+			//		layer.BasePitchSource.SetSilentInterval(AudibleInterval, SilentInterval);
+			//}
+		}
 
         protected override void Dispose(bool disposing)
         {

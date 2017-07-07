@@ -5,24 +5,21 @@ using System.Linq;
 
 namespace Pronome
 {
-    public class PitchStream : IStreamProvider
+    public class PitchStream : AbstractStream
     {
         const double TwoPI = Math.PI * 2;
 
         #region static variables
-        public static double DecayLength = .04;
-        #endregion
+        //public static double DecayLength = .04;
 
-        #region private/protected variables
-        protected StreamInfoProvider _info;
+		static double NewGainStep = 1 / (Metronome.SampleRate * .04);
+		#endregion
 
-        protected AudioStreamBasicDescription _format;
+		#region private/protected variables
 
         protected LinkedList<double> _frequencies = new LinkedList<double>();
 
         LinkedListNode<double> _currentFrequency;
-
-        protected long SampleInterval;
 
         /// <summary>
         /// The current frequency.
@@ -47,9 +44,7 @@ namespace Pronome
         /// <summary>
         /// The amount to decrement the gain by per sample
         /// </summary>
-        protected double GainStep = .0004;
-
-        private double NewGainStep;
+        protected double GainStep;
 
         /// <summary>
         /// The current offset in samples.
@@ -67,73 +62,20 @@ namespace Pronome
         double WaveLength;
 
 		private float pan;
-		private float left; // left channel coeficient
-		private float right; // right channel coeficient
+		//private float left; // left channel coeficient
+		//private float right; // right channel coeficient
+
+        long _silentInterval;
+        bool _intervalIsSilent = true; // True if the phase of the interval is Silent
         #endregion
 
         #region public properties
-        public StreamInfoProvider Info { get => _info; }
 
-        public AudioStreamBasicDescription Format { get => _format; }
-
-        /// <summary>
-        /// Gets or sets the volume.
-        /// </summary>
-        /// <value>The volume.</value>
-        public double Volume 
-        { 
-            get => _volume; 
-            set
-            {
-                _volume = value;
-                // queue the gain step to change
-                NewGainStep = value / (Metronome.SampleRate * DecayLength);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the offset in samples.
-        /// </summary>
-        /// <value>The offset.</value>
-        public double Offset
-        {
-            get => CurrentOffset;
-            set
-            {
-                InitialOffset = CurrentOffset = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the interval loop which provides the beat cell duration values in samples.
-        /// </summary>
-        /// <value>The interval loop.</value>
-        public SampleIntervalLoop IntervalLoop { get; set; }
-
-        /// <summary>
-        /// Gets or sets the pan from -1 to 1.
-        /// </summary>
-        /// <value>The pan.</value>
-        public float Pan
-        {
-			get { return pan; }
-			set
-			{
-				pan = value;
-
-				left = (Pan + 1f) / 2;
-				right = (2 - (Pan + 1f)) / 2;
-			}
-        }
-
-        public Layer Layer { get; set; }
         #endregion
 
         #region constructors
-        public PitchStream(StreamInfoProvider info, Layer layer)
+        public PitchStream(StreamInfoProvider info, Layer layer) : base(info, layer)
         {
-            _info = info;
-
             // Create the audio format
             _format = new AudioStreamBasicDescription()
             {
@@ -146,12 +88,15 @@ namespace Pronome
                 BytesPerFrame = 4,
                 BytesPerPacket = 4
             };
-
-            Layer = layer;
         }
 		#endregion
 
 		#region Static Methods
+        public static void SetDecayLength(double value)
+        {
+            NewGainStep = 1 / (Metronome.SampleRate * value);
+        }
+
 		/**<summary>Convert a pitch symbol or raw number into a hertz value.</summary>
          * <param name="symbol">The symbol to convert from.</param>
          */
@@ -190,7 +135,7 @@ namespace Pronome
         /// <summary>
         /// Adds to the list of frequencies in order.
         /// </summary>
-        /// <param name="freq">Freq.</param>
+        /// <param name="symbol">Freq.</param>
         public void AddFrequency(string symbol)
         {
             double freq = ConvertFromSymbol(symbol);
@@ -207,51 +152,50 @@ namespace Pronome
 
         private float sampleValue = 0;
 
-        public unsafe void Read(float* leftBuffer, float* rightBuffer, uint count)
+        public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count)
         {
-            if (CurrentOffset > 0)
-            {
-                // account for the offset
-                int amount = (int)Math.Min(CurrentOffset, count);
-                CurrentOffset -= amount;
-                count -= (uint)amount;
-
-                // add remainder to the layer
-                if (CurrentOffset < 1)
-                {
-                    Layer.SampleRemainder += CurrentOffset;
-                    CurrentOffset = 0;
-                }
-            }
+            // account for any offset
+            count = HandleOffset(leftBuffer, rightBuffer, count);
 
             for (uint i = 0; i < count; i++)
             {
                 if (SampleInterval == 0)
                 {
-                    MoveToNextByteInterval();
+                    MoveToNextSampleInterval();
 
                     double oldFreq = Frequency;
                     //double oldWavelength = WaveLength;
 					
-                    MoveToNextFrequency();
-                    if (!oldFreq.Equals(Frequency))
-                    {
-						WaveLength = Metronome.SampleRate / Frequency;
-                    }
-                    // set the sample index if transitioning from an active note
-                    if (Gain > 0) 
-                    {
-                        //double positionRatio = (_sample % oldWavelength) / oldWavelength;
-                        //_sample = (int)(WaveLength * positionRatio);
+                    double newFreq = MoveToNextFrequency();
 
-                        _sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
-                    }
-                    else
+                    // check for random or interval muting
+                    if (!WillRandomMute() &&
+                        !SilentIntervalMuted())
                     {
-                        _sample = 0;
+                        Frequency = newFreq;
+						if (!oldFreq.Equals(Frequency))
+						{
+							WaveLength = Metronome.SampleRate / Frequency;
+						}
+						// set the sample index if transitioning from an active note
+						if (Gain > 0) 
+						{
+							//double positionRatio = (_sample % oldWavelength) / oldWavelength;
+							//_sample = (int)(WaveLength * positionRatio);
+							
+							_sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
+						}
+						else
+						{
+							_sample = 0;
+						}
+						
+						Gain = 1; // back to full volume
+
+                        // propagate a change of the gain step
+                        GainStep = NewGainStep;
                     }
 
-					Gain = Volume; // back to full volume
                 }
 
                 if (Gain > 0)
@@ -259,18 +203,39 @@ namespace Pronome
                     sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
                     _sample++;
                     Gain -= GainStep;
-                    leftBuffer[i] = sampleValue * left;
-                    rightBuffer[i] = sampleValue * right;
+                    //leftBuffer[i] = sampleValue * left;
+                    //rightBuffer[i] = sampleValue * right;
+
+                    leftBuffer[i] = rightBuffer[i] = sampleValue;
                 }
+                else
+                {
+                    leftBuffer[i] = rightBuffer[i] = 0;
+                }
+
+                if (Metronome.Instance.IsSilentIntervalEngaged) _silentInterval--;
+                SampleInterval--;
             }
         }
+
+        /// <summary>
+        /// Reset the internals of this instance so that it plays from the start.
+        /// </summary>
+        public override void Reset()
+        {
+            _currentFrequency = null;
+
+            base.Reset();
+        }
+
+        public override void Dispose() {}
         #endregion
 
         #region protected methods
         /// <summary>
-        /// Moves to the next frequency.
+        /// Moves the freq linked list to the next frequency. Returns the new frequency.
         /// </summary>
-        protected void MoveToNextFrequency()
+        protected double MoveToNextFrequency()
         {
             // get the next frequency in the list
             _currentFrequency = _currentFrequency?.Next;
@@ -281,14 +246,7 @@ namespace Pronome
                 _currentFrequency = _frequencies.First;
             }
 
-            Frequency = _currentFrequency.Value;
-        }
-
-        protected void MoveToNextByteInterval()
-        {
-            IntervalLoop.Enumerator.MoveNext();
-
-            SampleInterval = IntervalLoop.Enumerator.Current;
+            return _currentFrequency.Value;
         }
         #endregion
     }

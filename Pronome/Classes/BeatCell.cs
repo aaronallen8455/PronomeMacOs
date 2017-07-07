@@ -225,7 +225,7 @@ namespace Pronome
                 n /= gcf;
                 d /= gcf;
                 // replace with simplified fraction
-                int index = value.IndexOf(m.Value);
+                int index = value.IndexOf(m.Value, StringComparison.InvariantCulture);
                 value = value.Substring(0, index) + n.ToString() + '/' + d.ToString() + value.Substring(index + m.Length);
             }
 
@@ -258,7 +258,7 @@ namespace Pronome
                 numerator += num * ratio * (sign == "-" ? -1 : 1);
 
                 // remove all individual fraction to be replaced by 1 big fraction
-                int index = value.IndexOf(m.Value);
+                int index = value.IndexOf(m.Value, StringComparison.InvariantCulture);
                 value = value.Remove(index, m.Length);
             }
             //value = numerator.ToString() + '/' + lcd.ToString() + value;
@@ -435,7 +435,7 @@ namespace Pronome
                 return "";
             }
 
-            char[] ops = new char[] { '+', '-', '/', '*' };
+            char[] ops = { '+', '-', '/', '*' };
             StringBuilder sb = new StringBuilder(exp);
 
             if (exp[0] == '-')

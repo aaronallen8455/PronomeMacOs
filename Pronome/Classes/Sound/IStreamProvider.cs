@@ -22,5 +22,11 @@ namespace Pronome
         SampleIntervalLoop IntervalLoop { get; set; }
 
         Layer Layer { get; }
+
+        unsafe void Read(float* leftBuffer, float* rightBuffer, uint count);
+
+        void Dispose();
+
+        void SetInitialMuting();
     }
 }

@@ -25,14 +25,9 @@ namespace Pronome
         /// </summary>
         public List<BeatCell> Beat = new List<BeatCell>();
 
-        /// <summary>
-        /// The base stream info.
-        /// </summary>
-        public StreamInfoProvider BaseStreamInfo;
-
         /** <summary>The beat code string that was passed in to create the rhythm of this layer.</summary> */
         [DataMember]
-        public string ParsedString;
+        public string ParsedString = "1";
 
         /**<summary>The string that was parsed to get the offset value.</summary>*/
         [DataMember]
@@ -66,7 +61,7 @@ namespace Pronome
         #endregion
 
         #region Databound Properties
-        private string _beatCode = "1";
+        //private string _beatCode = "1";
         /// <summary>
         /// Gets or sets the raw beat code string.
         /// </summary>
@@ -74,16 +69,19 @@ namespace Pronome
         [Export("BeatCode")]
         public string BeatCode
         {
-            get => _beatCode;
+            get => ParsedString;
             set
             {
                 WillChangeValue("BeatCode");
-                _beatCode = value;
+                // validate beat code
+                ParsedString = value;
+                // parse the beatcode
+                Parse(ParsedString);
                 DidChangeValue("BeatCode");
             }
         }
 
-        private string _offset = "";
+        //private string _offset = "";
         protected double OffsetBpm;
         /// <summary>
         /// Gets or sets the raw offset string.
@@ -92,14 +90,29 @@ namespace Pronome
         [Export("Offset")]
         public string Offset
         {
-            get => _offset;
+            get => ParsedOffset;
             set
             {
                 WillChangeValue("Offset");
+                double oldOffsetBpm = OffsetBpm;
                 // Validate the beatCode
                 if (BeatCell.TryParse(value, out OffsetBpm))
                 {
-					_offset = value;
+                    ParsedOffset = value;
+
+                    // set the offset on all sources
+                    double offsetSamples = Metronome.Instance.ConvertBpmToSamples(OffsetBpm - oldOffsetBpm);
+
+                    foreach (IStreamProvider stream in AudioSources.Values)
+                    {
+                        stream.Offset = stream.Offset + offsetSamples;
+                    }
+
+                    BaseAudioSource.Offset = BaseAudioSource.Offset + offsetSamples;
+                    if (!BaseStreamInfo.IsPitch && PitchSource != null)
+                    {
+                        PitchSource.Offset = PitchSource.Offset + offsetSamples;
+                    }
                 }
                 DidChangeValue("Offset");
             }
@@ -121,13 +134,30 @@ namespace Pronome
                 _volume = value;
 
                 // set volume on sound sources
-                double newVolume = value * Metronome.Instance.Volume;
-                if (AudioSources != null)
+                //double newVolume = value * Metronome.Instance.Volume;
+                //if (AudioSources != null)
+                //{
+                //    foreach (IStreamProvider src in AudioSources.Values) src.Volume = newVolume;
+                //}
+                //if (BaseAudioSource != null) BaseAudioSource.Volume = newVolume;
+                //if (PitchSource != null && !BaseStreamInfo.IsPitch) PitchSource.Volume = newVolume;
+
+                // set the volume for all streams
+                foreach (IStreamProvider src in AudioSources.Values)
                 {
-                    foreach (IStreamProvider src in AudioSources.Values) src.Volume = newVolume;
+                    src.Volume = value;
                 }
-                if (BaseAudioSource != null) BaseAudioSource.Volume = newVolume;
-                if (PitchSource != null && !BaseStreamInfo.IsPitch) PitchSource.Volume = newVolume;
+
+                if (BaseAudioSource != null)
+                {
+					BaseAudioSource.Volume = value;
+
+					if (!BaseStreamInfo.IsPitch && PitchSource != null)
+					{
+						PitchSource.Volume = value;
+					}
+                }
+
 
                 DidChangeValue("Volume");
             }
@@ -150,10 +180,61 @@ namespace Pronome
                 // set on audio sources
                 float newPan = (float)value;
                 foreach (IStreamProvider src in AudioSources.Values) src.Pan = newPan;
-                BaseAudioSource.Pan = newPan;
-                if (PitchSource != null && !BaseStreamInfo.IsPitch) PitchSource.Pan = newPan;
+
+                if (BaseAudioSource != null)
+                {
+					BaseAudioSource.Pan = newPan;
+					if (PitchSource != null && !BaseStreamInfo.IsPitch) PitchSource.Pan = newPan;
+                }
 
                 DidChangeValue("Pan");
+            }
+        }
+
+        private string _sourceInput;
+        /// <summary>
+        /// Gets or sets the source input's value.
+        /// </summary>
+        /// <value>The source input.</value>
+        [Export("Source")]
+        public string SourceInput
+        {
+            get => _sourceInput;
+            set
+            {
+                WillChangeValue("Source");
+                _sourceInput = value;
+                // set the isPitchHidden property
+                PitchInputVisible = value != "Pitch";
+                DidChangeValue("Source");
+            }
+        }
+
+        private string _pitchInput;
+        [Export("Pitch")]
+        public string PitchInput
+        {
+            get => _pitchInput;
+            set 
+            {
+                WillChangeValue("Pitch");
+                // validate pitch input
+
+                _pitchInput = value;
+                DidChangeValue("Pitch");
+            }
+        }
+
+        private bool _pitchInputVisible;
+        [Export("IsPitchHidden")]
+        public bool PitchInputVisible
+        {
+            get => _pitchInputVisible;
+            set
+            {
+                WillChangeValue("IsPitchHidden");
+                _pitchInputVisible = value;
+                DidChangeValue("IsPitchHidden");
             }
         }
 
@@ -190,10 +271,20 @@ namespace Pronome
                 DidChangeValue("IsSoloed");
             }
         }
+		#endregion
+
+		#region Public Properties
+		/// <summary>
+		/// The base stream info.
+		/// </summary>
+		public StreamInfoProvider BaseStreamInfo
+        {
+            get => BaseAudioSource?.Info;
+        }
         #endregion
 
-        #region Constructor
-        public Layer(string beat, StreamInfoProvider baseSource = null, string offset = "", float pan = 0f, float volume = 1f)
+        #region Constructors
+        public Layer(string beat = "1", StreamInfoProvider baseSource = null, string offset = "", float pan = 0f, float volume = 1f)
         {
             if (baseSource == null) // auto generate a pitch if no source is specified
             {
@@ -203,13 +294,18 @@ namespace Pronome
             {
                 SetBaseSource(baseSource);
             }
-
+			
             Offset = offset;
-
+			
             Parse(beat); // parse the beat code into this layer
             Volume = volume;
             Pan = pan;
 
+            if (BaseStreamInfo.IsPitch)
+            {
+                PitchInput = BaseStreamInfo.Uri;
+            }
+			
             Metronome.Instance.AddLayer(this);
         }
         #endregion
@@ -670,7 +766,8 @@ namespace Pronome
 				}
 				else
 				{
-					offset = Beat.TakeWhile(x => x.SoundSource == InternalSource.Library[0]).Select(x => x.Bpm).Sum() + OffsetBpm;
+                    // find the bpm values of any silent cells at the front
+                    offset = Beat.TakeWhile(x => x.SoundSource == StreamInfoProvider.InternalSourceLibrary[0]).Select(x => x.Bpm).Sum() + OffsetBpm;
 				}
                 offset = met.ConvertBpmToSamples(offset);
                 BaseAudioSource.Offset = offset;
@@ -736,7 +833,7 @@ namespace Pronome
 			BaseSourceName = baseSource.Uri;
 
 			// reassign source to existing cells that use the base source. base source beats will have an empty string
-			if (Beat != null)
+            if (Beat.Any())
 			{
 				SetBeat(Beat.ToArray());
 			}
@@ -747,7 +844,7 @@ namespace Pronome
 		public void SetBeat(BeatCell[] beat)
 		{
 			// deal with the old audio sources.
-			if (Beat != null)
+            if (Beat.Any())
 			{
 				// dispose wav audio sources if not the base
 				foreach (IStreamProvider src in AudioSources.Values)//.Where(x => x != BaseAudioSource))
@@ -758,29 +855,6 @@ namespace Pronome
 				AudioSources.Clear();
 				BaseAudioSource.Offset = 0;
 
-				//// if altering beat while playing, we should rebuild ALL sources
-                //if (Metronome.Instance.PlayState != Metronome.State.Stopped)
-				//{
-				//	Metronome.GetInstance().RemoveAudioSource(BaseAudioSource);
-				//	if (IsPitch)
-				//	{
-				//		BasePitchSource = new PitchStream(BasePitchSource.SoundSource)
-				//		{
-				//			Layer = this,
-				//			Volume = Volume
-				//		};
-				//		BaseAudioSource = BasePitchSource;
-				//	}
-				//	else
-				//	{
-				//		BaseAudioSource = new WavFileStream(BaseAudioSource.SoundSource)
-				//		{
-				//			Layer = this,
-				//			Volume = Volume
-				//		};
-				//	}
-				//}
-
                 if (BaseStreamInfo.IsPitch) // need to rebuild the pitch source
 				{
                     PitchSource?.ClearFrequencies();
@@ -790,8 +864,8 @@ namespace Pronome
 				{
 					if (PitchSource != null)
 					{
-                        Metronome.Instance.RemoveAudioSource(BasePitchSource);
-						PitchSource.Dispose();
+                        Metronome.Instance.RemoveAudioSource(PitchSource);
+						//PitchSource.Dispose();
 						PitchSource = null;
 					}
 				}
