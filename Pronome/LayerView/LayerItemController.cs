@@ -27,6 +27,12 @@ namespace Pronome
                 DidChangeValue("Layer");
             }
         }
+
+        [Export("Metronome")]
+        public Metronome Metronome
+        {
+            get => Metronome.Instance;
+        }
         #endregion
 
         #region Constructors

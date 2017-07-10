@@ -38,6 +38,41 @@ namespace Pronome
 
             layerViewC.AddLayer(new Layer());
         }
+
+        partial void PlayButtonAction(NSObject sender)
+        {
+            if (Metronome.Instance.Play())
+            {
+                // disable the play button
+                PlayButton.Enabled = false;
+                // enable the pause and stop buttons
+                PauseButton.Enabled = true;
+                StopButton.Enabled = true;
+            }
+        }
+
+        partial void PauseButtonAction(NSObject sender)
+        {
+            if (Metronome.Instance.Pause())
+            {
+                // enable the play button
+                PlayButton.Enabled = true;
+                // disable the pause button
+                PauseButton.Enabled = false;
+            }
+        }
+
+        partial void StopButtonAction(NSObject sender)
+        {
+            if (Metronome.Instance.Stop())
+            {
+                // enable the play button
+                PlayButton.Enabled = true;
+                // disable the pause and stop buttons
+                PauseButton.Enabled = false;
+                StopButton.Enabled = false;
+            }
+        }
         #endregion
     }
 }

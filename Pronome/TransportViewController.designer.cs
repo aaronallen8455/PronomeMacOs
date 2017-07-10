@@ -12,11 +12,43 @@ namespace Pronome
 	[Register ("TransportViewController")]
 	partial class TransportViewController
 	{
+		[Outlet]
+		AppKit.NSButton PauseButton { get; set; }
+
+		[Outlet]
+		AppKit.NSButton PlayButton { get; set; }
+
+		[Outlet]
+		AppKit.NSButton StopButton { get; set; }
+
 		[Action ("NewLayerAction:")]
 		partial void NewLayerAction (Foundation.NSObject sender);
+
+		[Action ("PauseButtonAction:")]
+		partial void PauseButtonAction (Foundation.NSObject sender);
+
+		[Action ("PlayButtonAction:")]
+		partial void PlayButtonAction (Foundation.NSObject sender);
+
+		[Action ("StopButtonAction:")]
+		partial void StopButtonAction (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (StopButton != null) {
+				StopButton.Dispose ();
+				StopButton = null;
+			}
+
+			if (PauseButton != null) {
+				PauseButton.Dispose ();
+				PauseButton = null;
+			}
+
+			if (PlayButton != null) {
+				PlayButton.Dispose ();
+				PlayButton = null;
+			}
 		}
 	}
 }

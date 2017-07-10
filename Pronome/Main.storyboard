@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -705,6 +706,11 @@
                                 </buttonCell>
                                 <connections>
                                     <action selector="NewLayerAction:" target="59N-8S-Y2z" id="q9s-AV-mXY"/>
+                                    <binding destination="59N-8S-Y2z" name="enabled" keyPath="self.Metronome.IsPlaying" id="zJc-bQ-LtB">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d60-Oe-h4N">
@@ -714,22 +720,31 @@
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="PlayButtonAction:" target="59N-8S-Y2z" id="wZv-gT-wMk"/>
+                                </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y5z-i4-6tX">
                                 <rect key="frame" x="174" y="252" width="66" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Pause" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="wuo-wK-BeF">
+                                <buttonCell key="cell" type="push" title="Pause" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="wuo-wK-BeF">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="PauseButtonAction:" target="59N-8S-Y2z" id="y7b-fo-tDV"/>
+                                </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cGr-DM-aS1">
                                 <rect key="frame" x="240" y="252" width="69" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Stop" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BMA-84-fYV">
+                                <buttonCell key="cell" type="push" title="Stop" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BMA-84-fYV">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="StopButtonAction:" target="59N-8S-Y2z" id="qQ9-xp-sFU"/>
+                                </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hfs-Vt-f3T">
                                 <rect key="frame" x="14" y="219" width="82" height="32"/>
@@ -773,6 +788,11 @@
                             </textField>
                         </subviews>
                     </view>
+                    <connections>
+                        <outlet property="PauseButton" destination="y5z-i4-6tX" id="o5f-hs-OCc"/>
+                        <outlet property="PlayButton" destination="d60-Oe-h4N" id="tJL-5Z-yX1"/>
+                        <outlet property="StopButton" destination="cGr-DM-aS1" id="YAv-uI-sY8"/>
+                    </connections>
                 </viewController>
                 <customObject id="pRY-Wm-eDz" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>

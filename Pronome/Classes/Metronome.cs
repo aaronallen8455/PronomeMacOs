@@ -12,6 +12,7 @@ namespace Pronome
         #region Private variables
         private nfloat _volume = 1f;
         private nfloat _tempo = 120f;
+        private bool _isPlaying; // used to enable/disable UI elements
 
         protected Mixer Mixer = new Mixer();
         #endregion
@@ -83,6 +84,18 @@ namespace Pronome
                 DidChangeValue("Tempo");
             }
         }
+
+        [Export("IsPlaying")]
+        public bool IsPlaying
+        {
+            get => _isPlaying;
+            set
+            {
+                WillChangeValue("IsPlaying");
+                _isPlaying = value;
+                DidChangeValue("IsPlaying");
+            }
+        }
         #endregion
 
         #region Static Properties
@@ -118,17 +131,22 @@ namespace Pronome
             return result;
         }
 
-        public void Play()
+        public bool Play()
         {
             if (PlayState != PlayStates.Playing)
             {
 				Mixer.Start();
 
                 PlayState = PlayStates.Playing;
+
+                IsPlaying = true;
+
+                return true;
             }
+            return false;
         }
 
-        public void Stop()
+        public bool Stop()
         {
             if (PlayState != PlayStates.Stopped)
             {
@@ -136,17 +154,25 @@ namespace Pronome
                 // reset the streams to starting position
 
                 PlayState = PlayStates.Stopped;
+
+                IsPlaying = false;
+
+                return true;
             }
+            return false;
         }
 
-        public void Pause()
+        public bool Pause()
         {
             if (PlayState == PlayStates.Playing)
             {
 				Mixer.Stop();
 
                 PlayState = PlayStates.Paused;
+
+                return true;
             }
+            return false;
         }
 
         /// <summary>

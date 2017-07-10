@@ -236,6 +236,8 @@ namespace Pronome
             }
 
             MixerNode = Graph.GetNodeInfo(mixerNode);
+            // must set ouput volume because it defaults to 0
+            MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerVolume, 1, AudioUnitScopeType.Output, 0);
 
             ConfigureMixerInputs();
 
@@ -301,6 +303,8 @@ namespace Pronome
 
                 pitchStream.Read(outLeft, outRight, numberFrames);
             }
+
+            var x = outLeft[0];
 
             return AudioUnitStatus.OK;
 		}

@@ -21,7 +21,8 @@ namespace Pronome
         {
             Layer = layer;
             Bpm = bpm;
-            Enumerator = GetEnumerator();
+            ConvertBpmValues();
+            Enumerator = bpm.Length == 1 && bpm[0] == 0 ? null : GetEnumerator();
         }
         #endregion
 

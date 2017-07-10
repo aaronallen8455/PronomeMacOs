@@ -34,6 +34,11 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
+                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="obV-6V-yLP">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                     <binding destination="-2" name="value" keyPath="self.Layer.BeatCode" id="ZIJ-Vf-t7x"/>
                                 </connections>
                             </textField>
@@ -46,6 +51,11 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
+                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="c3X-8I-2hH">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Offset" id="qSX-C0-Of8"/>
                                 </connections>
                             </textField>
@@ -117,6 +127,11 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </comboBoxCell>
                                 <connections>
+                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="yPh-Mh-7wi">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Source" id="8gw-P3-kAk"/>
                                 </connections>
                             </comboBox>
@@ -137,7 +152,12 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
-                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" id="Vg0-vY-7mM"/>
+                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="fRA-j5-JOF">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
+                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" previousBinding="fRA-j5-JOF" id="mny-DU-fW2"/>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Pitch" id="MSC-2B-xM3"/>
                                 </connections>
                             </textField>
