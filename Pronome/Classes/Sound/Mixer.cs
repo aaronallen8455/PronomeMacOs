@@ -265,6 +265,7 @@ namespace Pronome
         {
             if (MixerNode != null)
             {
+                
                 // set the element count
                 if (MixerNode.SetElementCount(AudioUnitScopeType.Input, (uint)Streams.Count) != AudioUnitStatus.OK)
                 {
@@ -292,6 +293,12 @@ namespace Pronome
 
         unsafe AudioUnitStatus HandleRenderDelegate(AudioUnitRenderActionFlags actionFlags, AudioTimeStamp timeStamp, uint busNumber, uint numberFrames, AudioBuffers data)
 		{
+            if (busNumber >= Streams.Count) 
+            {
+                // this prevents the buffer from doubling up with unused buses
+                return AudioUnitStatus.InvalidElement;
+            }
+
             IStreamProvider source = Streams[(int)busNumber];
 
             var outLeft = (float*)data[0].Data;

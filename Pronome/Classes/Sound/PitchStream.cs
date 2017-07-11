@@ -49,24 +49,24 @@ namespace Pronome
         /// <summary>
         /// The current offset in samples.
         /// </summary>
-        double CurrentOffset;
+        //double CurrentOffset;
 
         /// <summary>
         /// The initial offset in samples.
         /// </summary>
-        double InitialOffset;
+        //double InitialOffset;
 
         /// <summary>
         /// The length of the wave in samples.
         /// </summary>
         double WaveLength;
 
-		private float pan;
+		//private float pan;
 		//private float left; // left channel coeficient
 		//private float right; // right channel coeficient
 
         long _silentInterval;
-        bool _intervalIsSilent = true; // True if the phase of the interval is Silent
+        //bool _intervalIsSilent = true; // True if the phase of the interval is Silent
         #endregion
 
         #region public properties
@@ -228,7 +228,10 @@ namespace Pronome
             base.Reset();
         }
 
-        public override void Dispose() {}
+        public override void Dispose() 
+        {
+            //IntervalLoop.Dispose();
+        }
         #endregion
 
         #region protected methods

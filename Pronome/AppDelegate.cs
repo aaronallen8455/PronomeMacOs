@@ -18,6 +18,7 @@ namespace Pronome
         public override void WillTerminate(NSNotification notification)
         {
             // Insert code here to tear down your application
+            Metronome.Instance.Cleanup();
         }
     }
 }

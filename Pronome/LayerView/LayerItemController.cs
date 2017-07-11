@@ -73,6 +73,8 @@ namespace Pronome
             LayerViewController.Instance.RemoveLayer(Layer);
 
             Layer = null;
+
+            Dispose();
         }
 
         public override void AwakeFromNib()

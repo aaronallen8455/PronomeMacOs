@@ -27,6 +27,14 @@ namespace Pronome
 
         void Dispose();
 
+        /// <summary>
+        /// Sets the initial muting, only applicable to audio file sources.
+        /// </summary>
         void SetInitialMuting();
+
+        /// <summary>
+        /// Reset this instance so that it plays from the start. Attaches to the 
+        /// </summary>
+        void Reset();
     }
 }

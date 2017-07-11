@@ -81,6 +81,7 @@ namespace Pronome
             {
                 WillChangeValue("Tempo");
                 _tempo = value;
+                OnTempoChanged(EventArgs.Empty); // invoke the event
                 DidChangeValue("Tempo");
             }
         }
@@ -141,6 +142,8 @@ namespace Pronome
 
                 IsPlaying = true;
 
+                OnStarted(EventArgs.Empty);
+
                 return true;
             }
             return false;
@@ -157,6 +160,8 @@ namespace Pronome
 
                 IsPlaying = false;
 
+                OnStopped(EventArgs.Empty);
+
                 return true;
             }
             return false;
@@ -169,6 +174,8 @@ namespace Pronome
 				Mixer.Stop();
 
                 PlayState = PlayStates.Paused;
+
+                OnPaused(EventArgs.Empty);
 
                 return true;
             }
@@ -196,12 +203,38 @@ namespace Pronome
         }
 
         /// <summary>
+        /// Sets the muting of a mixer input.
+        /// </summary>
+        /// <param name="stream">Stream.</param>
+        /// <param name="isOn">If set to <c>true</c> is on.</param>
+        public void SetMutingOfMixerInput(IStreamProvider stream, bool isOn)
+        {
+            Mixer.EnableInput(stream, isOn);
+        }
+
+        /// <summary>
         /// Adds a layer.
         /// </summary>
         /// <param name="layer">Layer.</param>
         public void AddLayer(Layer layer)
         {
             Layers.Add(layer);
+        }
+
+        /// <summary>
+        /// Removes the layer, removes all it's streams from the mixer and cleans up.
+        /// </summary>
+        /// <param name="layer">Layer.</param>
+        public void RemoveLayer(Layer layer)
+        {
+            foreach (IStreamProvider src in layer.GetAllStreams())
+            {
+                RemoveAudioSource(src);
+            }
+
+            Layers.Remove(layer);
+
+            layer.Cleanup();
         }
 
         /// <summary>
@@ -251,18 +284,63 @@ namespace Pronome
 			//}
 		}
 
-        protected override void Dispose(bool disposing)
+        public void Cleanup()
         {
-            // Dispose the mixer
-            Mixer.Dispose();
-
-            base.Dispose(disposing);
+			// Dispose the mixer
+			Mixer.Dispose();
+			// null the events
+			TempoChanged = null;
+			Started = null;
+			Stopped = null;
+			Paused = null;
         }
-		#endregion
+        #endregion
 
-		#region Public Static Methods
-		/** <summary>Used for random muting.</summary> */
-		protected static ThreadLocal<Random> Rand;
+        #region Events
+        /// <summary>
+        /// Occurs when tempo changed.
+        /// </summary>
+        public event EventHandler TempoChanged;
+
+        protected virtual void OnTempoChanged(EventArgs e)
+        {
+            TempoChanged?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// Occurs when playback started.
+        /// </summary>
+        public event EventHandler Started;
+
+        protected virtual void OnStarted(EventArgs e)
+        {
+            Started?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// Occurs when playback paused.
+        /// </summary>
+        public event EventHandler Paused;
+
+        protected virtual void OnPaused(EventArgs e)
+        {
+            Paused?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// Occurs when playback stopped.
+        /// </summary>
+        public event EventHandler Stopped;
+
+        protected virtual void OnStopped(EventArgs e)
+        {
+            Stopped?.Invoke(this, e);
+        }
+        #endregion
+
+        #region Public Static Methods
+        /** <summary>Used for random muting.</summary> */
+        protected static ThreadLocal<Random> Rand;
 		/**<summary>Get random number btwn 0 and 99.</summary>*/
 		public static int GetRandomNum()
 		{

@@ -133,31 +133,8 @@ namespace Pronome
                 WillChangeValue("Volume");
                 _volume = value;
 
-                // set volume on sound sources
-                //double newVolume = value * Metronome.Instance.Volume;
-                //if (AudioSources != null)
-                //{
-                //    foreach (IStreamProvider src in AudioSources.Values) src.Volume = newVolume;
-                //}
-                //if (BaseAudioSource != null) BaseAudioSource.Volume = newVolume;
-                //if (PitchSource != null && !BaseStreamInfo.IsPitch) PitchSource.Volume = newVolume;
-
                 // set the volume for all streams
-                foreach (IStreamProvider src in AudioSources.Values)
-                {
-                    src.Volume = value;
-                }
-
-                if (BaseAudioSource != null)
-                {
-					BaseAudioSource.Volume = value;
-
-					if (!BaseStreamInfo.IsPitch && PitchSource != null)
-					{
-						PitchSource.Volume = value;
-					}
-                }
-
+                foreach (IStreamProvider src in GetAllStreams()) src.Volume = value;
 
                 DidChangeValue("Volume");
             }
@@ -179,13 +156,7 @@ namespace Pronome
                 _pan = value;
                 // set on audio sources
                 float newPan = (float)value;
-                foreach (IStreamProvider src in AudioSources.Values) src.Pan = newPan;
-
-                if (BaseAudioSource != null)
-                {
-					BaseAudioSource.Pan = newPan;
-					if (PitchSource != null && !BaseStreamInfo.IsPitch) PitchSource.Pan = newPan;
-                }
+                foreach (IStreamProvider src in GetAllStreams()) src.Pan = newPan;
 
                 DidChangeValue("Pan");
             }
@@ -251,6 +222,7 @@ namespace Pronome
             {
                 WillChangeValue("IsMuted");
                 _muted = value;
+                UpdateMuting();
                 DidChangeValue("IsMuted");
             }
         }
@@ -268,6 +240,7 @@ namespace Pronome
             {
                 WillChangeValue("IsSoloed");
                 _soloed = value;
+                UpdateMuting();
                 DidChangeValue("IsSoloed");
             }
         }
@@ -299,7 +272,8 @@ namespace Pronome
 			
             Parse(beat); // parse the beat code into this layer
             Volume = volume;
-            Pan = pan;
+
+            //Pan = pan; causes crash for some reason
 
             if (BaseStreamInfo.IsPitch)
             {
@@ -491,16 +465,82 @@ namespace Pronome
 
 			return note + octave;
 		}
+
+		/**<summary>Sum up all the Bpm values for beat cells.</summary>*/
+		public double GetTotalBpmValue()
+		{
+			return Beat.Select(x => x.Bpm).Sum();
+		}
+
+        /// <summary>
+        /// Gets all streams.
+        /// </summary>
+        /// <returns>The all streams.</returns>
+        public IEnumerable<IStreamProvider> GetAllStreams()
+        {
+            IEnumerable<IStreamProvider> sources = AudioSources.Values.Concat(new IStreamProvider[] { BaseAudioSource });
+            if (!BaseStreamInfo.IsPitch && PitchSource != null)
+            {
+                sources.Concat(new IStreamProvider[] { PitchSource });
+            }
+
+            return sources;
+        }
+
+		/** <summary>Reset this layer so that it will play from the start.</summary> */
+		public void Reset()
+		{
+			SampleRemainder = 0;
+			foreach (IStreamProvider src in AudioSources.Values.Concat(new IStreamProvider[] { BaseAudioSource }))
+			{
+				src.Reset();
+				src.SetInitialMuting();
+			}
+			//BaseAudioSource.Reset();
+			if (PitchSource != default(PitchStream) && !BaseStreamInfo.IsPitch)
+				PitchSource.Reset();
+		}
 		#endregion
 
-		#region Protected Methods
-		/// <summary>
-		/// Recursively build a beat string based on the reference index.
-		/// </summary>
-		/// <param name="reference">Referenced beat index</param>
-		/// <param name="visitedIndexes">Holds the previously visited beats</param>
-		/// <returns>The replacement string</returns>
-		protected string ResolveReferences(int reference, HashSet<int> visitedIndexes = null)
+		#region Static Methods
+        /// <summary>
+        /// Updates the muting for all layers.
+        /// </summary>
+		static public void UpdateMuting()
+		{
+			// is there an open solo group?
+			bool soloGroup = Metronome.Instance.Layers.Any(x => x.IsSoloed);
+
+			foreach (Layer layer in Metronome.Instance.Layers)
+			{
+				// mute all streams that are not soloed if a solo group is open
+				if (soloGroup)
+				{
+					foreach (IStreamProvider src in layer.GetAllStreams())
+					{
+						Metronome.Instance.SetMutingOfMixerInput(src, !layer.IsMuted && layer.IsSoloed);
+					}
+				}
+				else
+				{
+					// mute streams that have the mute switch toggled
+					foreach (IStreamProvider src in layer.GetAllStreams())
+					{
+						Metronome.Instance.SetMutingOfMixerInput(src, !layer.IsMuted);
+					}
+				}
+			}
+		}
+        #endregion
+
+        #region Protected Methods
+        /// <summary>
+        /// Recursively build a beat string based on the reference index.
+        /// </summary>
+        /// <param name="reference">Referenced beat index</param>
+        /// <param name="visitedIndexes">Holds the previously visited beats</param>
+        /// <returns>The replacement string</returns>
+        protected string ResolveReferences(int reference, HashSet<int> visitedIndexes = null)
 		{
             Metronome met = Metronome.Instance;
 
@@ -1001,6 +1041,15 @@ namespace Pronome
 
             Metronome.Instance.AddSourcesFromLayer(this);
 		}
+
+        public void Cleanup()
+        {
+            Beat = null;
+            foreach(IStreamProvider src in GetAllStreams())
+			{
+				src.Dispose();
+			}
+        }
         #endregion
     }
 }

@@ -3,7 +3,7 @@ using AudioToolbox;
 
 namespace Pronome
 {
-    public abstract class AbstractStream : IStreamProvider
+    public abstract class AbstractStream : IStreamProvider, IDisposable
     {
 		#region private/protected variables
 		protected StreamInfoProvider _info;
@@ -103,6 +103,9 @@ namespace Pronome
 		{
             Layer = layer;
             _info = info;
+
+            // reset when playback stops
+            Metronome.Instance.Stopped += Reset;
 		}
 		#endregion
 
@@ -120,9 +123,19 @@ namespace Pronome
 			_intervalIsSilent = true;
 		}
 
+        public virtual void Reset(object sender, EventArgs e)
+        {
+            Reset();
+        }
+
         unsafe abstract public void Read(float* leftBuffer, float* rightBuffer, uint count);
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        {
+            IntervalLoop.Dispose();
+
+            Metronome.Instance.Stopped -= Reset;
+        }
 
         public virtual void SetInitialMuting() {}
 		#endregion

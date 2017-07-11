@@ -63,6 +63,8 @@ namespace Pronome
             Datasource.Data.Remove(layer);
 
             LayerCollection.ReloadData();
+            // remove from metronome
+            Metronome.Instance.RemoveLayer(layer);
         }
         #endregion
 

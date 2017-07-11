@@ -767,9 +767,9 @@
                                 </connections>
                             </textField>
                             <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kuN-Tc-VVf">
-                                <rect key="frame" x="180" y="217" width="28" height="30"/>
+                                <rect key="frame" x="180" y="194" width="19" height="53"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" continuous="YES" alignment="left" maxValue="1" sliderType="circular" id="Civ-s6-t51"/>
+                                <sliderCell key="cell" continuous="YES" alignment="left" maxValue="1" tickMarkPosition="right" sliderType="linear" id="Civ-s6-t51"/>
                                 <connections>
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="snJ-gq-4Vx"/>
                                 </connections>
@@ -792,6 +792,7 @@
                         <outlet property="PauseButton" destination="y5z-i4-6tX" id="o5f-hs-OCc"/>
                         <outlet property="PlayButton" destination="d60-Oe-h4N" id="tJL-5Z-yX1"/>
                         <outlet property="StopButton" destination="cGr-DM-aS1" id="YAv-uI-sY8"/>
+                        <outlet property="TempoField" destination="0we-qS-jA1" id="OXy-C7-3dD"/>
                     </connections>
                 </viewController>
                 <customObject id="pRY-Wm-eDz" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

@@ -21,6 +21,9 @@ namespace Pronome
 		[Outlet]
 		AppKit.NSButton StopButton { get; set; }
 
+		[Outlet]
+		AppKit.NSTextField TempoField { get; set; }
+
 		[Action ("NewLayerAction:")]
 		partial void NewLayerAction (Foundation.NSObject sender);
 
@@ -35,11 +38,6 @@ namespace Pronome
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (StopButton != null) {
-				StopButton.Dispose ();
-				StopButton = null;
-			}
-
 			if (PauseButton != null) {
 				PauseButton.Dispose ();
 				PauseButton = null;
@@ -48,6 +46,16 @@ namespace Pronome
 			if (PlayButton != null) {
 				PlayButton.Dispose ();
 				PlayButton = null;
+			}
+
+			if (StopButton != null) {
+				StopButton.Dispose ();
+				StopButton = null;
+			}
+
+			if (TempoField != null) {
+				TempoField.Dispose ();
+				TempoField = null;
 			}
 		}
 	}

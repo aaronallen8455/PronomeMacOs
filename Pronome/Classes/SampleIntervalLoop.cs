@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
+using System;
 
 namespace Pronome
 {
-    public class SampleIntervalLoop : IEnumerable<long>
+    public class SampleIntervalLoop : IEnumerable<long>, IDisposable
     {
         #region Private Variables
         Layer Layer;
@@ -21,7 +22,8 @@ namespace Pronome
         {
             Layer = layer;
             Bpm = bpm;
-            ConvertBpmValues();
+            ConvertBpmValues(null, null);
+            Metronome.Instance.TempoChanged += ConvertBpmValues;
             Enumerator = bpm.Length == 1 && bpm[0] == 0 ? null : GetEnumerator();
         }
         #endregion
@@ -57,9 +59,15 @@ namespace Pronome
         /// <summary>
         /// Converts the bpm values.
         /// </summary>
-        public void ConvertBpmValues()
+        public void ConvertBpmValues(object sender, EventArgs e)
         {
             Beats = Bpm.Select(x => Metronome.Instance.ConvertBpmToSamples(x)).ToArray();
+        }
+
+        public void Dispose()
+        {
+            // release events
+            Metronome.Instance.TempoChanged -= ConvertBpmValues;
         }
         #endregion
     }

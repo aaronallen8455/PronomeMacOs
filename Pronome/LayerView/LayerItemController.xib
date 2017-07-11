@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -30,11 +31,11 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="jAv-bf-K6z">
                                     <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 </textFieldCell>
                                 <connections>
-                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="obV-6V-yLP">
+                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="5rG-Zy-LXR">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
@@ -51,12 +52,12 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Offset" id="qSX-C0-Of8"/>
                                     <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="c3X-8I-2hH">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
                                     </binding>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.Offset" id="qSX-C0-Of8"/>
                                 </connections>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="M3b-nC-PXz">
@@ -78,9 +79,9 @@
                                 </textFieldCell>
                             </textField>
                             <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="0aK-x2-5yQ">
-                                <rect key="frame" x="244" y="27" width="28" height="30"/>
+                                <rect key="frame" x="244" y="10" width="19" height="47"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" alignment="left" maxValue="1" doubleValue="1" allowsTickMarkValuesOnly="YES" sliderType="circular" id="WsL-2c-atz"/>
+                                <sliderCell key="cell" continuous="YES" alignment="left" maxValue="1" doubleValue="1" tickMarkPosition="right" allowsTickMarkValuesOnly="YES" sliderType="linear" id="WsL-2c-atz"/>
                                 <connections>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Volume" id="FuT-H8-yyo"/>
                                 </connections>
@@ -127,18 +128,18 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </comboBoxCell>
                                 <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Source" id="8gw-P3-kAk"/>
                                     <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="yPh-Mh-7wi">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
                                     </binding>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.Source" id="8gw-P3-kAk"/>
                                 </connections>
                             </comboBox>
                             <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="fZG-Tj-3vq">
-                                <rect key="frame" x="212" y="27" width="28" height="30"/>
+                                <rect key="frame" x="212" y="10" width="19" height="47"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" alignment="left" minValue="-1" maxValue="1" allowsTickMarkValuesOnly="YES" sliderType="circular" id="sVO-G5-Qc3"/>
+                                <sliderCell key="cell" continuous="YES" alignment="left" minValue="-1" maxValue="1" tickMarkPosition="right" allowsTickMarkValuesOnly="YES" sliderType="linear" id="sVO-G5-Qc3"/>
                                 <connections>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Pan" id="peO-Z3-zQd"/>
                                 </connections>
@@ -152,13 +153,13 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
+                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" previousBinding="fRA-j5-JOF" id="mny-DU-fW2"/>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Pitch" id="MSC-2B-xM3"/>
                                     <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="fRA-j5-JOF">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
                                     </binding>
-                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" previousBinding="fRA-j5-JOF" id="mny-DU-fW2"/>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.Pitch" id="MSC-2B-xM3"/>
                                 </connections>
                             </textField>
                         </subviews>
