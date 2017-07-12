@@ -260,13 +260,10 @@ namespace Pronome
 		public void AddSourcesFromLayer(Layer layer)
 		{
 			// add sources to mixer
-			foreach (IStreamProvider src in layer.AudioSources.Values)
+            foreach (IStreamProvider src in layer.GetAllStreams())
 			{
 				AddAudioSource(src);
 			}
-
-			AddAudioSource(layer.BaseAudioSource);
-			AddAudioSource(layer.PitchSource);
 
 			// transfer silent interval if exists
             //if (IsSilentIntervalEngaged)

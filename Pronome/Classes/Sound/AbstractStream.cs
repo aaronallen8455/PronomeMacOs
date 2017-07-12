@@ -22,12 +22,19 @@ namespace Pronome
 		/// </summary>
 		double InitialOffset;
 
+        double OffsetBpm;
+
         private double _volume = 1;
 
 		private float pan;
 
-		long _silentInterval;
-		bool _intervalIsSilent = true; // True if the phase of the interval is Silent
+		protected long _silentInterval;
+		//protected bool _intervalIsSilent = true; // True if the phase of the interval is Silent
+
+        protected long cycle; // tracks how many times the render callback has executed
+
+        protected bool IsMuted;
+        protected bool IsSilentIntervalSilent;
 		#endregion
 
 		#region public properties
@@ -57,15 +64,16 @@ namespace Pronome
 		}
 
 		/// <summary>
-		/// Gets or sets the offset in samples.
+		/// Gets or sets the offset in Bpm.
 		/// </summary>
 		/// <value>The offset.</value>
 		public double Offset
 		{
-			get => CurrentOffset;
+            get => OffsetBpm;
 			set
 			{
-				InitialOffset = CurrentOffset = value;
+                OffsetBpm = value;
+                SetSampleOffset(value);
 			}
 		}
 
@@ -104,8 +112,9 @@ namespace Pronome
             Layer = layer;
             _info = info;
 
-            // reset when playback stops
+            // subscribe to events
             Metronome.Instance.Stopped += Reset;
+            Metronome.Instance.TempoChanged += TempoChanged;
 		}
 		#endregion
 
@@ -120,7 +129,7 @@ namespace Pronome
 			SampleInterval = 0;
 			IntervalLoop.Enumerator = IntervalLoop.GetEnumerator();
 			_silentInterval = 0;
-			_intervalIsSilent = true;
+            SetInitialMuting();
 		}
 
         public virtual void Reset(object sender, EventArgs e)
@@ -135,9 +144,19 @@ namespace Pronome
             IntervalLoop.Dispose();
 
             Metronome.Instance.Stopped -= Reset;
+            Metronome.Instance.TempoChanged -= TempoChanged;
         }
 
-        public virtual void SetInitialMuting() {}
+        /// <summary>
+        /// Sets the initial muting (random and intervallic).
+        /// </summary>
+        public virtual void SetInitialMuting() 
+        {
+            IsMuted = WillRandomMute();
+            // see if first note is in the silent interval
+            _silentInterval -= (long)InitialOffset;
+            IsSilentIntervalSilent = SilentIntervalMuted();
+        }
 		#endregion
 
 		#region protected methods
@@ -151,14 +170,38 @@ namespace Pronome
 			SampleInterval = IntervalLoop.Enumerator.Current;
 		}
 
-        protected unsafe uint HandleOffset(float* leftBuffer, float* rightBuffer, uint count)
+        void TempoChanged(object sender, EventArgs e)
         {
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+            {
+                SetSampleOffset(OffsetBpm);
+            }
+            else
+            {
+                // TODO: handle dynamic tempos
+            }
+        }
+
+        protected void SetSampleOffset(double bpm)
+        {
+            InitialOffset = CurrentOffset = Metronome.Instance.ConvertBpmToSamples(bpm);
+        }
+
+        /// <summary>
+        /// Handles the offset and returns current index of the buffers.
+        /// </summary>
+        /// <returns>The offset.</returns>
+        /// <param name="leftBuffer">Left buffer.</param>
+        /// <param name="rightBuffer">Right buffer.</param>
+        /// <param name="count">Count.</param>
+        protected unsafe int HandleOffset(float* leftBuffer, float* rightBuffer, uint count)
+        {
+            int amount = 0; // number of samples to offset by
 			if (CurrentOffset > 0)
 			{
 				// account for the offset
-				int amount = (int)Math.Min(CurrentOffset, count);
+				amount = (int)Math.Min(CurrentOffset, count);
 				CurrentOffset -= amount;
-				count -= (uint)amount;
 
 				// zero out buffers
 				for (int i = 0; i < amount; i++)
@@ -174,7 +217,7 @@ namespace Pronome
 				}
 			}
 
-            return count;
+            return amount;
         }
 
 		/// <summary>
@@ -201,6 +244,8 @@ namespace Pronome
 		{
 			if (Metronome.Instance.IsSilentIntervalEngaged)
 			{
+                _silentInterval -= SampleInterval;
+
 				if (_silentInterval <= 0)
 				{
 					// get the intervals in samples
@@ -210,13 +255,13 @@ namespace Pronome
 					// account for possible proced cycles
 					_silentInterval %= silent + audible;
 
-					_intervalIsSilent = _silentInterval > audible;
+                    IsSilentIntervalSilent = _silentInterval > audible;
 
 					// reset the interval size
-					_silentInterval = _intervalIsSilent ? silent : audible;
+                    _silentInterval = IsSilentIntervalSilent ? silent : audible;
 				}
 
-				return _intervalIsSilent;
+                return IsSilentIntervalSilent;
 			}
 
 			return false;

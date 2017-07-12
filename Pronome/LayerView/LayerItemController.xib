@@ -35,12 +35,12 @@
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                 </textFieldCell>
                                 <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.BeatCode" id="ZIJ-Vf-t7x"/>
                                     <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="5rG-Zy-LXR">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
                                     </binding>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.BeatCode" id="ZIJ-Vf-t7x"/>
                                 </connections>
                             </textField>
                             <textField verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="Z0s-0L-Q1g">
@@ -120,7 +120,7 @@
                                 </connections>
                             </button>
                             <comboBox verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="jkd-i5-9PW">
-                                <rect key="frame" x="100" y="53" width="99" height="26"/>
+                                <rect key="frame" x="70" y="53" width="130" height="26"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="7rG-IB-dDR">
                                     <font key="font" metaFont="system"/>

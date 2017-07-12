@@ -83,6 +83,8 @@ namespace Pronome
             // add sources to source selector
             SoundSourceSelector.DataSource = new SourceSelectorDataSource();
 
+            SoundSourceSelector.VisibleItems = 10;
+
             // autoselect the first source
             SoundSourceSelector.StringValue = 
                 (NSString)SoundSourceSelector.DataSource.ObjectValueForItem(SoundSourceSelector, 0);

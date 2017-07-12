@@ -7,6 +7,8 @@ namespace Pronome
 {
     public class Mixer : IDisposable
     {
+        public const int BufferSize = 512;
+
         #region Protected Variables
         /// <summary>
         /// Connects the mixer to the output device
@@ -187,7 +189,7 @@ namespace Pronome
 
             if (index > -1)
             {
-                if (MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerPan, value, AudioUnitScopeType.Output, (uint)index) != AudioUnitStatus.OK)
+                if (MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerPan, value, AudioUnitScopeType.Input, (uint)index) != AudioUnitStatus.OK)
                 {
                     throw new ApplicationException();
                 }
@@ -238,6 +240,7 @@ namespace Pronome
             MixerNode = Graph.GetNodeInfo(mixerNode);
             // must set ouput volume because it defaults to 0
             MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerVolume, 1, AudioUnitScopeType.Output, 0);
+            //MixerNode.SetMaximumFramesPerSlice(4096, AudioUnitScopeType.Global);
 
             ConfigureMixerInputs();
 
@@ -304,14 +307,7 @@ namespace Pronome
             var outLeft = (float*)data[0].Data;
             var outRight = (float*)data[1].Data;
 
-            if (source.Info.IsPitch)
-            {
-                PitchStream pitchStream = source as PitchStream;
-
-                pitchStream.Read(outLeft, outRight, numberFrames);
-            }
-
-            var x = outLeft[0];
+            source.Read(outLeft, outRight, numberFrames);
 
             return AudioUnitStatus.OK;
 		}

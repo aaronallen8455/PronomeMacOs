@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using AudioToolbox;
 using AudioUnit;
 using CoreFoundation;
+using Foundation;
 
 namespace Pronome
 {
@@ -14,6 +17,11 @@ namespace Pronome
         protected long TotalFrames;
 
         private int _sampleNum;
+
+        long CurrentHiHatDuration;
+        protected long HiHatSampleToMute;
+        protected long HiHatCycleToMute;
+        protected bool HiHatOpenIsMuted;
         #endregion
 
         #region Constructors
@@ -38,60 +46,146 @@ namespace Pronome
         #region Public Methods
         public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count)
         {
-            
+            int offset = HandleOffset(leftBuffer, rightBuffer, count);
+
+            if (offset == 0 && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && cycle == HiHatCycleToMute - 1)
+            {
+                CurrentHiHatDuration = HiHatSampleToMute + count;
+            }
+
+            for (int i = offset; i < count; i++)
+            {
+                if (SampleInterval == 0)
+                {
+                    if (!IsSilentIntervalSilent && !IsMuted)
+					{
+                        if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open)
+						{
+							HiHatOpenIsMuted = false;
+						}
+                        _sampleNum = 0;
+					}
+
+                    MoveToNextSampleInterval();
+
+					IsMuted = WillRandomMute();
+					IsSilentIntervalSilent = SilentIntervalMuted();
+                }
+
+				// if this is a hihat down, pass it's time position to all hihat opens in this layer
+                if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down && Layer.HasHiHatOpen && !IsSilentIntervalSilent && !IsMuted)
+				{
+                    PropagateHiHatDown(i);
+				}
+
+                if (_sampleNum < TotalFrames)
+                {
+                    var input = (float*)Data;
+                    leftBuffer[i] = rightBuffer[i] = input[_sampleNum++];
+                }
+                else
+                {
+                    // if end of file reached, fill with silence
+                    leftBuffer[i] = rightBuffer[i] = 0;
+                }
+
+                SampleInterval--;
+            }
+
+            cycle++;
+        }
+
+        public override void SetInitialMuting()
+        {
+            base.SetInitialMuting();
+
+            if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down
+                && Layer.HasHiHatOpen && !IsSilentIntervalSilent && !IsMuted && Offset > 0)
+            {
+                PropagateHiHatDown(0);
+            }
         }
 
         public override void Dispose()
         {
-            Marshal.DestroyStructure<int[]>(Data);
+            Marshal.DestroyStructure<float[]>(Data);
         }
         #endregion
 
         #region Protected Methods
         protected void LoadAudioFile(StreamInfoProvider info)
         {
-			var url = CFUrl.FromFile(info.Uri);
+            // get the path to the file
+            string path;
+            if (info.IsInternal)
+            {
+                path = NSBundle.MainBundle.PathForSoundResource(info.Uri);
+            }
+            else
+            {
+                // file path is the Uri for user sources
+                path = info.Uri;
+            }
 
-			using (var file = ExtAudioFile.OpenUrl(url))
-			{
-				var clientFormat = file.FileDataFormat;
-				clientFormat.FormatFlags = AudioStreamBasicDescription.AudioFormatFlagsNativeFloat;
-				clientFormat.ChannelsPerFrame = 1;
-				clientFormat.FramesPerPacket = 1;
-				clientFormat.BitsPerChannel = 8 * sizeof(int);
-				clientFormat.BytesPerPacket =
-					clientFormat.BytesPerFrame = clientFormat.ChannelsPerFrame * sizeof(int);
-
-				file.ClientDataFormat = clientFormat;
-
-				double rateRatio = Metronome.SampleRate / clientFormat.SampleRate;
-
-				var numFrames = file.FileLengthFrames;
-				numFrames = (uint)(numFrames * rateRatio);
-
-				TotalFrames = numFrames;
-
-				UInt32 samples = (uint)(numFrames * clientFormat.ChannelsPerFrame);
-				var dataSize = (int)(sizeof(uint) * samples);
-				Data = Marshal.AllocHGlobal(dataSize);
-
-				// set up a AudioBufferList to read data into
-				var bufList = new AudioBuffers(1);
-				bufList[0] = new AudioBuffer
+            using (var url = CFUrl.FromFile(path))
+            {
+				using (var file = ExtAudioFile.OpenUrl(url))
 				{
-					NumberChannels = 1,
-					Data = Data,
-					DataByteSize = dataSize
-				};
-
-				ExtAudioFileError error;
-				file.Read((uint)numFrames, bufList, out error);
-				if (error != ExtAudioFileError.OK)
-				{
-					throw new ApplicationException();
+					var clientFormat = file.FileDataFormat;
+					clientFormat.FormatFlags = AudioStreamBasicDescription.AudioFormatFlagsNativeFloat;
+					clientFormat.ChannelsPerFrame = 1;
+					clientFormat.FramesPerPacket = 1;
+					clientFormat.BitsPerChannel = 8 * sizeof(float);
+					clientFormat.BytesPerPacket =
+						            clientFormat.BytesPerFrame = clientFormat.ChannelsPerFrame * sizeof(float);
+					
+					file.ClientDataFormat = clientFormat;
+					
+					double rateRatio = Metronome.SampleRate / clientFormat.SampleRate;
+					
+					var numFrames = file.FileLengthFrames;
+					numFrames = (uint)(numFrames * rateRatio);
+					
+					TotalFrames = numFrames;
+					
+					UInt32 samples = (uint)(numFrames * clientFormat.ChannelsPerFrame);
+					var dataSize = (int)(sizeof(uint) * samples);
+					Data = Marshal.AllocHGlobal(dataSize);
+					
+					// set up a AudioBufferList to read data into
+					var bufList = new AudioBuffers(1);
+					bufList[0] = new AudioBuffer
+					{
+						NumberChannels = 1,
+						Data = Data,
+						DataByteSize = dataSize
+					};
+					
+					ExtAudioFileError error;
+					file.Read((uint)numFrames, bufList, out error);
+					if (error != ExtAudioFileError.OK)
+					{
+						throw new ApplicationException();
+					}
 				}
+            }
+        }
+
+        protected void PropagateHiHatDown(int i)
+        {
+            int count = Mixer.BufferSize;
+
+			long total = i + SampleInterval;
+			long cycles = total / count + cycle;
+			long bytes = total % count;
+
+			// assign the hihat cutoff to all open hihat sounds in this layer.
+			IEnumerable<IStreamProvider> hhos = Layer.GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open);
+			foreach (WavFileStream hho in hhos)
+			{
+				hho.HiHatSampleToMute = bytes;
+				hho.HiHatCycleToMute = cycles;
 			}
-			url.Dispose();
         }
         #endregion
     }

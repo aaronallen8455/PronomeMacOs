@@ -106,6 +106,15 @@ namespace Pronome
 			return ss == null ? GetDefault() : ss;
 		}
 
+        /// <summary>
+        /// Gets from the ToString method which is what is found in the dropdown selectors.
+        /// </summary>
+        /// <param name="str">String.</param>
+        static public StreamInfoProvider GetFromToString(string str)
+        {
+            return CompleteSourceLibrary.FirstOrDefault(x => x.ToString() == str);
+        }
+
 		/// <summary>
 		/// Get the source stub from a modifier value, i.e. the 5 in '@5'
 		/// </summary>
@@ -157,7 +166,7 @@ namespace Pronome
         {
             if (obj == null) return false;
 
-            return Uri == (obj as StreamInfoProvider).Uri;
+            return ToString() == (obj as StreamInfoProvider).ToString();
         }
 
         public enum HiHatStatuses { None, Open, Down };
@@ -176,58 +185,58 @@ namespace Pronome
         /// </summary>
         public static List<StreamInfoProvider> InternalSourceLibrary = new List<StreamInfoProvider>
 		{
-			new StreamInfoProvider(0, "Pronome.wav.silent.wav", "Silent"),
-			new StreamInfoProvider(1, "Pronome.wav.crash1_edge_v5.wav", "Crash Edge V1"),
-			new StreamInfoProvider(2, "Pronome.wav.crash1_edge_v8.wav", "Crash Edge V2"),
-			new StreamInfoProvider(3, "Pronome.wav.crash1_edge_v10.wav", "Crash Edge V3"),
-			new StreamInfoProvider(4, "Pronome.wav.floortom_v6.wav", "FloorTom V1"),
-			new StreamInfoProvider(5, "Pronome.wav.floortom_v11.wav", "FloorTom V2"),
-			new StreamInfoProvider(6, "Pronome.wav.floortom_v16.wav", "FloorTom V3"),
-			new StreamInfoProvider(7, "Pronome.wav.hihat_closed_center_v4.wav", "HiHat Closed Center V1"),
-			new StreamInfoProvider(8, "Pronome.wav.hihat_closed_center_v7.wav", "HiHat Closed Center V2"),
-			new StreamInfoProvider(9, "Pronome.wav.hihat_closed_center_v10.wav", "HiHat Closed Center V3"),
-			new StreamInfoProvider(10, "Pronome.wav.hihat_closed_edge_v7.wav", "HiHat Closed Edge V1"),
-			new StreamInfoProvider(11, "Pronome.wav.hihat_closed_edge_v10.wav", "HiHat Closed Edge V2"),
-			new StreamInfoProvider(12, "Pronome.wav.hihat_half_center_v4.wav", "HiHat Half Center V1", HiHatStatuses.Open),
-			new StreamInfoProvider(13, "Pronome.wav.hihat_half_center_v7.wav", "HiHat Half Center V2", HiHatStatuses.Open),
-			new StreamInfoProvider(14, "Pronome.wav.hihat_half_center_v10.wav", "HiHat Half Center V3", HiHatStatuses.Open),
-			new StreamInfoProvider(15, "Pronome.wav.hihat_half_edge_v7.wav", "HiHat Half Edge V1", HiHatStatuses.Open),
-			new StreamInfoProvider(16, "Pronome.wav.hihat_half_edge_v10.wav", "HiHat Half Edge V2", HiHatStatuses.Open),
-			new StreamInfoProvider(17, "Pronome.wav.hihat_open_center_v4.wav", "HiHat Open Center V1", HiHatStatuses.Open),
-			new StreamInfoProvider(18, "Pronome.wav.hihat_open_center_v7.wav", "HiHat Open Center V2", HiHatStatuses.Open),
-			new StreamInfoProvider(19, "Pronome.wav.hihat_open_center_v10.wav", "HiHat Open Center V3", HiHatStatuses.Open),
-			new StreamInfoProvider(20, "Pronome.wav.hihat_open_edge_v7.wav", "HiHat Open Edge V1", HiHatStatuses.Open),
-			new StreamInfoProvider(21, "Pronome.wav.hihat_open_edge_v10.wav", "HiHat Open Edge V2", HiHatStatuses.Open),
-			new StreamInfoProvider(22, "Pronome.wav.hihat_pedal_v3.wav", "HiHat Pedal V1", HiHatStatuses.Down),
-			new StreamInfoProvider(23, "Pronome.wav.hihat_pedal_v5.wav", "HiHat Pedal V2", HiHatStatuses.Down),
-			new StreamInfoProvider(24, "Pronome.wav.kick_v7.wav", "Kick Drum V1"),
-			new StreamInfoProvider(25, "Pronome.wav.kick_v11.wav", "Kick Drum V2"),
-			new StreamInfoProvider(26, "Pronome.wav.kick_v16.wav", "Kick Drum V3"),
-			new StreamInfoProvider(27, "Pronome.wav.racktom_v6.wav", "RackTom V1"),
-			new StreamInfoProvider(28, "Pronome.wav.racktom_v11.wav", "RackTom V2"),
-			new StreamInfoProvider(29, "Pronome.wav.racktom_v16.wav", "RackTom V3"),
-			new StreamInfoProvider(30, "Pronome.wav.ride_bell_v5.wav", "Ride Bell V1"),
-			new StreamInfoProvider(31, "Pronome.wav.ride_bell_v8.wav", "Ride Bell V2"),
-			new StreamInfoProvider(32, "Pronome.wav.ride_bell_v10.wav", "Ride Bell V3"),
-			new StreamInfoProvider(33, "Pronome.wav.ride_center_v5.wav", "Ride Center V1"),
-			new StreamInfoProvider(34, "Pronome.wav.ride_center_v6.wav", "Ride Center V2"),
-			new StreamInfoProvider(35, "Pronome.wav.ride_center_v8.wav", "Ride Center V3"),
-			new StreamInfoProvider(36, "Pronome.wav.ride_center_v10.wav", "Ride Center V4"),
-			new StreamInfoProvider(37, "Pronome.wav.ride_edge_v4.wav", "Ride Edge V1"),
-			new StreamInfoProvider(38, "Pronome.wav.ride_edge_v7.wav", "Ride Edge V2"),
-			new StreamInfoProvider(39, "Pronome.wav.ride_edge_v10.wav", "Ride Edge V3"),
-			new StreamInfoProvider(40, "Pronome.wav.snare_center_v6.wav", "Snare Center V1"),
-			new StreamInfoProvider(41, "Pronome.wav.snare_center_v11.wav", "Snare Center V2"),
-			new StreamInfoProvider(42, "Pronome.wav.snare_center_v16.wav", "Snare Center V3"),
-			new StreamInfoProvider(43, "Pronome.wav.snare_edge_v6.wav", "Snare Edge V1"),
-			new StreamInfoProvider(44, "Pronome.wav.snare_edge_v11.wav", "Snare Edge V2"),
-			new StreamInfoProvider(45, "Pronome.wav.snare_edge_v16.wav", "Snare Edge V3"),
-			new StreamInfoProvider(46, "Pronome.wav.snare_rim_v6.wav", "Snare Rim V1"),
-			new StreamInfoProvider(47, "Pronome.wav.snare_rim_v11.wav", "Snare Rim V2"),
-			new StreamInfoProvider(48, "Pronome.wav.snare_rim_v16.wav", "Snare Rim V3"),
-			new StreamInfoProvider(49, "Pronome.wav.snare_xstick_v6.wav", "Snare XStick V1"),
-			new StreamInfoProvider(50, "Pronome.wav.snare_xstick_v11.wav", "Snare XStick V2"),
-			new StreamInfoProvider(51, "Pronome.wav.snare_xstick_v16.wav", "Snare XStick V3")
+			new StreamInfoProvider(0, "silent.wav", "Silent"),
+			new StreamInfoProvider(1, "crash1_edge_v5.wav", "Crash Edge V1"),
+			new StreamInfoProvider(2, "crash1_edge_v8.wav", "Crash Edge V2"),
+			new StreamInfoProvider(3, "crash1_edge_v10.wav", "Crash Edge V3"),
+			new StreamInfoProvider(4, "floortom_v6.wav", "FloorTom V1"),
+			new StreamInfoProvider(5, "floortom_v11.wav", "FloorTom V2"),
+			new StreamInfoProvider(6, "floortom_v16.wav", "FloorTom V3"),
+			new StreamInfoProvider(7, "hihat_closed_center_v4.wav", "HiHat Closed Center V1"),
+			new StreamInfoProvider(8, "hihat_closed_center_v7.wav", "HiHat Closed Center V2"),
+			new StreamInfoProvider(9, "hihat_closed_center_v10.wav", "HiHat Closed Center V3"),
+			new StreamInfoProvider(10, "hihat_closed_edge_v7.wav", "HiHat Closed Edge V1"),
+			new StreamInfoProvider(11, "hihat_closed_edge_v10.wav", "HiHat Closed Edge V2"),
+			new StreamInfoProvider(12, "hihat_half_center_v4.wav", "HiHat Half Center V1", HiHatStatuses.Open),
+			new StreamInfoProvider(13, "hihat_half_center_v7.wav", "HiHat Half Center V2", HiHatStatuses.Open),
+			new StreamInfoProvider(14, "hihat_half_center_v10.wav", "HiHat Half Center V3", HiHatStatuses.Open),
+			new StreamInfoProvider(15, "hihat_half_edge_v7.wav", "HiHat Half Edge V1", HiHatStatuses.Open),
+			new StreamInfoProvider(16, "hihat_half_edge_v10.wav", "HiHat Half Edge V2", HiHatStatuses.Open),
+			new StreamInfoProvider(17, "hihat_open_center_v4.wav", "HiHat Open Center V1", HiHatStatuses.Open),
+			new StreamInfoProvider(18, "hihat_open_center_v7.wav", "HiHat Open Center V2", HiHatStatuses.Open),
+			new StreamInfoProvider(19, "hihat_open_center_v10.wav", "HiHat Open Center V3", HiHatStatuses.Open),
+			new StreamInfoProvider(20, "hihat_open_edge_v7.wav", "HiHat Open Edge V1", HiHatStatuses.Open),
+			new StreamInfoProvider(21, "hihat_open_edge_v10.wav", "HiHat Open Edge V2", HiHatStatuses.Open),
+			new StreamInfoProvider(22, "hihat_pedal_v3.wav", "HiHat Pedal V1", HiHatStatuses.Down),
+			new StreamInfoProvider(23, "hihat_pedal_v5.wav", "HiHat Pedal V2", HiHatStatuses.Down),
+			new StreamInfoProvider(24, "kick_v7.wav", "Kick Drum V1"),
+			new StreamInfoProvider(25, "kick_v11.wav", "Kick Drum V2"),
+			new StreamInfoProvider(26, "kick_v16.wav", "Kick Drum V3"),
+			new StreamInfoProvider(27, "racktom_v6.wav", "RackTom V1"),
+			new StreamInfoProvider(28, "racktom_v11.wav", "RackTom V2"),
+			new StreamInfoProvider(29, "racktom_v16.wav", "RackTom V3"),
+			new StreamInfoProvider(30, "ride_bell_v5.wav", "Ride Bell V1"),
+			new StreamInfoProvider(31, "ride_bell_v8.wav", "Ride Bell V2"),
+			new StreamInfoProvider(32, "ride_bell_v10.wav", "Ride Bell V3"),
+			new StreamInfoProvider(33, "ride_center_v5.wav", "Ride Center V1"),
+			new StreamInfoProvider(34, "ride_center_v6.wav", "Ride Center V2"),
+			new StreamInfoProvider(35, "ride_center_v8.wav", "Ride Center V3"),
+			new StreamInfoProvider(36, "ride_center_v10.wav", "Ride Center V4"),
+			new StreamInfoProvider(37, "ride_edge_v4.wav", "Ride Edge V1"),
+			new StreamInfoProvider(38, "ride_edge_v7.wav", "Ride Edge V2"),
+			new StreamInfoProvider(39, "ride_edge_v10.wav", "Ride Edge V3"),
+			new StreamInfoProvider(40, "snare_center_v6.wav", "Snare Center V1"),
+			new StreamInfoProvider(41, "snare_center_v11.wav", "Snare Center V2"),
+			new StreamInfoProvider(42, "snare_center_v16.wav", "Snare Center V3"),
+			new StreamInfoProvider(43, "snare_edge_v6.wav", "Snare Edge V1"),
+			new StreamInfoProvider(44, "snare_edge_v11.wav", "Snare Edge V2"),
+			new StreamInfoProvider(45, "snare_edge_v16.wav", "Snare Edge V3"),
+			new StreamInfoProvider(46, "snare_rim_v6.wav", "Snare Rim V1"),
+			new StreamInfoProvider(47, "snare_rim_v11.wav", "Snare Rim V2"),
+			new StreamInfoProvider(48, "snare_rim_v16.wav", "Snare Rim V3"),
+			new StreamInfoProvider(49, "snare_xstick_v6.wav", "Snare XStick V1"),
+			new StreamInfoProvider(50, "snare_xstick_v11.wav", "Snare XStick V2"),
+			new StreamInfoProvider(51, "snare_xstick_v16.wav", "Snare XStick V3")
 		};
     }
 }

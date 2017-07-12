@@ -3,6 +3,7 @@ using AppKit;
 using Foundation;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Pronome
 {
@@ -49,7 +50,11 @@ namespace Pronome
 
         public override string CompletedString(NSComboBox comboBox, string uncompletedString)
         {
-            return Data.FirstOrDefault(x => x.IndexOf(uncompletedString, StringComparison.InvariantCultureIgnoreCase) > -1);
+            if (uncompletedString.Length > 3)
+            {
+				return Data.FirstOrDefault(x => Regex.IsMatch(x, $@"\b{uncompletedString}", RegexOptions.IgnoreCase));
+            }
+            return null;
         }
         #endregion
     }

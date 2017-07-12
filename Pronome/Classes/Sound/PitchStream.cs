@@ -65,7 +65,6 @@ namespace Pronome
 		//private float left; // left channel coeficient
 		//private float right; // right channel coeficient
 
-        long _silentInterval;
         //bool _intervalIsSilent = true; // True if the phase of the interval is Silent
         #endregion
 
@@ -155,9 +154,9 @@ namespace Pronome
         public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count)
         {
             // account for any offset
-            count = HandleOffset(leftBuffer, rightBuffer, count);
+            int offset = HandleOffset(leftBuffer, rightBuffer, count);
 
-            for (uint i = 0; i < count; i++)
+            for (int i = offset; i < count; i++)
             {
                 if (SampleInterval == 0)
                 {
@@ -165,37 +164,39 @@ namespace Pronome
 
                     double oldFreq = Frequency;
                     //double oldWavelength = WaveLength;
-					
+
                     double newFreq = MoveToNextFrequency();
 
                     // check for random or interval muting
-                    if (!WillRandomMute() &&
-                        !SilentIntervalMuted())
+                    if (!IsMuted &&
+                        !IsSilentIntervalSilent)
                     {
                         Frequency = newFreq;
-						if (!oldFreq.Equals(Frequency))
-						{
-							WaveLength = Metronome.SampleRate / Frequency;
-						}
-						// set the sample index if transitioning from an active note
-						if (Gain > 0) 
-						{
-							//double positionRatio = (_sample % oldWavelength) / oldWavelength;
-							//_sample = (int)(WaveLength * positionRatio);
-							
-							_sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
-						}
-						else
-						{
-							_sample = 0;
-						}
-						
-						Gain = 1; // back to full volume
+                        if (!oldFreq.Equals(Frequency))
+                        {
+                            WaveLength = Metronome.SampleRate / Frequency;
+                        }
+                        // set the sample index if transitioning from an active note
+                        if (Gain > 0)
+                        {
+                            //double positionRatio = (_sample % oldWavelength) / oldWavelength;
+                            //_sample = (int)(WaveLength * positionRatio);
+
+                            _sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
+                        }
+                        else
+                        {
+                            _sample = 0;
+                        }
+
+                        Gain = 1; // back to full volume
 
                         // propagate a change of the gain step
                         GainStep = NewGainStep;
                     }
 
+                    IsMuted = WillRandomMute();
+                    IsSilentIntervalSilent = SilentIntervalMuted();
                 }
 
                 if (Gain > 0)
@@ -213,7 +214,6 @@ namespace Pronome
                     leftBuffer[i] = rightBuffer[i] = 0;
                 }
 
-                if (Metronome.Instance.IsSilentIntervalEngaged) _silentInterval--;
                 SampleInterval--;
             }
         }
