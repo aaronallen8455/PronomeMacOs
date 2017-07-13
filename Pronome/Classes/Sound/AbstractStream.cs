@@ -20,7 +20,7 @@ namespace Pronome
 		/// <summary>
 		/// The initial offset in samples.
 		/// </summary>
-		double InitialOffset;
+		protected double InitialOffset;
 
         double OffsetBpm;
 

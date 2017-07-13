@@ -74,6 +74,10 @@ namespace Pronome
 				{
 					throw new ApplicationException();
 				}
+
+                // set volume and pan from layer
+                stream.Volume = stream.Layer.Volume;
+                stream.Pan = (float)stream.Layer.Pan;
             }
         }
 
@@ -196,6 +200,16 @@ namespace Pronome
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Gets the index of stream.
+        /// </summary>
+        /// <returns>The index of stream.</returns>
+        /// <param name="stream">Stream.</param>
+        public int GetIndexOfStream(IStreamProvider stream)
+        {
+            return Streams.IndexOf(stream);
         }
 
         /// <summary>

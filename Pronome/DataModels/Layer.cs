@@ -788,30 +788,17 @@ namespace Pronome
 
 					newBaseSource = newSource;
 					newSource.SetInitialMuting();
-					//AudioSources.Add("", newBaseSource);
-					//IsPitch = false;
 				}
 
-				// TODO: deal with offset
-				// re-convert BPM values
-				//newBaseSource.IntervalLoop.Source = newBaseSource;
-				//newBaseSource.IntervalLoop.ConvertBpmValues();
-				//newBaseSource.IntervalLoop.isWav = !IsPitch;
+                // update hihat statuses
 
-				// update hihat statuses
-                HasHiHatClosed = Beat.Where(x => x.SoundSource != null && x.SoundSource.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down).Any();
-                HasHiHatOpen = Beat.Where(x => x.SoundSource != null && x.SoundSource.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open).Any();
+                BaseSourceName = baseSource.Uri;
 
-				// do initial muting
-				foreach (IStreamProvider src in AudioSources.Values)
-				{
-					src.SetInitialMuting();
-				}
+                BaseAudioSource = null;
+                BaseAudioSource = newBaseSource;
 
-				BaseSourceName = baseSource.Uri;
-
-				BaseAudioSource = null;
-				BaseAudioSource = newBaseSource;
+				HasHiHatOpen = GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open).Any();
+				HasHiHatClosed = GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down).Any();
 
 				// set initial offset
 				double offset;
@@ -826,6 +813,12 @@ namespace Pronome
 				}
                 //offset = met.ConvertBpmToSamples(offset);
                 BaseAudioSource.Offset = offset;
+
+				// do initial muting
+				foreach (IStreamProvider src in GetAllStreams())
+				{
+					src.SetInitialMuting();
+				}
 
 				// add new base to mixer
                 if (BaseAudioSource.IntervalLoop.Enumerator != null)

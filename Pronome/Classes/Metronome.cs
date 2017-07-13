@@ -14,7 +14,7 @@ namespace Pronome
         private nfloat _tempo = 120f;
         private bool _isPlaying; // used to enable/disable UI elements
 
-        protected Mixer Mixer = new Mixer();
+        public Mixer Mixer = new Mixer();
         #endregion
 
         #region Public variables

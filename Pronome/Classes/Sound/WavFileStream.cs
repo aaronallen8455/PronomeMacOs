@@ -16,12 +16,10 @@ namespace Pronome
 
         protected long TotalFrames;
 
-        private int _sampleNum;
+        private long _sampleNum;
 
         long CurrentHiHatDuration;
         protected long HiHatSampleToMute;
-        protected long HiHatCycleToMute;
-        protected bool HiHatOpenIsMuted;
         #endregion
 
         #region Constructors
@@ -48,21 +46,12 @@ namespace Pronome
         {
             int offset = HandleOffset(leftBuffer, rightBuffer, count);
 
-            if (offset == 0 && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && cycle == HiHatCycleToMute - 1)
-            {
-                CurrentHiHatDuration = HiHatSampleToMute + count;
-            }
-
             for (int i = offset; i < count; i++)
             {
                 if (SampleInterval == 0)
                 {
                     if (!IsSilentIntervalSilent && !IsMuted)
 					{
-                        if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open)
-						{
-							HiHatOpenIsMuted = false;
-						}
                         _sampleNum = 0;
 					}
 
@@ -70,12 +59,31 @@ namespace Pronome
 
 					IsMuted = WillRandomMute();
 					IsSilentIntervalSilent = SilentIntervalMuted();
+
+					// if this is a hihat down, pass it's time position to all hihat opens in this layer
+					if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down && Layer.HasHiHatOpen && !IsSilentIntervalSilent && !IsMuted)
+					{
+						PropagateHiHatDown(i);
+					}
+
+                    //if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && Layer.HasHiHatClosed)
+                    //{
+                    //    CurrentHiHatDuration = HiHatSampleToMute;
+                    //}
                 }
 
-				// if this is a hihat down, pass it's time position to all hihat opens in this layer
-                if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down && Layer.HasHiHatOpen && !IsSilentIntervalSilent && !IsMuted)
+                if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && CurrentHiHatDuration > 0)
 				{
-                    PropagateHiHatDown(i);
+					//HiHatSampleToMute--;
+                    CurrentHiHatDuration--;
+                    HiHatSampleToMute--;
+
+                    // mute the hihat open sound on hihat closed
+                    if (CurrentHiHatDuration == 0)
+                    {
+                        _sampleNum = TotalFrames;
+                        CurrentHiHatDuration = HiHatSampleToMute;
+                    }
 				}
 
                 if (_sampleNum < TotalFrames)
@@ -91,19 +99,33 @@ namespace Pronome
 
                 SampleInterval--;
             }
-
-            cycle++;
         }
 
         public override void SetInitialMuting()
         {
             base.SetInitialMuting();
 
+            // set this so that if first note is muted, it won't play
+            _sampleNum = TotalFrames;
+
+            // if this is a hihat down sound and there are open sounds, we set the timer on them
             if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down
                 && Layer.HasHiHatOpen && !IsSilentIntervalSilent && !IsMuted && Offset > 0)
             {
-                PropagateHiHatDown(0);
+				IEnumerable<IStreamProvider> hhos = Layer.GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open);
+				foreach (WavFileStream hho in hhos)
+				{
+                    hho.HiHatSampleToMute = hho.CurrentHiHatDuration = (long)(InitialOffset - hho.InitialOffset);
+				}
             }
+        }
+
+        public override void Reset()
+        {
+            base.Reset();
+
+            HiHatSampleToMute = 0;
+            CurrentHiHatDuration = 0;
         }
 
         public override void Dispose()
@@ -173,18 +195,26 @@ namespace Pronome
 
         protected void PropagateHiHatDown(int i)
         {
-            int count = Mixer.BufferSize;
+            //int count = Mixer.BufferSize;
 
 			long total = i + SampleInterval;
-			long cycles = total / count + cycle;
-			long bytes = total % count;
+			//long cycles = total / count + cycle;
+			//long bytes = total % count;
 
 			// assign the hihat cutoff to all open hihat sounds in this layer.
 			IEnumerable<IStreamProvider> hhos = Layer.GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open);
 			foreach (WavFileStream hho in hhos)
 			{
-				hho.HiHatSampleToMute = bytes;
-				hho.HiHatCycleToMute = cycles;
+                // if target is queued before this one, subtract cycle length
+                if (Metronome.Instance.Mixer.GetIndexOfStream(this) > Metronome.Instance.Mixer.GetIndexOfStream(hho))
+                {
+                    total -= Mixer.BufferSize;
+
+                    if (total <= 0) total = 1;
+                }
+
+				hho.HiHatSampleToMute = total;
+                if (hho.CurrentHiHatDuration == 0) hho.CurrentHiHatDuration = total;
 			}
         }
         #endregion

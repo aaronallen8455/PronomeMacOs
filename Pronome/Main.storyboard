@@ -774,7 +774,7 @@
                                 </connections>
                             </slider>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FEH-WT-isd">
-                                <rect key="frame" x="220" y="55" width="37" height="17"/>
+                                <rect key="frame" x="220" y="55" width="265" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="PVE-Ps-bxj">
                                     <font key="font" metaFont="system"/>
@@ -782,7 +782,7 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
-                                    <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="3bX-Zl-nEJ"/>
+                                    <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="R8j-xB-51k"/>
                                 </connections>
                             </textField>
                         </subviews>
