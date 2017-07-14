@@ -47,25 +47,9 @@ namespace Pronome
         protected double GainStep;
 
         /// <summary>
-        /// The current offset in samples.
-        /// </summary>
-        //double CurrentOffset;
-
-        /// <summary>
-        /// The initial offset in samples.
-        /// </summary>
-        //double InitialOffset;
-
-        /// <summary>
         /// The length of the wave in samples.
         /// </summary>
         double WaveLength;
-
-		//private float pan;
-		//private float left; // left channel coeficient
-		//private float right; // right channel coeficient
-
-        //bool _intervalIsSilent = true; // True if the phase of the interval is Silent
         #endregion
 
         #region public properties
@@ -168,8 +152,8 @@ namespace Pronome
                     double newFreq = MoveToNextFrequency();
 
                     // check for random or interval muting
-                    if (!IsMuted &&
-                        !IsSilentIntervalSilent)
+                    if (!WillRandomMute() &&
+                        !SilentIntervalMuted())
                     {
                         Frequency = newFreq;
                         if (!oldFreq.Equals(Frequency))
@@ -179,9 +163,6 @@ namespace Pronome
                         // set the sample index if transitioning from an active note
                         if (Gain > 0)
                         {
-                            //double positionRatio = (_sample % oldWavelength) / oldWavelength;
-                            //_sample = (int)(WaveLength * positionRatio);
-
                             _sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
                         }
                         else
@@ -195,8 +176,11 @@ namespace Pronome
                         GainStep = NewGainStep;
                     }
 
-                    IsMuted = WillRandomMute();
-                    IsSilentIntervalSilent = SilentIntervalMuted();
+                    // progress the silent interval
+                    if (Metronome.Instance.IsSilentIntervalEngaged)
+                    {
+                        _silentInterval -= SampleInterval;
+                    }
                 }
 
                 if (Gain > 0)
@@ -204,8 +188,6 @@ namespace Pronome
                     sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
                     _sample++;
                     Gain -= GainStep;
-                    //leftBuffer[i] = sampleValue * left;
-                    //rightBuffer[i] = sampleValue * right;
 
                     leftBuffer[i] = rightBuffer[i] = sampleValue;
                 }

@@ -128,8 +128,7 @@ namespace Pronome
 			CurrentOffset = InitialOffset;
 			SampleInterval = 0;
 			IntervalLoop.Enumerator = IntervalLoop.GetEnumerator();
-			_silentInterval = 0;
-            SetInitialMuting();
+            _silentInterval = (long)InitialOffset * -1;
 		}
 
         public virtual void Reset(object sender, EventArgs e)
@@ -145,17 +144,6 @@ namespace Pronome
 
             Metronome.Instance.Stopped -= Reset;
             Metronome.Instance.TempoChanged -= TempoChanged;
-        }
-
-        /// <summary>
-        /// Sets the initial muting (random and intervallic).
-        /// </summary>
-        public virtual void SetInitialMuting() 
-        {
-            IsMuted = WillRandomMute();
-            // see if first note is in the silent interval
-            _silentInterval -= (long)InitialOffset;
-            IsSilentIntervalSilent = SilentIntervalMuted();
         }
 		#endregion
 
@@ -244,7 +232,7 @@ namespace Pronome
 		{
 			if (Metronome.Instance.IsSilentIntervalEngaged)
 			{
-                _silentInterval -= SampleInterval;
+                //_silentInterval -= SampleInterval;
 
 				if (_silentInterval <= 0)
 				{

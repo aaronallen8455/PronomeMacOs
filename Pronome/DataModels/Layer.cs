@@ -504,14 +504,10 @@ namespace Pronome
 		public void Reset()
 		{
 			SampleRemainder = 0;
-			foreach (IStreamProvider src in AudioSources.Values.Concat(new IStreamProvider[] { BaseAudioSource }))
+            foreach (IStreamProvider src in GetAllStreams())
 			{
 				src.Reset();
-				src.SetInitialMuting();
 			}
-			//BaseAudioSource.Reset();
-			if (PitchSource != default(PitchStream) && !BaseStreamInfo.IsPitch)
-				PitchSource.Reset();
 		}
 		#endregion
 
@@ -755,7 +751,7 @@ namespace Pronome
 							double pOffset = Beat.TakeWhile(x => x.AudioSource != PitchSource).Select(x => x.Bpm).Sum() + OffsetBpm;
                             //pOffset = met.ConvertBpmToSamples(pOffset);
 							PitchSource.Offset = pOffset;
-                            Metronome.Instance.AddAudioSource(PitchSource);
+                            //Metronome.Instance.AddAudioSource(PitchSource);
 						}
 
 						// build the beatcollection for the new wav base source.
@@ -787,7 +783,6 @@ namespace Pronome
 					}
 
 					newBaseSource = newSource;
-					newSource.SetInitialMuting();
 				}
 
                 // update hihat statuses
@@ -814,17 +809,15 @@ namespace Pronome
                 //offset = met.ConvertBpmToSamples(offset);
                 BaseAudioSource.Offset = offset;
 
-				// do initial muting
-				foreach (IStreamProvider src in GetAllStreams())
-				{
-					src.SetInitialMuting();
-				}
-
-				// add new base to mixer
                 if (BaseAudioSource.IntervalLoop.Enumerator != null)
-				{
-					met.AddAudioSource(BaseAudioSource);
-				}
+                {
+					foreach (IStreamProvider src in GetAllStreams())
+					{
+						met.RemoveAudioSource(src);
+					}
+					
+					met.AddSourcesFromLayer(this);
+                }
 			}
 		}
 
@@ -1044,8 +1037,6 @@ namespace Pronome
                     source.Dispose();
 					continue;
 				}
-				// do any initial muting, includes hihat timings
-				source.SetInitialMuting();
 			}
 
 

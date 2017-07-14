@@ -2,6 +2,7 @@
 using Foundation;
 using System.Collections.Generic;
 using System.Threading;
+using System.Linq;
 
 namespace Pronome
 {
@@ -260,7 +261,7 @@ namespace Pronome
 		public void AddSourcesFromLayer(Layer layer)
 		{
 			// add sources to mixer
-            foreach (IStreamProvider src in layer.GetAllStreams())
+            foreach (IStreamProvider src in layer.GetAllStreams().OrderBy(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down))
 			{
 				AddAudioSource(src);
 			}
