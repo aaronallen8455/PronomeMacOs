@@ -35,6 +35,9 @@ namespace Pronome
 
 		[Action ("StopButtonAction:")]
 		partial void StopButtonAction (Foundation.NSObject sender);
+
+		[Action ("TempoButtonAction:")]
+		partial void TempoButtonAction (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

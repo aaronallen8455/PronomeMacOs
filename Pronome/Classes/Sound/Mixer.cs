@@ -26,6 +26,9 @@ namespace Pronome
         /// The audio unit which mixes the streams.
         /// </summary>
         protected AudioUnit.AudioUnit MixerNode;
+
+        bool _tempoChanged;
+        double _tempoChangeRatio;
         #endregion
 
         #region Public Variables
@@ -35,7 +38,9 @@ namespace Pronome
         #region Constructors
         public Mixer()
         {
-            BuildAUGraph();
+			BuildAUGraph();
+
+            Metronome.Instance.TempoChanged += TempoChanged;
         }
         #endregion
 
@@ -125,6 +130,7 @@ namespace Pronome
 					throw new ApplicationException();
 
 				IsPlaying = false;
+                _tempoChanged = false;
 			}
 		}
 
@@ -222,6 +228,8 @@ namespace Pronome
         public void Dispose()
         {
             Graph.Dispose();
+
+            Metronome.Instance.TempoChanged -= TempoChanged;
         }
         #endregion
 
@@ -316,6 +324,14 @@ namespace Pronome
                 return AudioUnitStatus.InvalidElement;
             }
 
+            // propagate tempo change on start of a new cycle
+            if (busNumber == 0 && _tempoChanged)
+            {
+                PropagateTempoChange(_tempoChangeRatio);
+
+                _tempoChanged = false;
+            }
+
             IStreamProvider source = Streams[(int)busNumber];
 
             var outLeft = (float*)data[0].Data;
@@ -325,6 +341,39 @@ namespace Pronome
 
             return AudioUnitStatus.OK;
 		}
+
+        object _tempoLock = new object();
+
+        public void TempoChanged(object sender, Metronome.TempoChangedEventArgs e)
+		{
+            lock (_tempoLock)
+            {
+                if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
+                {
+                    // queue tempo change to happend on the start of next render cycle
+					_tempoChanged = true;
+                    _tempoChangeRatio = e.ChangeRatio;
+                }
+            }
+		}
+
+        /// <summary>
+        /// Propagates the tempo change.
+        /// </summary>
+        /// <param name="ratio">Ratio.</param>
+        void PropagateTempoChange(double ratio)
+        {
+            foreach (AbstractStream stream in Streams)
+            {
+                stream.PropagateTempoChange(ratio);
+            }
+
+            // apply to layer's remainder
+            foreach (Layer layer in Metronome.Instance.Layers)
+            {
+                layer.SampleRemainder *= ratio;
+            }
+        }
         #endregion
     }
 }

@@ -29,12 +29,13 @@ namespace Pronome
 		private float pan;
 
 		protected long _silentInterval;
-		//protected bool _intervalIsSilent = true; // True if the phase of the interval is Silent
 
-        protected long cycle; // tracks how many times the render callback has executed
+        /// <summary>
+        /// Number of samples until full randomness is reached
+        /// </summary>
+        long RandomMuteCountdown;
 
-        protected bool IsMuted;
-        protected bool IsSilentIntervalSilent;
+        long RandomMuteCountdownTotal;
 		#endregion
 
 		#region public properties
@@ -119,7 +120,6 @@ namespace Pronome
 		#endregion
 
 		#region public methods
-
 		/// <summary>
 		/// Reset the internals of this instance so that it plays from the start.
 		/// </summary>
@@ -129,6 +129,7 @@ namespace Pronome
 			SampleInterval = 0;
 			IntervalLoop.Enumerator = IntervalLoop.GetEnumerator();
             _silentInterval = (long)InitialOffset * -1;
+            RandomMuteCountdownTotal = 0;
 		}
 
         public virtual void Reset(object sender, EventArgs e)
@@ -137,6 +138,25 @@ namespace Pronome
         }
 
         unsafe abstract public void Read(float* leftBuffer, float* rightBuffer, uint count);
+
+        /// <summary>
+        /// Propagates the tempo change.
+        /// </summary>
+        /// <param name="ratio">Ratio.</param>
+        public virtual void PropagateTempoChange(double ratio)
+        {
+            IntervalLoop.ConvertBpmValues();
+
+            // silent interval
+            _silentInterval = (long)(_silentInterval * ratio);
+            // offset
+            InitialOffset *= ratio;
+            CurrentOffset *= ratio;
+            // sample interval
+            long newSI = (long)(SampleInterval * ratio);
+            Layer.SampleRemainder += (SampleInterval * ratio) - newSI;
+            SampleInterval = newSI;
+        }
 
         public virtual void Dispose()
         {
@@ -163,10 +183,6 @@ namespace Pronome
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {
                 SetSampleOffset(OffsetBpm);
-            }
-            else
-            {
-                // TODO: handle dynamic tempos
             }
         }
 
@@ -218,6 +234,18 @@ namespace Pronome
 			{
 				int randomNum = Metronome.GetRandomNum();
 
+                if (Metronome.Instance.RandomMuteCountdown > 0)
+                {
+                    if (RandomMuteCountdownTotal == 0)
+                    {
+                        RandomMuteCountdownTotal = RandomMuteCountdown = (long)(Metronome.Instance.RandomMuteCountdown * Metronome.SampleRate) - (long)InitialOffset;
+                    }
+                    // remove elapsed time
+                    RandomMuteCountdown -= Math.Min(SampleInterval, RandomMuteCountdown);
+
+                    return randomNum <= (RandomMuteCountdownTotal - RandomMuteCountdown) / RandomMuteCountdownTotal * Metronome.Instance.RandomnessFactor * 100;
+                }
+
 				return randomNum <= Metronome.Instance.RandomnessFactor * 100;
 			}
 
@@ -232,7 +260,9 @@ namespace Pronome
 		{
 			if (Metronome.Instance.IsSilentIntervalEngaged)
 			{
-                //_silentInterval -= SampleInterval;
+                _silentInterval -= SampleInterval;
+
+                bool IsSilentIntervalSilent = false;
 
 				if (_silentInterval <= 0)
 				{
@@ -254,6 +284,17 @@ namespace Pronome
 
 			return false;
 		}
+
+        /// <summary>
+        /// True if either random muted or interval muted.
+        /// </summary>
+        /// <returns><c>true</c>, if mute was willed, <c>false</c> otherwise.</returns>
+        protected bool WillMute()
+        {
+            bool mute = WillRandomMute();
+
+            return SilentIntervalMuted() || mute;
+        }
 		#endregion
 	}
 }

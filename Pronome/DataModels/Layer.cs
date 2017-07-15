@@ -825,7 +825,6 @@ namespace Pronome
          * <param name="baseSourceName">Name of source to use.</param> */
         public void SetBaseSource(StreamInfoProvider baseSource)
 		{
-
 			// is sample or pitch source?
 			if (baseSource.IsPitch)
 			{

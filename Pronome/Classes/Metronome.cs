@@ -14,8 +14,6 @@ namespace Pronome
         private nfloat _volume = 1f;
         private nfloat _tempo = 120f;
         private bool _isPlaying; // used to enable/disable UI elements
-
-        public Mixer Mixer = new Mixer();
         #endregion
 
         #region Public variables
@@ -25,6 +23,7 @@ namespace Pronome
 
         public PlayStates PlayState = PlayStates.Stopped;
 
+		public Mixer Mixer;
         /// <summary>
         /// Is the random mute engaged?
         /// </summary>
@@ -34,6 +33,11 @@ namespace Pronome
         /// The randomness factor from 0 to 1.
         /// </summary>
         public float RandomnessFactor;
+
+        /// <summary>
+        /// The number of seconds until full randomness is reached.
+        /// </summary>
+        public float RandomMuteCountdown;
 
         /// <summary>
         /// Is the silent interval engaged?
@@ -81,8 +85,13 @@ namespace Pronome
             set
             {
                 WillChangeValue("Tempo");
-                _tempo = value;
-                OnTempoChanged(EventArgs.Empty); // invoke the event
+                // send the change ratio in event arg
+                if (value > 0)
+                {
+                    float oldTempo = (float)_tempo;
+                    _tempo = value;
+                    OnTempoChanged(new TempoChangedEventArgs(oldTempo, (float)_tempo));
+                }
                 DidChangeValue("Tempo");
             }
         }
@@ -112,7 +121,9 @@ namespace Pronome
                 if (_instance == null)
                 {
                     _instance = new Metronome();
-                }
+
+					_instance.Mixer = new Mixer();
+				}
                 return _instance;
             }
         }
@@ -133,6 +144,9 @@ namespace Pronome
             return result;
         }
 
+        /// <summary>
+        /// Start playback.
+        /// </summary>
         public bool Play()
         {
             if (PlayState != PlayStates.Playing)
@@ -150,6 +164,9 @@ namespace Pronome
             return false;
         }
 
+        /// <summary>
+        /// Stop playback.
+        /// </summary>
         public bool Stop()
         {
             if (PlayState != PlayStates.Stopped)
@@ -168,6 +185,9 @@ namespace Pronome
             return false;
         }
 
+        /// <summary>
+        /// Pause playback.
+        /// </summary>
         public bool Pause()
         {
             if (PlayState == PlayStates.Playing)
@@ -265,21 +285,6 @@ namespace Pronome
 			{
 				AddAudioSource(src);
 			}
-
-			// transfer silent interval if exists
-            //if (IsSilentIntervalEngaged)
-			//{
-			//	foreach (IStreamProvider src in layer.AudioSources.Values)
-			//	{
-            //        
-			//		src.SetSilentInterval(AudibleInterval, SilentInterval);
-			//	}
-			//
-			//	layer.BaseAudioSource.SetSilentInterval(AudibleInterval, SilentInterval);
-			//
-			//	if (layer.BasePitchSource != default(PitchStream) && !layer.IsPitch)
-			//		layer.BasePitchSource.SetSilentInterval(AudibleInterval, SilentInterval);
-			//}
 		}
 
         public void Cleanup()
@@ -296,11 +301,25 @@ namespace Pronome
 
         #region Events
         /// <summary>
+        /// Tempo changed event arguments.
+        /// </summary>
+        public class TempoChangedEventArgs : EventArgs
+        {
+            public double ChangeRatio;
+
+            public TempoChangedEventArgs(float oldTempo, float newTempo)
+            {
+                // find the tempo change ratio
+                ChangeRatio = oldTempo / newTempo;
+            }
+        }
+
+        /// <summary>
         /// Occurs when tempo changed.
         /// </summary>
-        public event EventHandler TempoChanged;
+        public event EventHandler<TempoChangedEventArgs> TempoChanged;
 
-        protected virtual void OnTempoChanged(EventArgs e)
+        protected virtual void OnTempoChanged(TempoChangedEventArgs e)
         {
             TempoChanged?.Invoke(this, e);
         }

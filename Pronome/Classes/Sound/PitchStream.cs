@@ -144,16 +144,13 @@ namespace Pronome
             {
                 if (SampleInterval == 0)
                 {
-                    MoveToNextSampleInterval();
-
                     double oldFreq = Frequency;
                     //double oldWavelength = WaveLength;
 
                     double newFreq = MoveToNextFrequency();
 
                     // check for random or interval muting
-                    if (!WillRandomMute() &&
-                        !SilentIntervalMuted())
+                    if (!WillMute())
                     {
                         Frequency = newFreq;
                         if (!oldFreq.Equals(Frequency))
@@ -176,11 +173,7 @@ namespace Pronome
                         GainStep = NewGainStep;
                     }
 
-                    // progress the silent interval
-                    if (Metronome.Instance.IsSilentIntervalEngaged)
-                    {
-                        _silentInterval -= SampleInterval;
-                    }
+                    MoveToNextSampleInterval();
                 }
 
                 if (Gain > 0)

@@ -63,8 +63,13 @@ namespace Pronome
         {
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {
-				Beats = Bpm.Select(x => Metronome.Instance.ConvertBpmToSamples(x)).ToArray();
+                ConvertBpmValues();
             }
+        }
+
+        public void ConvertBpmValues()
+        {
+            Beats = Bpm.Select(x => Metronome.Instance.ConvertBpmToSamples(x)).ToArray();
         }
 
         public void Dispose()

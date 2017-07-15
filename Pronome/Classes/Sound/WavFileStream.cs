@@ -19,7 +19,6 @@ namespace Pronome
         private long _sampleNum;
 
         long CurrentHiHatDuration;
-        protected long HiHatSampleToMute;
         #endregion
 
         #region Constructors
@@ -50,7 +49,7 @@ namespace Pronome
             {
                 if (SampleInterval == 0)
                 {
-                    if (!SilentIntervalMuted() && !WillRandomMute())
+                    if (!WillMute())
 					{
                         _sampleNum = 0;
 
@@ -62,12 +61,6 @@ namespace Pronome
 					}
 
                     MoveToNextSampleInterval();
-
-                    // progress the silent interval.
-                    if (Metronome.Instance.IsSilentIntervalEngaged)
-                    {
-                        _silentInterval -= SampleInterval;
-                    }
                 }
 
                 if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && CurrentHiHatDuration > 0)
@@ -101,7 +94,6 @@ namespace Pronome
         {
             base.Reset();
 
-            HiHatSampleToMute = 0;
             CurrentHiHatDuration = 0;
         }
 
