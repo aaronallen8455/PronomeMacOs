@@ -109,18 +109,6 @@ namespace Pronome
             }
         }
 
-        partial void TempoUpAction(NSObject sender)
-        {
-            Metronome.Instance.Tempo++;
-        }
-
-        partial void TempoDownAction(NSObject sender)
-        {
-            if (Metronome.Instance.Tempo > 1)
-            {
-				Metronome.Instance.Tempo--;
-            }
-        }
         #endregion
 
         #region Private Variables

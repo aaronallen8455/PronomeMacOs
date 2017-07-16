@@ -671,11 +671,11 @@
             <objects>
                 <splitViewController id="ZLG-06-cqB" sceneMemberID="viewController">
                     <splitViewItems>
-                        <splitViewItem id="2kj-d7-GaM"/>
+                        <splitViewItem holdingPriority="1000" id="2kj-d7-GaM"/>
                         <splitViewItem id="B68-Sq-BD9"/>
-                        <splitViewItem id="oxn-0U-vtk"/>
+                        <splitViewItem holdingPriority="1000" id="oxn-0U-vtk"/>
                     </splitViewItems>
-                    <splitView key="splitView" misplaced="YES" dividerStyle="thin" id="INN-6M-a7I">
+                    <splitView key="splitView" focusRingType="none" misplaced="YES" dividerStyle="thin" id="INN-6M-a7I" customClass="MySplitView">
                         <rect key="frame" x="0.0" y="0.0" width="550" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </splitView>
@@ -769,14 +769,6 @@
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Tempo" id="0nO-zB-axl"/>
                                 </connections>
                             </textField>
-                            <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kuN-Tc-VVf">
-                                <rect key="frame" x="244" y="24" width="19" height="53"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" continuous="YES" alignment="left" maxValue="1" tickMarkPosition="right" sliderType="linear" id="Civ-s6-t51"/>
-                                <connections>
-                                    <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="snJ-gq-4Vx"/>
-                                </connections>
-                            </slider>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FEH-WT-isd">
                                 <rect key="frame" x="414" y="58" width="105" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -789,28 +781,22 @@
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="R8j-xB-51k"/>
                                 </connections>
                             </textField>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HJT-QC-Jy8">
-                                <rect key="frame" x="98" y="13" width="39" height="32"/>
+                            <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="C13-Fr-Cfx">
+                                <rect key="frame" x="244" y="58" width="96" height="19"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="U" bezelStyle="rounded" alignment="center" continuous="YES" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="JnN-Hw-rWN">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
+                                <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="1" doubleValue="1" tickMarkPosition="above" sliderType="linear" id="b7f-4O-8Kb"/>
                                 <connections>
-                                    <action selector="TempoUpAction:" target="59N-8S-Y2z" id="llx-kA-Nkf"/>
+                                    <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="qsf-Iw-dlk"/>
                                 </connections>
-                            </button>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="f4V-r8-g7T">
-                                <rect key="frame" x="149" y="13" width="36" height="32"/>
+                            </slider>
+                            <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Tt0-PW-axu">
+                                <rect key="frame" x="95" y="52" width="19" height="27"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="D" bezelStyle="rounded" alignment="center" continuous="YES" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="m3O-mV-Kxi">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
+                                <stepperCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="10000" doubleValue="1" id="jqS-IT-TuB"/>
                                 <connections>
-                                    <action selector="TempoDownAction:" target="59N-8S-Y2z" id="a5C-kU-9uh"/>
+                                    <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Tempo" id="rLF-ct-8tG"/>
                                 </connections>
-                            </button>
+                            </stepper>
                         </subviews>
                     </view>
                     <connections>

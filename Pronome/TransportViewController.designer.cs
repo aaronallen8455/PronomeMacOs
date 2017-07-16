@@ -38,12 +38,6 @@ namespace Pronome
 
 		[Action ("TempoButtonAction:")]
 		partial void TempoButtonAction (Foundation.NSObject sender);
-
-		[Action ("TempoDownAction:")]
-		partial void TempoDownAction (Foundation.NSObject sender);
-
-		[Action ("TempoUpAction:")]
-		partial void TempoUpAction (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{
