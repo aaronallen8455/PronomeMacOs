@@ -116,6 +116,10 @@
     <Compile Include="MySplitView.designer.cs">
       <DependentUpon>MySplitView.cs</DependentUpon>
     </Compile>
+    <Compile Include="LayerView\BeatCodeEditor.cs" />
+    <Compile Include="LayerView\BeatCodeEditor.designer.cs">
+      <DependentUpon>BeatCodeEditor.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

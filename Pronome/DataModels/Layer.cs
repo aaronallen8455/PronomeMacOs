@@ -5,6 +5,9 @@ using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
+using AppKit;
+using CoreGraphics;
+using CoreText;
 
 namespace Pronome
 {
@@ -61,20 +64,22 @@ namespace Pronome
         #endregion
 
         #region Databound Properties
-        //private string _beatCode = "1";
+
+        NSAttributedString _beatCode;
         /// <summary>
         /// Gets or sets the raw beat code string.
         /// </summary>
         /// <value>The beat code.</value>
         [Export("BeatCode")]
-        public string BeatCode
+        public NSAttributedString BeatCode
         {
-            get => ParsedString;
+            get => _beatCode;
             set
             {
                 WillChangeValue("BeatCode");
                 // validate beat code
-                ParsedString = value;
+                ParsedString = value.Value;
+                _beatCode = value;
                 // parse the beatcode
                 Parse(ParsedString);
                 DidChangeValue("BeatCode");
@@ -282,8 +287,16 @@ namespace Pronome
             }
 			
             Offset = offset;
-			
-            Parse(beat); // parse the beat code into this layer
+
+            // Configure the NSAttributedString, which we use for the beat code editor
+            var d = new NSMutableDictionary();
+            d.SetValueForKey(NSColor.White, new NSString("NSColor"));
+            var s = new CTStringAttributes(d);
+            s.ForegroundColorFromContext = false;
+            s.Font = new CTFont("Geneva", 16);
+            BeatCode = new NSAttributedString(beat, s);
+
+            //Parse(beat); // parse the beat code into this layer
             Volume = volume;
 
             Pan = pan;
