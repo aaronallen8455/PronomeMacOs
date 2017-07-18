@@ -11,9 +11,12 @@ namespace Pronome
 {
     public partial class TransportViewController : NSViewController
     {
+        static public TransportViewController Instance;
+
         public TransportViewController(IntPtr handle) : base(handle)
         {
-        }
+            Instance = this;
+        }	
 
         #region Computed Properties
         /// <summary>
@@ -25,6 +28,87 @@ namespace Pronome
         {
             get => Metronome.Instance;
         }
+
+		/// <summary>
+		/// Gets or sets the datasource that provides data to display in the 
+		/// collection view.
+		/// </summary>
+		/// <value>The datasource.</value>
+		public LayerCollectionViewDataSource Datasource { get; set; }
+		#endregion
+
+		#region Public Methods
+		/// <summary>
+		/// Adds the new layer.
+		/// </summary>
+		/// <param name="layer">Layer.</param>
+		public void AddLayer(Layer layer)
+		{
+			// add the layer to the datasource
+			Datasource.Data.Add(layer);
+
+			LayerCollection.ReloadData();
+
+            //// color the new layer based on it's index number
+            //nint indexOfItem = LayerCollection.GetNumberOfItems(0) - 1;
+			//
+            //var item = LayerCollection.ItemAtIndex(indexOfItem) as LayerItemController;
+            //var color = indexOfItem % 2 == 0 ? LayerItemController.EvenColor : LayerItemController.OddColor;
+            //item.SetBackgroundColor(color);
+		}
+
+		/// <summary>
+		/// Removes the layer.
+		/// </summary>
+		/// <param name="layer">Layer.</param>
+		public void RemoveLayer(Layer layer)
+		{
+			Datasource.Data.Remove(layer);
+
+			LayerCollection.ReloadData();
+            // re-color the layers
+            //nint numItems = LayerCollection.GetNumberOfItems(0);
+            //for (nint i = 0; i < numItems; i++)
+            //{
+            //    var item = LayerCollection.ItemAtIndex(i) as LayerItemController;
+            //    var color = i % 2 == 0 ? LayerItemController.EvenColor : LayerItemController.OddColor;
+            //    item.SetBackgroundColor(color);
+            //}
+
+			// remove from metronome
+			Metronome.Instance.RemoveLayer(layer);
+		}
+		#endregion
+
+		#region Private Methods
+		private void ConfigureCollectionView()
+		{
+			LayerCollection.RegisterClassForItem(typeof(LayerItemController), "LayerCell");
+
+			// Create flow layout
+			var flowLayout = new NSCollectionViewFlowLayout()
+			{
+				ItemSize = new CoreGraphics.CGSize(470, 150),
+				SectionInset = new NSEdgeInsets(10, 10, 10, 20),
+				MinimumLineSpacing = 10,
+				MinimumInteritemSpacing = 10
+			};
+			LayerCollection.WantsLayer = true;
+
+			// Setup collection view
+			LayerCollection.CollectionViewLayout = flowLayout;
+		}
+
+		private void PopulateWithData()
+		{
+			// Make datasource
+			Datasource = new LayerCollectionViewDataSource(LayerCollection);
+
+			Datasource.Data.Add(new Layer());
+
+			// Populate collection view
+			LayerCollection.ReloadData();
+		}
         #endregion
 
         #region Override Methods
@@ -34,11 +118,12 @@ namespace Pronome
         /// <param name="sender">Sender.</param>
         partial void NewLayerAction(NSObject sender)
         {
-            var parent = ParentViewController as NSSplitViewController;
-            // get the collection view controller
-            var layerViewC = parent.SplitViewItems[1].ViewController as LayerViewController;
-
-            layerViewC.AddLayer(new Layer());
+            //var parent = ParentViewController as NSSplitViewController;
+            //// get the collection view controller
+            //var layerViewC = parent.SplitViewItems[1].ViewController as LayerViewController;
+			//
+            //layerViewC.AddLayer(new Layer());
+            AddLayer(new Layer());
         }
 
         partial void PlayButtonAction(NSObject sender)
@@ -109,10 +194,19 @@ namespace Pronome
             }
         }
 
-        #endregion
+		public override void ViewDidLoad()
+		{
+			base.ViewDidLoad();
 
-        #region Private Variables
-        long _lastTimestamp; // time position in seconds
+			// Initialize collection view
+			ConfigureCollectionView();
+			PopulateWithData();
+
+		}
+		#endregion
+
+		#region Private Variables
+		long _lastTimestamp; // time position in seconds
 
         LinkedList<double> _tempoTicks = new LinkedList<double>();
         #endregion

@@ -52,6 +52,9 @@ namespace Pronome
             Datasource.Data.Add(layer);
 
             LayerCollection.ReloadData();
+
+            LayerItemController item = (LayerItemController)LayerCollection.ItemAtIndex(0);
+            item.SetBackgroundColor(NSColor.Blue);
         }
 
         /// <summary>

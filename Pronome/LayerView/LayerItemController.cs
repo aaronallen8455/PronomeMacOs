@@ -11,6 +11,16 @@ namespace Pronome
     /// </summary>
     public partial class LayerItemController : NSCollectionViewItem
     {
+        /// <summary>
+        /// The color for even numbered elements.
+        /// </summary>
+        static public NSColor EvenColor = NSColor.FromRgb(70,130,180);
+
+        /// <summary>
+        /// The color for odd numbered elements.
+        /// </summary>
+        static public NSColor OddColor = NSColor.FromRgb(0,139,139);
+
         #region Private Variables
         private Layer _layer;
         #endregion
@@ -70,8 +80,7 @@ namespace Pronome
         #region Overriden Methods
         partial void CloseLayerAction(NSObject sender)
         {
-            LayerViewController.Instance.RemoveLayer(Layer);
-
+            TransportViewController.Instance.RemoveLayer(Layer);
             Layer = null;
 
             Dispose();
@@ -88,7 +97,17 @@ namespace Pronome
             // autoselect the first source
             SoundSourceSelector.StringValue = 
                 (NSString)SoundSourceSelector.DataSource.ObjectValueForItem(SoundSourceSelector, 0);
+
         }
+        #endregion
+
+        #region Public Methods
+
+        public void SetBackgroundColor(NSColor color)
+        {
+            BackgroundBox.FillColor = color;
+        }
+
         #endregion
 
         //strongly typed view accessor

@@ -13,6 +13,9 @@ namespace Pronome
 	partial class TransportViewController
 	{
 		[Outlet]
+		AppKit.NSCollectionView LayerCollection { get; set; }
+
+		[Outlet]
 		AppKit.NSButton PauseButton { get; set; }
 
 		[Outlet]
@@ -59,6 +62,11 @@ namespace Pronome
 			if (TempoField != null) {
 				TempoField.Dispose ();
 				TempoField = null;
+			}
+
+			if (LayerCollection != null) {
+				LayerCollection.Dispose ();
+				LayerCollection = null;
 			}
 		}
 	}

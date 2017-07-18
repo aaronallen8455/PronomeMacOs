@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -8,6 +9,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="LayerItemController">
             <connections>
+                <outlet property="BackgroundBox" destination="noI-tY-glb" id="oN6-9R-BwM"/>
                 <outlet property="SoundSourceSelector" destination="jkd-i5-9PW" id="eGg-Pz-Dxl"/>
                 <outlet property="view" destination="4" id="17"/>
             </connections>
@@ -18,15 +20,15 @@
             <rect key="frame" x="0.0" y="0.0" width="470" height="150"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
-                <box misplaced="YES" boxType="custom" title="Box" titlePosition="noTitle" id="noI-tY-glb">
+                <box misplaced="YES" boxType="custom" borderWidth="0.0" cornerRadius="5" title="Box" titlePosition="noTitle" id="noI-tY-glb">
                     <rect key="frame" x="0.0" y="0.0" width="470" height="150"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <view key="contentView" id="u0B-RK-GVY">
-                        <rect key="frame" x="1" y="1" width="468" height="148"/>
+                        <rect key="frame" x="0.0" y="0.0" width="470" height="150"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="Z0s-0L-Q1g">
-                                <rect key="frame" x="334" y="30" width="96" height="22"/>
+                                <rect key="frame" x="334" y="32" width="96" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="M8h-mU-tz3">
                                     <font key="font" metaFont="system"/>
@@ -43,7 +45,7 @@
                                 </connections>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="M3b-nC-PXz">
-                                <rect key="frame" x="30" y="115" width="37" height="17"/>
+                                <rect key="frame" x="30" y="117" width="37" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="ayV-af-Ka2">
                                     <font key="font" metaFont="system"/>
@@ -52,7 +54,7 @@
                                 </textFieldCell>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="Oj5-UT-MDW">
-                                <rect key="frame" x="332" y="60" width="37" height="17"/>
+                                <rect key="frame" x="332" y="62" width="37" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="n4a-RN-LmX">
                                     <font key="font" metaFont="system"/>
@@ -61,7 +63,7 @@
                                 </textFieldCell>
                             </textField>
                             <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="0aK-x2-5yQ">
-                                <rect key="frame" x="244" y="10" width="19" height="47"/>
+                                <rect key="frame" x="244" y="12" width="19" height="47"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <sliderCell key="cell" continuous="YES" alignment="left" maxValue="1" doubleValue="1" tickMarkPosition="right" allowsTickMarkValuesOnly="YES" sliderType="linear" id="WsL-2c-atz"/>
                                 <connections>
@@ -69,7 +71,7 @@
                                 </connections>
                             </slider>
                             <button misplaced="YES" id="pWO-cI-YwS">
-                                <rect key="frame" x="18" y="18" width="61" height="18"/>
+                                <rect key="frame" x="18" y="20" width="61" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="check" title="Soloed" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="4wR-E3-Ceq">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -80,7 +82,7 @@
                                 </connections>
                             </button>
                             <button misplaced="YES" id="n1y-JU-5Eg">
-                                <rect key="frame" x="18" y="38" width="61" height="18"/>
+                                <rect key="frame" x="18" y="40" width="61" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="check" title="Muted" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="CgL-GF-QlD">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -91,7 +93,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" misplaced="YES" id="b06-Tl-g9H">
-                                <rect key="frame" x="431" y="115" width="37" height="32"/>
+                                <rect key="frame" x="431" y="117" width="37" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="X" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="pzR-Xx-IvC">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -102,7 +104,7 @@
                                 </connections>
                             </button>
                             <comboBox verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="jkd-i5-9PW">
-                                <rect key="frame" x="70" y="53" width="130" height="26"/>
+                                <rect key="frame" x="70" y="55" width="130" height="26"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="7rG-IB-dDR">
                                     <font key="font" metaFont="system"/>
@@ -119,7 +121,7 @@
                                 </connections>
                             </comboBox>
                             <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="fZG-Tj-3vq">
-                                <rect key="frame" x="212" y="10" width="19" height="47"/>
+                                <rect key="frame" x="212" y="12" width="19" height="47"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <sliderCell key="cell" continuous="YES" alignment="left" minValue="-1" maxValue="1" tickMarkPosition="right" allowsTickMarkValuesOnly="YES" sliderType="linear" id="sVO-G5-Qc3"/>
                                 <connections>
@@ -127,7 +129,7 @@
                                 </connections>
                             </slider>
                             <textField verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="88I-XS-2fd">
-                                <rect key="frame" x="204" y="57" width="96" height="22"/>
+                                <rect key="frame" x="204" y="59" width="96" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" title="Pitch Input" placeholderString="Pitch" drawsBackground="YES" id="lhH-pK-fH2">
                                     <font key="font" metaFont="system"/>
@@ -156,7 +158,7 @@
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                            <size key="minSize" width="426" height="20"/>
+                                            <size key="minSize" width="426" height="24"/>
                                             <size key="maxSize" width="10000000" height="10000000"/>
                                             <color key="insertionPointColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <allowedInputSourceLocales>
@@ -924,6 +926,7 @@
                             </scrollView>
                         </subviews>
                     </view>
+                    <color key="fillColor" red="0.57060022784543696" green="0.75218907190976958" blue="0.88537039974619292" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                 </box>
             </subviews>
         </customView>

@@ -29,6 +29,10 @@ namespace Pronome
             var item = collectionView.MakeItem("LayerCell", indexPath) as LayerItemController;
             item.Layer = Data[(int)indexPath.Item];
 
+            // set item's background color based on index number
+            NSColor color = indexPath.Item % 2 == 0 ? LayerItemController.EvenColor : LayerItemController.OddColor;
+            item.SetBackgroundColor(color);
+
             return item;
         }
 

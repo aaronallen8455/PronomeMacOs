@@ -112,19 +112,18 @@
     <Compile Include="LayerView\SourceSelectorDataSource.cs" />
     <Compile Include="Classes\Sound\WavFileStream.cs" />
     <Compile Include="Classes\Sound\AbstractStream.cs" />
-    <Compile Include="MySplitView.cs" />
-    <Compile Include="MySplitView.designer.cs">
-      <DependentUpon>MySplitView.cs</DependentUpon>
-    </Compile>
     <Compile Include="LayerView\BeatCodeEditor.cs" />
     <Compile Include="LayerView\BeatCodeEditor.designer.cs">
       <DependentUpon>BeatCodeEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainWindow.cs" />
+    <Compile Include="MainWindow.designer.cs">
+      <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
     <InterfaceDefinition Include="LayerView\LayerItemController.xib" />
-    <InterfaceDefinition Include="MySplitView.xib" />
   </ItemGroup>
   <ItemGroup>
     <BundleResource Include="Resources\crash1_edge_v10.wav" />
