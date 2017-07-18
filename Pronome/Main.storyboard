@@ -788,9 +788,8 @@ IA
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hWq-5G-5pm">
-                                <rect key="frame" x="223" y="590" width="120" height="40"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hWq-5G-5pm">
+                                <rect key="frame" x="215" y="596" width="120" height="34"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="ProNome" id="W9h-YP-OiG">
                                     <font key="font" metaFont="system" size="28"/>
                                     <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
@@ -817,7 +816,9 @@ IA
                             <constraint firstAttribute="trailing" secondItem="E8B-1s-p1d" secondAttribute="trailing" id="hg6-tM-E85"/>
                             <constraint firstItem="y5z-i4-6tX" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="191" id="hj9-Z1-jvo"/>
                             <constraint firstAttribute="bottom" secondItem="d60-Oe-h4N" secondAttribute="bottom" constant="55" id="iBV-Qn-pTj"/>
+                            <constraint firstItem="hWq-5G-5pm" firstAttribute="top" secondItem="esz-vR-dpk" secondAttribute="top" constant="20" id="u35-DV-8BC"/>
                             <constraint firstAttribute="bottom" secondItem="y5z-i4-6tX" secondAttribute="bottom" constant="55" id="wwj-HM-9Xy"/>
+                            <constraint firstItem="hWq-5G-5pm" firstAttribute="centerX" secondItem="esz-vR-dpk" secondAttribute="centerX" id="xXq-Da-apb"/>
                             <constraint firstItem="E8B-1s-p1d" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" id="zUB-Fq-ndI"/>
                         </constraints>
                     </view>

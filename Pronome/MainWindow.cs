@@ -17,7 +17,7 @@ namespace Pronome
         {
             get
             {
-                return NSColor.FromRgb(0,14,192);
+                return NSColor.FromRgb(0,14,197);
             }
             set
             {

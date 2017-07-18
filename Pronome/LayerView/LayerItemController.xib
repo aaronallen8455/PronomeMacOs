@@ -146,19 +146,19 @@
                                     </binding>
                                 </connections>
                             </textField>
-                            <scrollView misplaced="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" id="58j-Fl-r9y">
+                            <scrollView misplaced="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="58j-Fl-r9y">
                                 <rect key="frame" x="20" y="87" width="428" height="26"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <clipView key="contentView" id="AOq-HU-YUK">
                                     <rect key="frame" x="1" y="1" width="426" height="24"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView importsGraphics="NO" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" textCompletion="NO" smartInsertDelete="YES" id="YKH-4p-MSj" customClass="BeatCodeEditor">
-                                            <rect key="frame" x="0.0" y="0.0" width="426" height="24"/>
+                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="NO" fieldEditor="YES" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" textCompletion="NO" smartInsertDelete="YES" id="YKH-4p-MSj" customClass="BeatCodeEditor">
+                                            <rect key="frame" x="0.0" y="0.0" width="10000" height="24"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                            <size key="minSize" width="426" height="24"/>
+                                            <size key="minSize" width="10000" height="24"/>
                                             <size key="maxSize" width="10000000" height="10000000"/>
                                             <color key="insertionPointColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <allowedInputSourceLocales>
@@ -915,12 +915,12 @@
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </clipView>
-                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="YES" id="vQt-qM-lsy">
-                                    <rect key="frame" x="-100" y="-100" width="87" height="18"/>
+                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="vQt-qM-lsy">
+                                    <rect key="frame" x="1" y="9" width="426" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="wpv-hk-s0f">
-                                    <rect key="frame" x="411" y="1" width="16" height="24"/>
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="wpv-hk-s0f">
+                                    <rect key="frame" x="-100" y="-100" width="16" height="24"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>

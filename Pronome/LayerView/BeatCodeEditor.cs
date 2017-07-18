@@ -15,6 +15,12 @@ namespace Pronome
 			TextColor = NSColor.White;
 			InsertionPointColor = NSColor.White;
             Font = NSFont.FromFontName("Geneva", 16);
+
+            // allow for endless horizontal space
+            HorizontallyResizable = true;
+            AutoresizingMask = NSViewResizingMask.WidthSizable;
+            TextContainer.Size = new CoreGraphics.CGSize(nfloat.MaxValue, 26);
+            TextContainer.WidthTracksTextView = false;
 		}
 
 		public void HighlightSyntax()
