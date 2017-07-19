@@ -17,18 +17,18 @@
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customView misplaced="YES" id="4" customClass="LayerItem">
-            <rect key="frame" x="0.0" y="0.0" width="470" height="150"/>
+            <rect key="frame" x="0.0" y="0.0" width="650" height="117"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <box misplaced="YES" boxType="custom" borderWidth="0.0" cornerRadius="5" title="Box" titlePosition="noTitle" id="noI-tY-glb">
-                    <rect key="frame" x="0.0" y="0.0" width="470" height="150"/>
+                    <rect key="frame" x="0.0" y="0.0" width="650" height="117"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                     <view key="contentView" id="u0B-RK-GVY">
-                        <rect key="frame" x="0.0" y="0.0" width="470" height="150"/>
+                        <rect key="frame" x="0.0" y="0.0" width="650" height="117"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textField verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="Z0s-0L-Q1g">
-                                <rect key="frame" x="334" y="32" width="96" height="22"/>
+                                <rect key="frame" x="512" y="17" width="60" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="M8h-mU-tz3">
                                     <font key="font" metaFont="system"/>
@@ -45,66 +45,86 @@
                                 </connections>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="M3b-nC-PXz">
-                                <rect key="frame" x="30" y="117" width="37" height="17"/>
+                                <rect key="frame" x="39" y="96" width="55" height="12"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="ayV-af-Ka2">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Beat Code" id="ayV-af-Ka2">
+                                    <font key="font" metaFont="system" size="10"/>
+                                    <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="Oj5-UT-MDW">
-                                <rect key="frame" x="332" y="62" width="37" height="17"/>
+                                <rect key="frame" x="510" y="39" width="37" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Label" id="n4a-RN-LmX">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Offset" id="n4a-RN-LmX">
+                                    <font key="font" metaFont="system" size="10"/>
+                                    <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="0aK-x2-5yQ">
-                                <rect key="frame" x="244" y="12" width="19" height="47"/>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="fWy-YR-RQZ">
+                                <rect key="frame" x="402" y="39" width="37" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" continuous="YES" alignment="left" maxValue="1" doubleValue="1" tickMarkPosition="right" allowsTickMarkValuesOnly="YES" sliderType="linear" id="WsL-2c-atz"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Pan" id="VEm-mI-4B9">
+                                    <font key="font" metaFont="system" size="10"/>
+                                    <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="92e-KT-Xyj">
+                                <rect key="frame" x="285" y="39" width="37" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Vol." id="dBo-Pe-0OF">
+                                    <font key="font" metaFont="system" size="10"/>
+                                    <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="0KY-Gf-2al">
+                                <rect key="frame" x="76" y="39" width="37" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Source" id="Hck-eU-DvV">
+                                    <font key="font" metaFont="system" size="10"/>
+                                    <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="WU9-NQ-mbB">
+                                <rect key="frame" x="211" y="39" width="37" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Note" id="HgZ-8i-V1u">
+                                    <font key="font" metaFont="system" size="10"/>
+                                    <color key="textColor" name="highlightColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
                                 <connections>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.Volume" id="FuT-H8-yyo"/>
+                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" id="99d-Hz-Vx9"/>
                                 </connections>
-                            </slider>
-                            <button misplaced="YES" id="pWO-cI-YwS">
-                                <rect key="frame" x="18" y="20" width="61" height="18"/>
+                            </textField>
+                            <button verticalHuggingPriority="750" misplaced="YES" id="pWO-cI-YwS">
+                                <rect key="frame" x="7" y="30" width="24" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Soloed" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="4wR-E3-Ceq">
+                                <buttonCell key="cell" type="roundTextured" title="S" bezelStyle="texturedRounded" alignment="center" state="on" borderStyle="border" inset="2" id="4wR-E3-Ceq">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
                                 </buttonCell>
                                 <connections>
                                     <binding destination="-2" name="value" keyPath="self.Layer.IsSoloed" id="B1a-5O-q9k"/>
                                 </connections>
                             </button>
-                            <button misplaced="YES" id="n1y-JU-5Eg">
-                                <rect key="frame" x="18" y="40" width="61" height="18"/>
+                            <button verticalHuggingPriority="750" misplaced="YES" id="n1y-JU-5Eg">
+                                <rect key="frame" x="7" y="60" width="24" height="25"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Muted" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="CgL-GF-QlD">
+                                <buttonCell key="cell" type="roundTextured" title="M" bezelStyle="texturedRounded" alignment="center" state="on" borderStyle="border" inset="2" id="CgL-GF-QlD">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
                                 </buttonCell>
                                 <connections>
                                     <binding destination="-2" name="value" keyPath="self.Layer.IsMuted" id="GIT-R1-hlm"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" misplaced="YES" id="b06-Tl-g9H">
-                                <rect key="frame" x="431" y="117" width="37" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="X" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="pzR-Xx-IvC">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="CloseLayerAction:" target="-2" id="eCs-CS-aMQ"/>
-                                </connections>
-                            </button>
                             <comboBox verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="jkd-i5-9PW">
-                                <rect key="frame" x="70" y="55" width="130" height="26"/>
+                                <rect key="frame" x="78" y="15" width="130" height="26"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" usesDataSource="YES" numberOfVisibleItems="5" id="7rG-IB-dDR">
                                     <font key="font" metaFont="system"/>
@@ -120,16 +140,8 @@
                                     </binding>
                                 </connections>
                             </comboBox>
-                            <slider horizontalHuggingPriority="750" verticalHuggingPriority="750" misplaced="YES" id="fZG-Tj-3vq">
-                                <rect key="frame" x="212" y="12" width="19" height="47"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <sliderCell key="cell" continuous="YES" alignment="left" minValue="-1" maxValue="1" tickMarkPosition="right" allowsTickMarkValuesOnly="YES" sliderType="linear" id="sVO-G5-Qc3"/>
-                                <connections>
-                                    <binding destination="-2" name="value" keyPath="self.Layer.Pan" id="peO-Z3-zQd"/>
-                                </connections>
-                            </slider>
                             <textField verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="88I-XS-2fd">
-                                <rect key="frame" x="204" y="59" width="96" height="22"/>
+                                <rect key="frame" x="212" y="17" width="45" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" title="Pitch Input" placeholderString="Pitch" drawsBackground="YES" id="lhH-pK-fH2">
                                     <font key="font" metaFont="system"/>
@@ -147,18 +159,18 @@
                                 </connections>
                             </textField>
                             <scrollView misplaced="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="58j-Fl-r9y">
-                                <rect key="frame" x="20" y="87" width="428" height="26"/>
-                                <autoresizingMask key="autoresizingMask"/>
+                                <rect key="frame" x="41" y="64" width="569" height="26"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <clipView key="contentView" id="AOq-HU-YUK">
-                                    <rect key="frame" x="1" y="1" width="426" height="24"/>
+                                    <rect key="frame" x="1" y="1" width="567" height="24"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="NO" fieldEditor="YES" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" textCompletion="NO" smartInsertDelete="YES" id="YKH-4p-MSj" customClass="BeatCodeEditor">
-                                            <rect key="frame" x="0.0" y="0.0" width="10000" height="24"/>
+                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="NO" fieldEditor="YES" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" textCompletion="NO" id="YKH-4p-MSj" customClass="BeatCodeEditor">
+                                            <rect key="frame" x="0.0" y="0.0" width="567" height="24"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                            <size key="minSize" width="10000" height="24"/>
+                                            <size key="minSize" width="567" height="24"/>
                                             <size key="maxSize" width="10000000" height="10000000"/>
                                             <color key="insertionPointColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <allowedInputSourceLocales>
@@ -916,7 +928,7 @@
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="vQt-qM-lsy">
-                                    <rect key="frame" x="1" y="9" width="426" height="16"/>
+                                    <rect key="frame" x="1" y="9" width="567" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="wpv-hk-s0f">
@@ -924,11 +936,51 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
+                            <slider verticalHuggingPriority="750" misplaced="YES" id="Ido-6v-EML">
+                                <rect key="frame" x="285" y="22" width="96" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="1" doubleValue="1" tickMarkPosition="above" sliderType="linear" id="Mbj-20-Uq3"/>
+                                <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Volume" id="C2S-o5-UAQ"/>
+                                </connections>
+                            </slider>
+                            <slider verticalHuggingPriority="750" misplaced="YES" id="kZF-Cf-cYd">
+                                <rect key="frame" x="402" y="21" width="96" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <sliderCell key="cell" continuous="YES" state="on" alignment="left" minValue="-1" maxValue="1" tickMarkPosition="above" sliderType="linear" id="l4j-q8-Obc"/>
+                                <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Pan" id="4SX-UW-JQq"/>
+                                </connections>
+                            </slider>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="qFg-yW-RuZ">
+                                <rect key="frame" x="7" y="93" width="27" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="1" id="J00-6t-Cc2">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="-2" name="value" keyPath="self.Layer.Index" id="4Jp-Ec-zJ4"/>
+                                </connections>
+                            </textField>
+                            <button verticalHuggingPriority="750" misplaced="YES" id="b06-Tl-g9H">
+                                <rect key="frame" x="618" y="52" width="25" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="inline" title="X" bezelStyle="inline" alignment="center" imageScaling="proportionallyDown" inset="2" id="pzR-Xx-IvC">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="smallSystemBold"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="CloseLayerAction:" target="-2" id="eCs-CS-aMQ"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <color key="fillColor" red="0.57060022784543696" green="0.75218907190976958" blue="0.88537039974619292" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                 </box>
             </subviews>
+            <point key="canvasLocation" x="139" y="167.5"/>
         </customView>
     </objects>
 </document>

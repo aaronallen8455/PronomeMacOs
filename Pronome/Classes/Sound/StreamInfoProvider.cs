@@ -185,7 +185,7 @@ namespace Pronome
         /// </summary>
         public static List<StreamInfoProvider> InternalSourceLibrary = new List<StreamInfoProvider>
 		{
-			new StreamInfoProvider(0, "silent.wav", "Silent"),
+			new StreamInfoProvider(0, "silence.wav", "Silent"),
 			new StreamInfoProvider(1, "crash1_edge_v5.wav", "Crash Edge V1"),
 			new StreamInfoProvider(2, "crash1_edge_v8.wav", "Crash Edge V2"),
 			new StreamInfoProvider(3, "crash1_edge_v10.wav", "Crash Edge V3"),

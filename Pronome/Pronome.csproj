@@ -97,10 +97,6 @@
     <Compile Include="LayerView\LayerItemController.designer.cs">
       <DependentUpon>LayerItemController.cs</DependentUpon>
     </Compile>
-    <Compile Include="LayerView\LayerViewController.cs" />
-    <Compile Include="LayerView\LayerViewController.designer.cs">
-      <DependentUpon>LayerViewController.cs</DependentUpon>
-    </Compile>
     <Compile Include="Classes\Metronome.cs" />
     <Compile Include="Classes\Sound\IStreamProvider.cs" />
     <Compile Include="Classes\Sound\StreamInfoProvider.cs" />
@@ -177,6 +173,7 @@
     <BundleResource Include="Resources\snare_xstick_v11.wav" />
     <BundleResource Include="Resources\snare_xstick_v16.wav" />
     <BundleResource Include="Resources\snare_xstick_v6.wav" />
+    <BundleResource Include="Resources\silence.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

@@ -78,8 +78,12 @@ namespace Pronome
             {
                 WillChangeValue("BeatCode");
                 // validate beat code
-                ParsedString = value.Value;
-                _beatCode = value;
+                try 
+                {
+					ParsedString = value.Value;
+					_beatCode = value;
+                }
+                catch (Exception) {}
                 // parse the beatcode
                 Parse(ParsedString);
                 DidChangeValue("BeatCode");
@@ -225,6 +229,12 @@ namespace Pronome
                 _pitchInputVisible = value;
                 DidChangeValue("IsPitchHidden");
             }
+        }
+
+        [Export("Index")]
+        public string Index
+        {
+            get => (Metronome.Instance.Layers.IndexOf(this) + 1).ToString();
         }
 
         private bool _muted = false;

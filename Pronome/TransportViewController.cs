@@ -48,13 +48,6 @@ namespace Pronome
 			Datasource.Data.Add(layer);
 
 			LayerCollection.ReloadData();
-
-            //// color the new layer based on it's index number
-            //nint indexOfItem = LayerCollection.GetNumberOfItems(0) - 1;
-			//
-            //var item = LayerCollection.ItemAtIndex(indexOfItem) as LayerItemController;
-            //var color = indexOfItem % 2 == 0 ? LayerItemController.EvenColor : LayerItemController.OddColor;
-            //item.SetBackgroundColor(color);
 		}
 
 		/// <summary>
@@ -66,14 +59,6 @@ namespace Pronome
 			Datasource.Data.Remove(layer);
 
 			LayerCollection.ReloadData();
-            // re-color the layers
-            //nint numItems = LayerCollection.GetNumberOfItems(0);
-            //for (nint i = 0; i < numItems; i++)
-            //{
-            //    var item = LayerCollection.ItemAtIndex(i) as LayerItemController;
-            //    var color = i % 2 == 0 ? LayerItemController.EvenColor : LayerItemController.OddColor;
-            //    item.SetBackgroundColor(color);
-            //}
 
 			// remove from metronome
 			Metronome.Instance.RemoveLayer(layer);
@@ -88,8 +73,8 @@ namespace Pronome
 			// Create flow layout
 			var flowLayout = new NSCollectionViewFlowLayout()
 			{
-				ItemSize = new CoreGraphics.CGSize(470, 150),
-				SectionInset = new NSEdgeInsets(10, 10, 10, 20),
+				ItemSize = new CoreGraphics.CGSize(650, 117),
+				SectionInset = new NSEdgeInsets(10, 0, 10, 0),
 				MinimumLineSpacing = 10,
 				MinimumInteritemSpacing = 10
 			};
