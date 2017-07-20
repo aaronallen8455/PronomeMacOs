@@ -96,7 +96,25 @@ namespace Pronome
             // autoselect the first source
             SoundSourceSelector.StringValue = 
                 (NSString)SoundSourceSelector.DataSource.ObjectValueForItem(SoundSourceSelector, 0);
-            
+
+            // Epand the selector to show full items, not truncated
+            var cell = SoundSourceSelector.Cell;
+            var frame = SoundSourceSelector.Frame;
+            bool open = false;
+            SoundSourceSelector.WillPopUp += (sender, e) => {
+                if (!open){
+					SoundSourceSelector.SetFrameSize(new CoreGraphics.CGSize(220,23));
+                    // force it to close then reopen to apply frame size to list
+					cell.AccessibilityExpanded = false;
+					cell.AccessibilityExpanded = true;
+                    open = true;
+                }
+            };
+
+            SoundSourceSelector.WillDismiss += (sender, e) => {
+				SoundSourceSelector.Frame = frame;
+                open = false;
+            };
         }
         #endregion
 
