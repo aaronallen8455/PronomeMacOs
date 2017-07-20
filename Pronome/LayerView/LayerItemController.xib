@@ -10,6 +10,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="LayerItemController">
             <connections>
                 <outlet property="BackgroundBox" destination="noI-tY-glb" id="oN6-9R-BwM"/>
+                <outlet property="BeatCodeScroller" destination="vQt-qM-lsy" id="viE-fM-JHx"/>
                 <outlet property="SoundSourceSelector" destination="jkd-i5-9PW" id="eGg-Pz-Dxl"/>
                 <outlet property="view" destination="4" id="17"/>
             </connections>
@@ -158,20 +159,20 @@
                                     </binding>
                                 </connections>
                             </textField>
-                            <scrollView misplaced="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" scrollerKnobStyle="dark" id="58j-Fl-r9y">
-                                <rect key="frame" x="41" y="64" width="569" height="26"/>
+                            <scrollView misplaced="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" scrollerKnobStyle="light" findBarPosition="belowContent" id="58j-Fl-r9y">
+                                <rect key="frame" x="41" y="64" width="569" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <clipView key="contentView" id="AOq-HU-YUK">
-                                    <rect key="frame" x="1" y="1" width="567" height="24"/>
+                                <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="AOq-HU-YUK">
+                                    <rect key="frame" x="1" y="1" width="567" height="27"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="NO" fieldEditor="YES" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" allowsUndo="YES" usesRuler="YES" allowsNonContiguousLayout="YES" textCompletion="NO" id="YKH-4p-MSj" customClass="BeatCodeEditor">
-                                            <rect key="frame" x="0.0" y="0.0" width="567" height="24"/>
+                                        <textView importsGraphics="NO" horizontallyResizable="YES" verticallyResizable="NO" fieldEditor="YES" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" allowsUndo="YES" allowsNonContiguousLayout="YES" textCompletion="NO" id="YKH-4p-MSj" customClass="BeatCodeEditor">
+                                            <rect key="frame" x="0.0" y="0.0" width="567" height="27"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <size key="minSize" width="567" height="24"/>
-                                            <size key="maxSize" width="10000000" height="10000000"/>
+                                            <size key="maxSize" width="10000000" height="24"/>
                                             <color key="insertionPointColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                             <allowedInputSourceLocales>
                                                 <string>eu</string>
@@ -927,8 +928,8 @@
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </clipView>
-                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="vQt-qM-lsy">
-                                    <rect key="frame" x="1" y="9" width="567" height="16"/>
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" arrowsPosition="none" controlSize="mini" horizontal="YES" id="vQt-qM-lsy">
+                                    <rect key="frame" x="2" y="10" width="565" height="14"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="wpv-hk-s0f">

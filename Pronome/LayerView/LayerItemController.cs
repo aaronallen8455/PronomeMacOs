@@ -88,7 +88,6 @@ namespace Pronome
 
         public override void AwakeFromNib()
         {
-            var x = SoundSourceSelector;
             // add sources to source selector
             SoundSourceSelector.DataSource = new SourceSelectorDataSource();
 
@@ -97,7 +96,7 @@ namespace Pronome
             // autoselect the first source
             SoundSourceSelector.StringValue = 
                 (NSString)SoundSourceSelector.DataSource.ObjectValueForItem(SoundSourceSelector, 0);
-
+            
         }
         #endregion
 

@@ -280,8 +280,8 @@ namespace Pronome
          * <param name="layer">Layer to add sources from.</param> */
 		public void AddSourcesFromLayer(Layer layer)
 		{
-			// add sources to mixer
-            foreach (IStreamProvider src in layer.GetAllStreams().OrderBy(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down))
+			// add sources to mixer, put hihat down sounds in first
+            foreach (IStreamProvider src in layer.GetAllStreams().OrderBy(x => x.Info.HiHatStatus != StreamInfoProvider.HiHatStatuses.Down))
 			{
 				AddAudioSource(src);
 			}

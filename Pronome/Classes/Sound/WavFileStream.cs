@@ -18,7 +18,8 @@ namespace Pronome
 
         private long _sampleNum;
 
-        long CurrentHiHatDuration;
+        int CurrentHiHatDuration;
+        //SortedSet<int> HiHatDurations = new SortedSet<int>();
         #endregion
 
         #region Constructors
@@ -45,6 +46,12 @@ namespace Pronome
         {
             int offset = HandleOffset(leftBuffer, rightBuffer, count);
 
+            // if it's an open hihat sound that will be muted, get the first mute point (possibly more than one)
+            //if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
+            //{
+            //    CurrentHiHatDuration = HiHatDurations.Min;
+            //}
+
             for (int i = offset; i < count; i++)
             {
                 if (SampleInterval == 0)
@@ -58,6 +65,11 @@ namespace Pronome
                         {
                             PropagateHiHatDown(i);
                         }
+                        //else if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
+                        //{
+                        //    // get the next hihat muting, or 0 if there isn't any
+                        //    CurrentHiHatDuration = HiHatDurations.SkipWhile(x => x < i).FirstOrDefault();
+                        //}
 					}
 
                     MoveToNextSampleInterval();
@@ -88,6 +100,12 @@ namespace Pronome
 
                 SampleInterval--;
             }
+
+            //// clear out the queued hihat mutings so that they don't occur on next cycle
+            //if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
+            //{
+            //    HiHatDurations.Clear();
+            //}
         }
 
         public override void Reset()
@@ -168,6 +186,7 @@ namespace Pronome
 			IEnumerable<IStreamProvider> hhos = Layer.GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open);
 			foreach (WavFileStream hho in hhos)
 			{
+                //hho.HiHatDurations.Add(i);
                 hho.CurrentHiHatDuration = i;
 			}
         }

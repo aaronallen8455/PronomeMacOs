@@ -64,7 +64,6 @@ namespace Pronome
         #endregion
 
         #region Databound Properties
-
         NSAttributedString _beatCode;
         /// <summary>
         /// Gets or sets the raw beat code string.
@@ -81,7 +80,18 @@ namespace Pronome
                 try 
                 {
 					ParsedString = value.Value;
-					_beatCode = value;
+
+                    // check if the font is correct (may be pasteing from somewhere)
+                    var font = value.GetFontAttributes(new NSRange(0, value.Value.Length));
+                    if (font.TryGetValue(new NSString("NSFont"), out NSObject f))
+                    {
+                        NSFont nsFont = (NSFont)f;
+                        if (nsFont.FontName != "Geneva" || nsFont.PointSize != 16)
+                        {
+                            _beatCode = GetAttributedString(value.Value);
+                        }
+						else _beatCode = value;
+                    }
                 }
                 catch (Exception) {}
                 // parse the beatcode
@@ -298,13 +308,7 @@ namespace Pronome
 			
             Offset = offset;
 
-            // Configure the NSAttributedString, which we use for the beat code editor
-            var d = new NSMutableDictionary();
-            d.SetValueForKey(NSColor.White, new NSString("NSColor"));
-            var s = new CTStringAttributes(d);
-            s.ForegroundColorFromContext = false;
-            s.Font = new CTFont("Geneva", 16);
-            BeatCode = new NSAttributedString(beat, s);
+            BeatCode = GetAttributedString(beat);
 
             //Parse(beat); // parse the beat code into this layer
             Volume = volume;
@@ -563,6 +567,18 @@ namespace Pronome
 				}
 			}
 		}
+
+        static protected NSAttributedString GetAttributedString(string content)
+        {
+			// Configure the NSAttributedString, which we use for the beat code editor
+			var d = new NSMutableDictionary();
+			d.SetValueForKey(NSColor.White, new NSString("NSColor"));
+			var s = new CTStringAttributes(d);
+			s.ForegroundColorFromContext = false;
+			s.Font = new CTFont("CourierNewPS-BoldMT", 16); // geneva also works
+
+            return new NSAttributedString(content, s);
+        }
         #endregion
 
         #region Protected Methods
@@ -1061,6 +1077,11 @@ namespace Pronome
 				}
 			}
 
+            // re-add all the sources to ensure that hihat srcs are added in the correct order
+            foreach (IStreamProvider src in GetAllStreams())
+            {
+                Metronome.Instance.RemoveAudioSource(src);
+            }
 
             Metronome.Instance.AddSourcesFromLayer(this);
 		}

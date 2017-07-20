@@ -16,6 +16,9 @@ namespace Pronome
 		AppKit.NSBox BackgroundBox { get; set; }
 
 		[Outlet]
+		AppKit.NSScroller BeatCodeScroller { get; set; }
+
+		[Outlet]
 		AppKit.NSComboBox SoundSourceSelector { get; set; }
 
 		[Action ("CloseLayerAction:")]
@@ -23,6 +26,11 @@ namespace Pronome
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (BeatCodeScroller != null) {
+				BeatCodeScroller.Dispose ();
+				BeatCodeScroller = null;
+			}
+
 			if (BackgroundBox != null) {
 				BackgroundBox.Dispose ();
 				BackgroundBox = null;

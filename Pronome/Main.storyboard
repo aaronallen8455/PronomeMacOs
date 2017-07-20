@@ -762,7 +762,7 @@ IA
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Tempo" id="rLF-ct-8tG"/>
                                 </connections>
                             </stepper>
-                            <scrollView wantsLayer="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="E8B-1s-p1d">
+                            <scrollView wantsLayer="YES" borderType="none" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" scrollerKnobStyle="light" translatesAutoresizingMaskIntoConstraints="NO" id="E8B-1s-p1d">
                                 <rect key="frame" x="0.0" y="100" width="670" height="459"/>
                                 <clipView key="contentView" drawsBackground="NO" copiesOnScroll="NO" id="NCs-JP-OzG">
                                     <rect key="frame" x="0.0" y="0.0" width="670" height="459"/>
