@@ -11,11 +11,8 @@ namespace Pronome
 {
     public partial class TransportViewController : NSViewController
     {
-        static public TransportViewController Instance;
-
         public TransportViewController(IntPtr handle) : base(handle)
         {
-            Instance = this;
         }	
 
         #region Computed Properties
@@ -44,8 +41,11 @@ namespace Pronome
 		/// <param name="layer">Layer.</param>
 		public void AddLayer(Layer layer)
 		{
-			// add the layer to the datasource
-			Datasource.Data.Add(layer);
+            // sometimes the colors get stripped
+            ColorAllBeatCodeSyntax();
+			
+            // add the layer to the datasource
+            Datasource.Data.Add(layer);
 
 			LayerCollection.ReloadData();
 		}
@@ -59,6 +59,9 @@ namespace Pronome
 			Datasource.Data.Remove(layer);
 
 			LayerCollection.ReloadData();
+
+			// sometimes the colors get stripped
+			ColorAllBeatCodeSyntax();
 
 			// remove from metronome
 			Metronome.Instance.RemoveLayer(layer);
@@ -94,6 +97,19 @@ namespace Pronome
 			// Populate collection view
 			LayerCollection.ReloadData();
 		}
+
+        /// <summary>
+        /// Colors all beat code syntax for each layer.
+        /// </summary>
+        private void ColorAllBeatCodeSyntax()
+        {
+			var collection = Datasource.ParentCollectionView;
+			for (nint i = 0; i < collection.GetNumberOfItems(0); i++)
+			{
+				LayerItemController cont = collection.ItemAtIndex(i) as LayerItemController;
+				cont.HighlightBeatCodeSyntax();
+			}
+        }
         #endregion
 
         #region Override Methods
@@ -103,11 +119,6 @@ namespace Pronome
         /// <param name="sender">Sender.</param>
         partial void NewLayerAction(NSObject sender)
         {
-            //var parent = ParentViewController as NSSplitViewController;
-            //// get the collection view controller
-            //var layerViewC = parent.SplitViewItems[1].ViewController as LayerViewController;
-			//
-            //layerViewC.AddLayer(new Layer());
             AddLayer(new Layer());
         }
 

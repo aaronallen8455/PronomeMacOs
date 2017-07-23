@@ -16,6 +16,9 @@ namespace Pronome
 		AppKit.NSBox BackgroundBox { get; set; }
 
 		[Outlet]
+		Pronome.BeatCodeEditor BeatCodeInput { get; set; }
+
+		[Outlet]
 		AppKit.NSScroller BeatCodeScroller { get; set; }
 
 		[Outlet]
@@ -26,19 +29,24 @@ namespace Pronome
 		
 		void ReleaseDesignerOutlets ()
 		{
-			if (BeatCodeScroller != null) {
-				BeatCodeScroller.Dispose ();
-				BeatCodeScroller = null;
-			}
-
 			if (BackgroundBox != null) {
 				BackgroundBox.Dispose ();
 				BackgroundBox = null;
 			}
 
+			if (BeatCodeScroller != null) {
+				BeatCodeScroller.Dispose ();
+				BeatCodeScroller = null;
+			}
+
 			if (SoundSourceSelector != null) {
 				SoundSourceSelector.Dispose ();
 				SoundSourceSelector = null;
+			}
+
+			if (BeatCodeInput != null) {
+				BeatCodeInput.Dispose ();
+				BeatCodeInput = null;
 			}
 		}
 	}

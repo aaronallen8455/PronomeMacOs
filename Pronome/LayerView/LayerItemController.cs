@@ -80,7 +80,9 @@ namespace Pronome
         #region Overriden Methods
         partial void CloseLayerAction(NSObject sender)
         {
-            TransportViewController.Instance.RemoveLayer(Layer);
+            ((TransportViewController)NSApplication.SharedApplication.MainWindow.ContentViewController)
+                .RemoveLayer(Layer);
+
             Layer = null;
 
             Dispose();
@@ -123,6 +125,11 @@ namespace Pronome
         public void SetBackgroundColor(NSColor color)
         {
             BackgroundBox.FillColor = color;
+        }
+
+        public void HighlightBeatCodeSyntax()
+        {
+            BeatCodeInput.HighlightSyntax();
         }
 
         #endregion

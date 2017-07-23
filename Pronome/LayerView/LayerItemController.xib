@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="12121" systemVersion="16F73" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -9,6 +10,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="LayerItemController">
             <connections>
                 <outlet property="BackgroundBox" destination="noI-tY-glb" id="oN6-9R-BwM"/>
+                <outlet property="BeatCodeInput" destination="YKH-4p-MSj" id="5cD-6p-OFx"/>
                 <outlet property="BeatCodeScroller" destination="vQt-qM-lsy" id="viE-fM-JHx"/>
                 <outlet property="SoundSourceSelector" destination="jkd-i5-9PW" id="eGg-Pz-Dxl"/>
                 <outlet property="view" destination="4" id="17"/>

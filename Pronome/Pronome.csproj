@@ -72,6 +72,7 @@
     <Folder Include="LayerView\" />
     <Folder Include="Classes\" />
     <Folder Include="Classes\Sound\" />
+    <Folder Include="OptionsWindow\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -117,6 +118,11 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LayerView\MyScroller.cs" />
+    <Compile Include="OptionsWindow\OptionsWindowController.cs" />
+    <Compile Include="OptionsWindow\OptionsWindowController.designer.cs">
+      <DependentUpon>OptionsWindowController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Classes\ReplaceViewSegue.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
