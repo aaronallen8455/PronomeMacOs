@@ -12,5 +12,11 @@ namespace Pronome
 		public OptionsWindowController (IntPtr handle) : base (handle)
 		{
 		}
-	}
+
+    }
+}
+
+namespace Pronome.OptionsWindow
+{
+	public enum SubviewType { None, RandomMuting, IntervallicMuting, SaveAndLoad, CustomSoundLibrary, WavFileCreation, Visuals, AdditionalSettings };
 }

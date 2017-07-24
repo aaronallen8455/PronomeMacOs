@@ -242,31 +242,31 @@
             </objects>
             <point key="canvasLocation" x="641" y="-175"/>
         </scene>
-        <!--Split View Controller-->
+        <!--Options Split View Controller-->
         <scene sceneID="j1B-Pg-qW0">
             <objects>
-                <splitViewController id="o6o-Fo-P3l" sceneMemberID="viewController">
+                <splitViewController id="o6o-Fo-P3l" customClass="OptionsSplitViewController" sceneMemberID="viewController">
                     <splitViewItems>
-                        <splitViewItem id="Kl2-WV-ntc"/>
-                        <splitViewItem id="nOr-7u-7Ga"/>
+                        <splitViewItem id="xHq-cb-OVC"/>
+                        <splitViewItem id="MBl-Kl-cXT"/>
                     </splitViewItems>
                     <splitView key="splitView" dividerStyle="thin" vertical="YES" id="o86-Oy-tHl">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </splitView>
                     <connections>
-                        <segue destination="Km3-vq-knX" kind="relationship" relationship="splitItems" id="vFY-S5-EkP"/>
-                        <segue destination="z2G-Fh-n6H" kind="relationship" relationship="splitItems" id="YEg-3k-Djy"/>
+                        <segue destination="z2G-Fh-n6H" kind="relationship" relationship="splitItems" id="kDw-Uw-J2v"/>
+                        <segue destination="Km3-vq-knX" kind="relationship" relationship="splitItems" id="gdI-7u-Ppu"/>
                     </connections>
                 </splitViewController>
                 <customObject id="fbj-4H-HP1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1228" y="-23"/>
         </scene>
-        <!--View Controller-->
+        <!--Options Right View Controller-->
         <scene sceneID="I6C-VL-9Ka">
             <objects>
-                <viewController id="Km3-vq-knX" sceneMemberID="viewController">
+                <viewController id="Km3-vq-knX" customClass="OptionsRightViewController" sceneMemberID="viewController">
                     <view key="view" id="AVt-7j-1Y2">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -276,22 +276,133 @@
             </objects>
             <point key="canvasLocation" x="1816" y="190"/>
         </scene>
-        <!--View Controller-->
+        <!--CustomSoundLibrary-->
+        <scene sceneID="KIk-j5-0yV">
+            <objects>
+                <viewController title="CustomSoundLibrary" id="NU5-7Y-huI" sceneMemberID="viewController">
+                    <view key="view" id="2xf-7V-mxN">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="CustomSoundLibrarySegue" customClass="ReplaceViewSegue" id="0co-bL-NJG"/>
+                    </connections>
+                </viewController>
+                <customObject id="Uum-Sh-V2n" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1831" y="610"/>
+        </scene>
+        <!--IntervallicMuting-->
+        <scene sceneID="CVh-Hq-g6O">
+            <objects>
+                <viewController title="IntervallicMuting" id="tzd-O7-TYG" sceneMemberID="viewController">
+                    <view key="view" id="Lsa-Cs-9x9">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="IntervallicMutingSegue" customClass="ReplaceViewSegue" id="pbo-zI-0lP"/>
+                    </connections>
+                </viewController>
+                <customObject id="QFw-hN-JGA" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2309" y="610"/>
+        </scene>
+        <!--RandomMuting-->
+        <scene sceneID="f5H-mF-jZF">
+            <objects>
+                <viewController title="RandomMuting" id="XZv-7K-1kB" sceneMemberID="viewController">
+                    <view key="view" id="HtK-oO-ObP">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="RandomMutingSegue" customClass="ReplaceViewSegue" id="pNj-FC-A8S"/>
+                    </connections>
+                </viewController>
+                <customObject id="M8C-V0-7a4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2803" y="610"/>
+        </scene>
+        <!--SaveAndLoad-->
+        <scene sceneID="xIL-7S-iHD">
+            <objects>
+                <viewController title="SaveAndLoad" id="3P5-5S-HdD" sceneMemberID="viewController">
+                    <view key="view" id="65k-fr-Wxn">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="SaveAndLoadSegue" customClass="ReplaceViewSegue" id="JAW-JR-kc5"/>
+                    </connections>
+                </viewController>
+                <customObject id="C3v-Ow-Dfd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3282" y="610"/>
+        </scene>
+        <!--Visuals-->
+        <scene sceneID="YGb-fa-c8l">
+            <objects>
+                <viewController title="Visuals" id="Ju7-H7-3ec" sceneMemberID="viewController">
+                    <view key="view" id="dvJ-k9-Eps">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="VisualsSegue" customClass="ReplaceViewSegue" id="NTL-r5-OUu"/>
+                    </connections>
+                </viewController>
+                <customObject id="D2y-ca-G43" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3761" y="610"/>
+        </scene>
+        <!--WavFileCreation-->
+        <scene sceneID="56g-7a-Rni">
+            <objects>
+                <viewController title="WavFileCreation" id="Qb1-Ou-L5R" sceneMemberID="viewController">
+                    <view key="view" id="fcg-vm-8fd">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="WavFileCreationSegue" customClass="ReplaceViewSegue" id="Fim-Kj-cf6"/>
+                    </connections>
+                </viewController>
+                <customObject id="SOJ-Io-sjt" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4233" y="610"/>
+        </scene>
+        <!--AdditionalSettings-->
+        <scene sceneID="J0W-bs-Ci3">
+            <objects>
+                <viewController title="AdditionalSettings" id="oiS-QQ-CFc" sceneMemberID="viewController">
+                    <view key="view" id="SHl-ru-DId">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                    <connections>
+                        <segue destination="Km3-vq-knX" kind="custom" identifier="AdditionalSettingsSegue" customClass="ReplaceViewSegue" id="6eb-ZD-Cyd"/>
+                    </connections>
+                </viewController>
+                <customObject id="M9O-TE-E4n" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1325" y="610"/>
+        </scene>
+        <!--Options Left View Controller-->
         <scene sceneID="7xR-bB-ZEi">
             <objects>
-                <viewController id="z2G-Fh-n6H" sceneMemberID="viewController">
+                <viewController id="z2G-Fh-n6H" customClass="OptionsLeftViewController" sceneMemberID="viewController">
                     <view key="view" id="7GG-xw-1B2">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <scrollView fixedFrame="YES" autohidesScrollers="YES" horizontalLineScroll="26" horizontalPageScroll="10" verticalLineScroll="26" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2XO-ue-2sI">
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2XO-ue-2sI">
                                 <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <clipView key="contentView" ambiguous="YES" drawsBackground="NO" id="yZ7-KN-42B">
+                                <clipView key="contentView" drawsBackground="NO" id="yZ7-KN-42B">
                                     <rect key="frame" x="1" y="1" width="448" height="298"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="sourceList" multipleSelection="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" viewBased="YES" indentationPerLevel="16" outlineTableColumn="IPg-gO-UG8" id="d90-GR-okn">
+                                        <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="sourceList" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" indentationPerLevel="16" outlineTableColumn="IPg-gO-UG8" id="d90-GR-okn" customClass="OptionListView">
                                             <rect key="frame" x="0.0" y="0.0" width="448" height="298"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
@@ -361,20 +472,29 @@
                                     <nil key="backgroundColor"/>
                                 </clipView>
                                 <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="LL2-km-9zh">
-                                    <rect key="frame" x="1" y="119" width="238" height="15"/>
+                                    <rect key="frame" x="1" y="-15" width="0.0" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="WoB-Q9-Qgu">
-                                    <rect key="frame" x="224" y="17" width="15" height="102"/>
+                                    <rect key="frame" x="-15" y="1" width="16" height="0.0"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
                         </subviews>
+                        <constraints>
+                            <constraint firstAttribute="bottom" secondItem="2XO-ue-2sI" secondAttribute="bottom" id="XCg-mV-siq"/>
+                            <constraint firstAttribute="trailing" secondItem="2XO-ue-2sI" secondAttribute="trailing" id="kPm-i5-ZvN"/>
+                            <constraint firstItem="2XO-ue-2sI" firstAttribute="leading" secondItem="7GG-xw-1B2" secondAttribute="leading" id="t8Q-bD-Tz9"/>
+                            <constraint firstItem="2XO-ue-2sI" firstAttribute="top" secondItem="7GG-xw-1B2" secondAttribute="top" id="wjd-MY-vPs"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="SourceList" destination="d90-GR-okn" id="Awp-v3-MlV"/>
+                    </connections>
                 </viewController>
                 <customObject id="1nz-vA-qvc" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1816" y="-160"/>
+            <point key="canvasLocation" x="1228" y="462"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
@@ -566,4 +686,7 @@ IA
     <resources>
         <image name="NSActionTemplate" width="14" height="14"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="gdI-7u-Ppu"/>
+    </inferredMetricsTieBreakers>
 </document>
