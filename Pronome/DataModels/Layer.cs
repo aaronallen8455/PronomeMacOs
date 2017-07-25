@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using Foundation;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
 using AppKit;
-using CoreGraphics;
 using CoreText;
 
 namespace Pronome

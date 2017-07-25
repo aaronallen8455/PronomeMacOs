@@ -14,6 +14,12 @@ namespace Pronome
         private nfloat _volume = 1f;
         private nfloat _tempo = 120f;
         private bool _isPlaying; // used to enable/disable UI elements
+        private bool _isSilentIntervalEngaged = false;
+        private string _parsedAudibleInterval;
+        private string _parsedSilentInterval;
+        private bool _isRandomMuteEngaged;
+        private float _randomnessFactor;
+        private float _randomMuteCountdown;
         #endregion
 
         #region Public variables
@@ -24,35 +30,16 @@ namespace Pronome
         public PlayStates PlayState = PlayStates.Stopped;
 
 		public Mixer Mixer;
-        /// <summary>
-        /// Is the random mute engaged?
-        /// </summary>
-        public bool IsRandomMuteEngaged = false;
-
-        /// <summary>
-        /// The randomness factor from 0 to 1.
-        /// </summary>
-        public float RandomnessFactor;
-
-        /// <summary>
-        /// The number of seconds until full randomness is reached.
-        /// </summary>
-        public float RandomMuteCountdown;
-
-        /// <summary>
-        /// Is the silent interval engaged?
-        /// </summary>
-        public bool IsSilentIntervalEngaged = false;
 
         /// <summary>
         /// The audible interval in BPM.
         /// </summary>
-        public double AudibleInterval;
+        public double AudibleIntervalBpm;
 
         /// <summary>
         /// The silent interval in BPM.
         /// </summary>
-        public double SilentInterval;
+        public double SilentIntervalBpm;
         #endregion
 
         #region Computed Properties
@@ -107,10 +94,111 @@ namespace Pronome
                 DidChangeValue("IsPlaying");
             }
         }
-        #endregion
 
-        #region Static Properties
-        static private Metronome _instance;
+		/// <summary>
+		/// Is the silent interval engaged?
+		/// </summary>
+		[Export("IsSilentIntervalEnabled")]
+        public bool IsSilentIntervalEngaged
+        {
+            get => _isSilentIntervalEngaged;
+            set
+            {
+                WillChangeValue("IsSilentIntervalEnabled");
+                _isSilentIntervalEngaged = value;
+                DidChangeValue("IsSilentIntervalEnabled");
+            }
+        }
+
+        [Export("AudibleInterval")]
+        public string AudibleInterval
+        {
+            get => _parsedAudibleInterval;
+            set
+            {
+                WillChangeValue("AudibleInterval");
+                if (BeatCell.TryParse(value, out double bpm))
+                {
+                    if (bpm >= 0)
+                    {
+						_parsedAudibleInterval = value;
+                        AudibleIntervalBpm = bpm;
+                    }
+                }
+                DidChangeValue("AudibleInterval");
+            }
+        }
+
+        [Export("SilentInterval")]
+        public string SilentInterval
+        {
+            get => _parsedSilentInterval;
+            set
+            {
+                WillChangeValue("SilentInterval");
+                if (BeatCell.TryParse(value, out double bpm))
+                {
+                    _parsedSilentInterval = value;
+                    SilentIntervalBpm = bpm;
+                }
+                DidChangeValue("SilentInterval");
+            }
+        }
+
+		/// <summary>
+		/// Is the random mute engaged?
+		/// </summary>
+        [Export("IsRandomMuteEnabled")]
+        public bool IsRandomMuteEngaged
+        {
+            get => _isRandomMuteEngaged;
+            set
+            {
+                WillChangeValue("IsRandomMuteEnabled");
+                _isRandomMuteEngaged = value;
+                DidChangeValue("IsRandomMuteEnabled");
+            }
+        }
+
+		/// <summary>
+		/// The randomness factor from 0 to 1.
+		/// </summary>
+        [Export("RandomnessFactor")]
+		public nfloat RandomnessFactor
+        {
+            get => _randomnessFactor;
+            set
+            {
+                WillChangeValue("RandomnessFactor");
+                if (value >= 0 && value <= 100)
+                {
+					_randomnessFactor = (float)value;
+                }
+                DidChangeValue("RandomnessFactor");
+            }
+        }
+
+		/// <summary>
+		/// The number of seconds until full randomness is reached.
+		/// </summary>
+        [Export("RandomMuteCountdown")]
+		public nfloat RandomMuteCountdown
+        {
+            get => _randomMuteCountdown;
+            set
+            {
+                WillChangeValue("RandomMuteCountdown");
+                if (value >= 0)
+                {
+					_randomMuteCountdown = (float)value;
+                }
+                DidChangeValue("RandomMuteCountdown");
+            }
+        }
+		#endregion
+
+		#region Static Properties
+		static private Metronome _instance;
         /// <summary>
         /// Get the singleton instance.
         /// </summary>

@@ -139,6 +139,11 @@
     <Compile Include="OptionsWindow\OptionsRightViewController.designer.cs">
       <DependentUpon>OptionsRightViewController.cs</DependentUpon>
     </Compile>
+    <Compile Include="Classes\UserSettings.cs" />
+    <Compile Include="OptionsWindow\AdditionalSettingsController.cs" />
+    <Compile Include="OptionsWindow\AdditionalSettingsController.designer.cs">
+      <DependentUpon>AdditionalSettingsController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

@@ -243,10 +243,10 @@ namespace Pronome
                     // remove elapsed time
                     RandomMuteCountdown -= Math.Min(SampleInterval, RandomMuteCountdown);
 
-                    return randomNum <= (RandomMuteCountdownTotal - RandomMuteCountdown) / RandomMuteCountdownTotal * Metronome.Instance.RandomnessFactor * 100;
+                    return randomNum <= (RandomMuteCountdownTotal - RandomMuteCountdown) / RandomMuteCountdownTotal * Metronome.Instance.RandomnessFactor;
                 }
 
-				return randomNum <= Metronome.Instance.RandomnessFactor * 100;
+				return randomNum <= Metronome.Instance.RandomnessFactor;
 			}
 
 			return false;
@@ -267,8 +267,8 @@ namespace Pronome
 				if (_silentInterval <= 0)
 				{
 					// get the intervals in samples
-					long silent = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.SilentInterval);
-					long audible = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.AudibleInterval);
+					long silent = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.SilentIntervalBpm);
+					long audible = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.AudibleIntervalBpm);
 
 					// account for possible proced cycles
 					_silentInterval %= silent + audible;
