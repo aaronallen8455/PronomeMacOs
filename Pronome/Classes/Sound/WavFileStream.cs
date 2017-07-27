@@ -19,7 +19,7 @@ namespace Pronome
         private long _sampleNum;
 
         int CurrentHiHatDuration;
-        //SortedSet<int> HiHatDurations = new SortedSet<int>();
+        SortedSet<int> HiHatDurations = new SortedSet<int>();
         #endregion
 
         #region Constructors
@@ -30,7 +30,7 @@ namespace Pronome
                 BitsPerChannel = 32,
                 Format = AudioFormatType.LinearPCM,
                 FormatFlags = AudioStreamBasicDescription.AudioFormatFlagsAudioUnitNativeFloat,
-                SampleRate = 44100,
+                SampleRate = Metronome.SampleRate,
                 ChannelsPerFrame = 2,
                 FramesPerPacket = 1,
                 BytesPerFrame = sizeof(float),
@@ -42,17 +42,17 @@ namespace Pronome
         #endregion
 
         #region Public Methods
-        public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count)
+        public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true)
         {
             int offset = HandleOffset(leftBuffer, rightBuffer, count);
 
-            // if it's an open hihat sound that will be muted, get the first mute point (possibly more than one)
-            //if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
-            //{
-            //    CurrentHiHatDuration = HiHatDurations.Min;
-            //}
+			// if it's an open hihat sound that will be muted, get the first mute point (possibly more than one)
+			if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
+			{
+			    CurrentHiHatDuration = HiHatDurations.Min;
+			}
 
-            for (int i = offset; i < count; i++)
+			for (int i = offset; i < count; i++)
             {
                 if (SampleInterval == 0)
                 {
@@ -65,11 +65,11 @@ namespace Pronome
                         {
                             PropagateHiHatDown(i);
                         }
-                        //else if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
-                        //{
-                        //    // get the next hihat muting, or 0 if there isn't any
-                        //    CurrentHiHatDuration = HiHatDurations.SkipWhile(x => x < i).FirstOrDefault();
-                        //}
+						else if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
+						{
+						    // get the next hihat muting, or 0 if there isn't any
+						    CurrentHiHatDuration = HiHatDurations.SkipWhile(x => x < i).FirstOrDefault();
+						}
 					}
 
                     MoveToNextSampleInterval();
@@ -90,9 +90,13 @@ namespace Pronome
                 if (_sampleNum < TotalFrames)
                 {
                     var input = (float*)Data;
-                    leftBuffer[i] = rightBuffer[i] = input[_sampleNum++];
+                    if (writeToBuffer)
+                    {
+						leftBuffer[i] = rightBuffer[i] = input[_sampleNum];
+                    }
+                    _sampleNum++;
                 }
-                else
+                else if (writeToBuffer)
                 {
                     // if end of file reached, fill with silence
                     leftBuffer[i] = rightBuffer[i] = 0;
@@ -101,12 +105,12 @@ namespace Pronome
                 SampleInterval--;
             }
 
-            //// clear out the queued hihat mutings so that they don't occur on next cycle
-            //if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
-            //{
-            //    HiHatDurations.Clear();
-            //}
-        }
+			// clear out the queued hihat mutings so that they don't occur on next cycle
+			if (Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
+			{
+			    HiHatDurations.Clear();
+			}
+		}
 
         public override void Reset()
         {
@@ -186,8 +190,8 @@ namespace Pronome
 			IEnumerable<IStreamProvider> hhos = Layer.GetAllStreams().Where(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open);
 			foreach (WavFileStream hho in hhos)
 			{
-                //hho.HiHatDurations.Add(i);
-                hho.CurrentHiHatDuration = i;
+                hho.HiHatDurations.Add(i);
+                //hho.CurrentHiHatDuration = i;
 			}
         }
         #endregion

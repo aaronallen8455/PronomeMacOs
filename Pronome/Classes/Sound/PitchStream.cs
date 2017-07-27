@@ -135,7 +135,7 @@ namespace Pronome
 
         private float sampleValue = 0;
 
-        public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count)
+        public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true)
         {
             // account for any offset
             int offset = HandleOffset(leftBuffer, rightBuffer, count);
@@ -182,9 +182,12 @@ namespace Pronome
                     _sample++;
                     Gain -= GainStep;
 
-                    leftBuffer[i] = rightBuffer[i] = sampleValue;
+                    if (writeToBuffer)
+                    {
+						leftBuffer[i] = rightBuffer[i] = sampleValue;
+                    }
                 }
-                else
+                else if (writeToBuffer)
                 {
                     leftBuffer[i] = rightBuffer[i] = 0;
                 }

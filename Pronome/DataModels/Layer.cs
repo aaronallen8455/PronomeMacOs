@@ -76,25 +76,33 @@ namespace Pronome
             {
                 WillChangeValue("BeatCode");
                 // validate beat code
-                try 
-                {
+				try 
+				{
 					ParsedString = value.Value;
-
-                    // check if the font is correct (may be pasteing from somewhere)
-                    var font = value.GetFontAttributes(new NSRange(0, value.Value.Length));
-                    if (font.TryGetValue(new NSString("NSFont"), out NSObject f))
-                    {
-                        NSFont nsFont = (NSFont)f;
-                        if (nsFont.FontName != "Geneva" || nsFont.PointSize != 16)
-                        {
-                            _beatCode = GetAttributedString(value.Value);
-                        }
+					
+					// check if the font is correct (may be pasteing from somewhere)
+					var font = value.GetFontAttributes(new NSRange(0, value.Value.Length));
+					if (font.TryGetValue(new NSString("NSFont"), out NSObject f))
+					{
+						NSFont nsFont = (NSFont)f;
+						if (nsFont.FontName != "Geneva" || nsFont.PointSize != 16)
+						{
+							_beatCode = GetAttributedString(value.Value);
+						}
 						else _beatCode = value;
-                    }
-                }
-                catch (Exception) {}
-                // parse the beatcode
-                Parse(ParsedString);
+					}
+				}
+				catch (Exception) {}
+				// parse the beatcode
+				if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+				{
+					ProcessBeat(ParsedString);
+				}
+				else
+				{
+					// change the layer while playing
+					Metronome.Instance.ExecuteLayerChange(this); 
+				}
                 DidChangeValue("BeatCode");
             }
         }
@@ -112,20 +120,29 @@ namespace Pronome
             set
             {
                 WillChangeValue("Offset");
-                double oldOffsetBpm = OffsetBpm;
                 // Validate the beatCode
-                if (BeatCell.TryParse(value, out OffsetBpm))
+                if (BeatCell.TryParse(value, out double newOffsetBpm) && newOffsetBpm != OffsetBpm)
                 {
                     ParsedOffset = value;
 
                     // set the offset on all sources
-                    double offsetSamples = OffsetBpm - oldOffsetBpm;
+                    double offsetSamples = newOffsetBpm - OffsetBpm;
 
-                    foreach (IStreamProvider stream in GetAllStreams())
+                    if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
                     {
-                        stream.Offset = stream.Offset + offsetSamples;
+						foreach (IStreamProvider stream in GetAllStreams())
+						{
+							stream.Offset = stream.Offset + offsetSamples;
+						}
                     }
-                }
+                    else
+                    {
+                        // change offset while playing
+                        Metronome.Instance.ExecuteLayerChange(this);
+                    }
+
+					OffsetBpm = newOffsetBpm;
+				}
                 DidChangeValue("Offset");
             }
         }
@@ -191,8 +208,17 @@ namespace Pronome
                 if (info != null && !info.Equals(BaseAudioSource.Info))
                 {
 					_sourceInput = value;
-					
-					NewBaseSource(info);
+
+                    if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+                    {
+						NewBaseSource(info);
+                    }
+                    else
+                    {
+                        // change while playing
+                        BaseAudioSource.Info = info;
+                        Metronome.Instance.ExecuteLayerChange(this);
+                    }
 					
 					PitchInputVisible = value != "Pitch";
                 }
@@ -219,7 +245,16 @@ namespace Pronome
 					{
 						src += '4';
 					}
-                    NewBaseSource(StreamInfoProvider.GetFromPitch(src));
+
+                    if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+                    {
+						NewBaseSource(StreamInfoProvider.GetFromPitch(src));
+                    }
+                    else
+                    {
+                        BaseAudioSource.Info = StreamInfoProvider.GetFromPitch(src);
+                        Metronome.Instance.ExecuteLayerChange(this);
+                    }
 
 					_pitchInput = value;
                 }
@@ -307,14 +342,17 @@ namespace Pronome
 			
             Offset = offset;
 
-            BeatCode = GetAttributedString(beat);
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+            {
+				BeatCode = GetAttributedString(beat);
+            }
 
             //Parse(beat); // parse the beat code into this layer
             Volume = volume;
 
             Pan = pan;
 
-            if (BaseStreamInfo.IsPitch)
+            if (BaseStreamInfo.IsPitch && Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {
                 PitchInput = BaseStreamInfo.Uri;
             }
@@ -329,8 +367,7 @@ namespace Pronome
         /// </summary>
         /// <returns>The parse.</returns>
         /// <param name="beat">Beat.</param>
-        /// <param name="parsedReferencers">Parsed referencers.</param>
-        public void Parse(string beat, HashSet<int> parsedReferencers = null)
+        public BeatCell[] Parse(string beat)
         {
             ParsedString = beat;
             // remove comments
@@ -441,29 +478,12 @@ namespace Pronome
 
                 }).ToArray();
 
-                SetBeat(cells);
+                return cells;
+                //SetBeat(cells);
 
-                // reparse any layers that reference this one
-                Metronome met = Metronome.Instance;
-                int index = met.Layers.IndexOf(this);
-                if (parsedReferencers == null)
-                {
-                    parsedReferencers = new HashSet<int>();
-                }
-                parsedReferencers.Add(index);
-                var layers = met.Layers.Where(
-                    x => x != this
-                    && x.ParsedString.Contains($"${index + 1}")
-                    && !parsedReferencers.Contains(met.Layers.IndexOf(x)));
-                foreach (Layer layer in layers)
-                {
-                    // account for deserializing a beat
-                    if (layer.Beat != null && layer.Beat.Count > 0)
-                    {
-                        layer.Parse(layer.ParsedString, parsedReferencers);
-                    }
-                }
+
             }
+            return null;
         }
 
 		/**<summary>Get a random pitch based on existing pitch layers</summary>*/
@@ -510,6 +530,19 @@ namespace Pronome
 		{
 			return Beat.Select(x => x.Bpm).Sum();
 		}
+
+        /// <summary>
+        /// Adds the streams to mixer. Removes them first so that hihat order is correct.
+        /// </summary>
+        public void AddStreamsToMixer()
+        {
+			foreach (IStreamProvider src in GetAllStreams())
+			{
+                Metronome.Instance.RemoveAudioSource(src);
+			}
+
+            Metronome.Instance.AddSourcesFromLayer(this);
+        }
 
         /// <summary>
         /// Gets all streams.
@@ -653,12 +686,6 @@ namespace Pronome
                 BaseAudioSource.Dispose();
 				Metronome.Instance.RemoveAudioSource(BaseAudioSource);
 
-                //// remove old wav base source from AudioSources
-                //if (AudioSources.Keys.Contains(""))
-                //{
-                //    AudioSources[""].Dispose();
-                //    AudioSources.Remove("");
-                //}
                 PitchSource?.Dispose();
 				PitchSource = null;
 
@@ -849,12 +876,7 @@ namespace Pronome
 
                 if (BaseAudioSource.IntervalLoop.Enumerator != null)
                 {
-					foreach (IStreamProvider src in GetAllStreams())
-					{
-						met.RemoveAudioSource(src);
-					}
-					
-					met.AddSourcesFromLayer(this);
+                    AddStreamsToMixer();
                 }
 			}
 		}
@@ -919,7 +941,7 @@ namespace Pronome
 
 		/** <summary>Add array of beat cells and create all audio sources.</summary>
          * <param name="beat">Array of beat cells.</param> */
-		public void SetBeat(BeatCell[] beat)
+        public BeatCell[] SetBeat(BeatCell[] beat)
 		{
 			// deal with the old audio sources.
             if (Beat.Any())
@@ -1005,41 +1027,43 @@ namespace Pronome
 
 			Beat = beat.ToList();
 
-			SetBeatCollectionOnSources();
+            return beat;
+
+			//SetBeatCollectionOnSources();
 		}
 
 		/** <summary>Set the beat collections for each sound source.</summary> 
          * <param name="Beat">The cells to process</param>
          */
-		public void SetBeatCollectionOnSources()
+        public BeatCell[] SetBeatCollectionOnSources(BeatCell[] beat)
 		{
 			HashSet<IStreamProvider> completed = new HashSet<IStreamProvider>();
 
 			// for each beat, iterate over all beats and build a beat list of values from beats of same source.
-			for (int i = 0; i < Beat.Count; i++)
+			for (int i = 0; i < beat.Length; i++)
 			{
 				List<double> cells = new List<double>();
 				double accumulator = 0;
 				// Once per audio source
-				if (completed.Contains(Beat[i].AudioSource)) continue;
+				if (completed.Contains(beat[i].AudioSource)) continue;
 				// if selected beat is not first in cycle, set it's offset
 				//if (i != 0)
 				//{
 				double offsetAccumulate = OffsetBpm;
 				for (int p = 0; p < i; p++)
 				{
-					offsetAccumulate += Beat[p].Bpm;
+					offsetAccumulate += beat[p].Bpm;
 				}
 
-                Beat[i].AudioSource.Offset = offsetAccumulate;
+                beat[i].AudioSource.Offset = offsetAccumulate;
 				//}
 				// iterate over beats starting with current one. Aggregate with cells that have the same audio source.
 				for (int p = i; ; p++)
 				{
 
-					if (p == Beat.Count) p = 0;
+                    if (p == beat.Length) p = 0;
 
-					if (Beat[p].AudioSource == Beat[i].AudioSource)
+					if (beat[p].AudioSource == beat[i].AudioSource)
 					{
 
 						// add accumulator to previous element in list
@@ -1048,20 +1072,20 @@ namespace Pronome
 							cells[cells.Count - 1] += accumulator;
 							accumulator = 0f;
 						}
-						cells.Add(Beat[p].Bpm);
+						cells.Add(beat[p].Bpm);
 					}
-					else accumulator += Beat[p].Bpm;
+					else accumulator += beat[p].Bpm;
 
 					// job done if current beat is one before the outer beat.
-					if (p == i - 1 || (i == 0 && p == Beat.Count - 1))
+                    if (p == i - 1 || (i == 0 && p == beat.Length - 1))
 					{
 						cells[cells.Count - 1] += accumulator;
 						break;
 					}
 				}
-				completed.Add(Beat[i].AudioSource);
+				completed.Add(beat[i].AudioSource);
 
-                Beat[i].AudioSource.IntervalLoop = new SampleIntervalLoop(this, cells.ToArray());
+                beat[i].AudioSource.IntervalLoop = new SampleIntervalLoop(this, cells.ToArray());
 			}
 
 			foreach (IStreamProvider source in AudioSources.Values.Concat(new IStreamProvider[] { BaseAudioSource }))
@@ -1076,14 +1100,57 @@ namespace Pronome
 				}
 			}
 
+            return beat;
             // re-add all the sources to ensure that hihat srcs are added in the correct order
-            foreach (IStreamProvider src in GetAllStreams())
+            //AddStreamsToMixer();
+		}
+
+        public void ProcessBeat(string beatcode, HashSet<int> parsedReferencers = null)
+        {
+            BeatCell[] cells = Parse(beatcode);
+            SetBeat(cells);
+            SetBeatCollectionOnSources(cells);
+            Beat = cells.ToList();
+
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {
-                Metronome.Instance.RemoveAudioSource(src);
+				AddStreamsToMixer();
             }
 
-            Metronome.Instance.AddSourcesFromLayer(this);
-		}
+			// reparse any layers that reference this one
+			Metronome met = Metronome.Instance;
+			int index = met.Layers.IndexOf(this);
+			if (parsedReferencers == null)
+			{
+				parsedReferencers = new HashSet<int>();
+			}
+			parsedReferencers.Add(index);
+			var layers = met.Layers.Where(
+				x => x != this
+				&& x.ParsedString.Contains($"${index + 1}")
+				&& !parsedReferencers.Contains(met.Layers.IndexOf(x)));
+			foreach (Layer layer in layers)
+			{
+				// account for deserializing a beat
+				if (layer.Beat != null && layer.Beat.Count > 0)
+				{
+                    if (met.PlayState == Metronome.PlayStates.Stopped)
+                    {
+						layer.ProcessBeat(layer.ParsedString, parsedReferencers);
+                    }
+                    else
+                    {
+                        // create dummy layers for refs
+                        Layer copy = new Layer(layer.ParsedString, layer.BaseStreamInfo, layer.ParsedOffset, (float)layer.Pan, (float)layer.Volume);
+
+                        met.LayersToChange.Add(
+                            met.Layers.IndexOf(layer),
+                            copy
+                        );
+                    }
+				}
+			}
+        }
 
         public void Cleanup()
         {

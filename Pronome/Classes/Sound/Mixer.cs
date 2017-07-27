@@ -2,6 +2,7 @@
 using AudioToolbox;
 using AudioUnit;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pronome
 {
@@ -29,6 +30,8 @@ namespace Pronome
 
         bool _tempoChanged;
         double _tempoChangeRatio;
+
+        private double cycle;
         #endregion
 
         #region Public Variables
@@ -67,11 +70,12 @@ namespace Pronome
                 }
 
                 // add the callback
+                //if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped || i != 0)
                 if (MixerNode.SetRenderCallback(HandleRenderDelegate, AudioUnitScopeType.Global, i) != AudioUnitStatus.OK)
 				{
 					throw new ApplicationException();
 				}
-			
+                			
 				// set input stream format
 				var desc = stream.Format;
 			
@@ -97,7 +101,8 @@ namespace Pronome
             Streams.Remove(stream);
 
             // re-configure the mixer inputs
-            ConfigureMixerInputs();
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+                ConfigureMixerInputs();
         }
 
         /// <summary>
@@ -131,6 +136,7 @@ namespace Pronome
 
 				IsPlaying = false;
                 _tempoChanged = false;
+                cycle = 0;
 			}
 		}
 
@@ -324,13 +330,82 @@ namespace Pronome
                 return AudioUnitStatus.InvalidElement;
             }
 
-            // propagate tempo change on start of a new cycle
-            if (busNumber == 0 && _tempoChanged)
+            if (busNumber == 0)
             {
-                PropagateTempoChange(_tempoChangeRatio);
+				// check for a queued layer change
+				if (Metronome.Instance.NeedToChangeLayer == true)
+				{
+					Metronome.Instance.CycleToChange = cycle + 1;
+					Metronome.Instance.ChangeLayerTurnstyle.Set();
+				}
+				else if (Metronome.Instance.NeedToChangeLayer == null)
+				{
+					// top off the fat forward
+					double cycleDiff = cycle - Metronome.Instance.CycleToChange;
+					
+					Metronome.Instance.FastForwardChangedLayers(cycleDiff);
+					
+					foreach (KeyValuePair<int, Layer> pair in Metronome.Instance.LayersToChange)
+					{
+						Layer copy = pair.Value;
+						Layer real = Metronome.Instance.Layers[pair.Key];
 
-                _tempoChanged = false;
+                        int numberRemoved = 0;
+						// remove old sources
+						foreach (IStreamProvider src in real.GetAllStreams())
+						{
+							Metronome.Instance.RemoveAudioSource(src);
+							src.Dispose();
+                            numberRemoved++;
+						}
+						
+						// transfer sources to real layer
+						real.AudioSources = copy.AudioSources;
+						real.BaseAudioSource = copy.BaseAudioSource;
+						real.PitchSource = copy.PitchSource;
+						real.BaseSourceName = copy.BaseSourceName;
+						real.Beat = copy.Beat;
+						
+						foreach (IStreamProvider src in real.GetAllStreams().OrderBy(x => x.Info.HiHatStatus != StreamInfoProvider.HiHatStatuses.Down))
+						{
+							src.Layer = real;
+                            if (numberRemoved <= 0)
+                            {
+                                Metronome.Instance.AddAudioSource(src);
+                            }
+                            else
+                            {
+								Streams.Add(src);
+                            }
+							
+                            numberRemoved--;
+						}
+						
+						// put in new sources
+						//Metronome.Instance.AddSourcesFromLayer(real);
+
+						copy.AudioSources = null;
+						copy.BaseAudioSource = null;
+						copy.PitchSource = null;
+						copy.Beat = null;
+						Metronome.Instance.Layers.Remove(copy);
+					}
+					
+					Metronome.Instance.LayersToChange.Clear();
+					Metronome.Instance.NeedToChangeLayer = false;
+				}
+				
+				// propagate tempo change on start of a new cycle
+				if (_tempoChanged)
+				{
+					PropagateTempoChange(_tempoChangeRatio);
+					
+					_tempoChanged = false;
+				}
+
+                cycle++;
             }
+
 
             IStreamProvider source = Streams[(int)busNumber];
 
@@ -373,6 +448,8 @@ namespace Pronome
             {
                 layer.SampleRemainder *= ratio;
             }
+
+            cycle *= ratio;
         }
         #endregion
     }

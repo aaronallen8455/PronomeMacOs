@@ -40,6 +40,23 @@ namespace Pronome
         /// The silent interval in BPM.
         /// </summary>
         public double SilentIntervalBpm;
+
+        /// <summary>
+        /// Used to pass the number of the cycle to fast forward a changing layer to
+        /// </summary>
+        public double CycleToChange;
+        /// <summary>
+        /// True if a layer change has been requested. Null if layers are ready to be re-added.
+        /// </summary>
+        public bool? NeedToChangeLayer = false;
+        /// <summary>
+        /// The layers to change keyed by index.
+        /// </summary>
+        public Dictionary<int, Layer> LayersToChange = new Dictionary<int, Layer>();
+        /// <summary>
+        /// The change layer turnstyle.
+        /// </summary>
+        public AutoResetEvent ChangeLayerTurnstyle = new AutoResetEvent(false);
         #endregion
 
         #region Computed Properties
@@ -374,6 +391,59 @@ namespace Pronome
 				AddAudioSource(src);
 			}
 		}
+
+        public void ExecuteLayerChange(Layer layer)
+        {
+            Layer copyLayer = new Layer(
+                "1",
+                layer.BaseStreamInfo,
+                layer.ParsedOffset,
+                (float)layer.Pan,
+                (float)layer.Volume
+            );
+
+            LayersToChange.Add(Layers.IndexOf(layer), copyLayer);
+
+            copyLayer.ProcessBeat(layer.ParsedString);
+
+            var t = new Thread(() =>
+            {
+                NeedToChangeLayer = true;
+                // wait until the cycle number is set
+                ChangeLayerTurnstyle.WaitOne();
+
+                FastForwardChangedLayers(CycleToChange);
+
+                // signal the audio callback to finish the process
+                NeedToChangeLayer = null;
+            });
+
+            t.Start();
+        }
+
+        public unsafe void FastForwardChangedLayers(double cycles)
+        {
+            int floatsPerCycle = Mixer.BufferSize;
+            long totalFloats = (long)(cycles * floatsPerCycle);
+
+            foreach (KeyValuePair<int, Layer> pair in LayersToChange)
+            {
+                Layer l = pair.Value;
+                foreach (IStreamProvider src in l.GetAllStreams())
+                {
+                    long floats = totalFloats;
+
+                    while (floats > 0)
+                    {
+                        uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);
+
+                        src.Read(null, null, intsToCopy, false);
+
+                        floats -= uint.MaxValue;
+                    }
+                }
+            }
+        }
 
         public void Cleanup()
         {

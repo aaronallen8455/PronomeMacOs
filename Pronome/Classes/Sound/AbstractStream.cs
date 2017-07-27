@@ -39,7 +39,7 @@ namespace Pronome
 		#endregion
 
 		#region public properties
-		public StreamInfoProvider Info { get => _info; }
+        public StreamInfoProvider Info { get => _info; set { _info = value; } }
 
 		public AudioStreamBasicDescription Format { get => _format; }
 
@@ -137,7 +137,7 @@ namespace Pronome
             Reset();
         }
 
-        unsafe abstract public void Read(float* leftBuffer, float* rightBuffer, uint count);
+        unsafe abstract public void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true);
 
         /// <summary>
         /// Propagates the tempo change.
@@ -207,11 +207,14 @@ namespace Pronome
 				amount = (int)Math.Min(CurrentOffset, count);
 				CurrentOffset -= amount;
 
-				// zero out buffers
-				for (int i = 0; i < amount; i++)
-				{
-					leftBuffer[i] = rightBuffer[i] = 0;
-				}
+                // zero out buffers
+                if (leftBuffer != null)
+                {
+					for (int i = 0; i < amount; i++)
+					{
+						leftBuffer[i] = rightBuffer[i] = 0;
+					}
+                }
 
 				// add remainder to the layer
 				if (CurrentOffset < 1)

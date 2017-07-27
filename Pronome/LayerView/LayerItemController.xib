@@ -39,11 +39,6 @@
                                 </textFieldCell>
                                 <connections>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Offset" id="qSX-C0-Of8"/>
-                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="c3X-8I-2hH">
-                                        <dictionary key="options">
-                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                        </dictionary>
-                                    </binding>
                                 </connections>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" misplaced="YES" allowsCharacterPickerTouchBarItem="NO" id="M3b-nC-PXz">
@@ -134,13 +129,8 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
-                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" previousBinding="fRA-j5-JOF" id="mny-DU-fW2"/>
+                                    <binding destination="-2" name="hidden" keyPath="self.Layer.IsPitchHidden" id="aNL-Ih-YBc"/>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Pitch" id="MSC-2B-xM3"/>
-                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="fRA-j5-JOF">
-                                        <dictionary key="options">
-                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                        </dictionary>
-                                    </binding>
                                 </connections>
                             </textField>
                             <scrollView misplaced="YES" autohidesScrollers="YES" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasVerticalScroller="NO" usesPredominantAxisScrolling="NO" verticalScrollElasticity="none" scrollerKnobStyle="light" findBarPosition="belowContent" id="58j-Fl-r9y">
@@ -902,11 +892,6 @@
                                             </allowedInputSourceLocales>
                                             <connections>
                                                 <binding destination="-2" name="attributedString" keyPath="self.Layer.BeatCode" id="Uhb-Z4-Xeq"/>
-                                                <binding destination="-2" name="editable" keyPath="self.Metronome.IsPlaying" id="2zW-7C-Vx8">
-                                                    <dictionary key="options">
-                                                        <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                                    </dictionary>
-                                                </binding>
                                             </connections>
                                         </textView>
                                     </subviews>
@@ -970,11 +955,6 @@
                                 </comboBoxCell>
                                 <connections>
                                     <binding destination="-2" name="value" keyPath="self.Layer.Source" id="8gw-P3-kAk"/>
-                                    <binding destination="-2" name="enabled" keyPath="self.Metronome.IsPlaying" id="yPh-Mh-7wi">
-                                        <dictionary key="options">
-                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                        </dictionary>
-                                    </binding>
                                 </connections>
                             </comboBox>
                         </subviews>

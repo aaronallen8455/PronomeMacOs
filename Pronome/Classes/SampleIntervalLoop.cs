@@ -22,7 +22,7 @@ namespace Pronome
         {
             Layer = layer;
             Bpm = bpm;
-            ConvertBpmValues(null, null);
+            ConvertBpmValues();
             Metronome.Instance.TempoChanged += ConvertBpmValues;
             Enumerator = bpm.Length == 1 && bpm[0] == 0 ? null : GetEnumerator();
         }

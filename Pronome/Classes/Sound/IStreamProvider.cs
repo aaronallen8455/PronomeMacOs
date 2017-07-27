@@ -5,7 +5,7 @@ namespace Pronome
 {
     public interface IStreamProvider
     {
-        StreamInfoProvider Info { get; }
+        StreamInfoProvider Info { get; set; }
 
         AudioStreamBasicDescription Format { get; }
 
@@ -21,9 +21,9 @@ namespace Pronome
 
         SampleIntervalLoop IntervalLoop { get; set; }
 
-        Layer Layer { get; }
+        Layer Layer { get; set; }
 
-        unsafe void Read(float* leftBuffer, float* rightBuffer, uint count);
+        unsafe void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true);
 
         void Dispose();
 
