@@ -397,10 +397,11 @@ namespace Pronome
             Layer copyLayer = new Layer(
                 "1",
                 layer.BaseStreamInfo,
-                layer.ParsedOffset,
+                "",
                 (float)layer.Pan,
                 (float)layer.Volume
             );
+            copyLayer.OffsetBpm = layer.OffsetBpm;
 
             LayersToChange.Add(Layers.IndexOf(layer), copyLayer);
 
@@ -431,15 +432,15 @@ namespace Pronome
                 Layer l = pair.Value;
                 foreach (IStreamProvider src in l.GetAllStreams())
                 {
-                    long floats = totalFloats;
+                    //long floats = totalFloats;
 
-                    while (floats > 0)
+                    while (totalFloats > 0)
                     {
-                        uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);
+                        uint intsToCopy = (uint)Math.Min(uint.MaxValue, totalFloats);
 
                         src.Read(null, null, intsToCopy, false);
 
-                        floats -= uint.MaxValue;
+                        totalFloats -= uint.MaxValue;
                     }
                 }
             }

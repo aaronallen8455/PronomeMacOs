@@ -60,6 +60,8 @@ namespace Pronome
         /// The pitch source, if needed. Will also be the baseAudioSource if it's a pitch layer
         /// </summary>
         public PitchStream PitchSource;
+
+        public double OffsetBpm;
         #endregion
 
         #region Databound Properties
@@ -107,8 +109,6 @@ namespace Pronome
             }
         }
 
-        //private string _offset = "";
-        protected double OffsetBpm;
         /// <summary>
         /// Gets or sets the raw offset string.
         /// </summary>
@@ -128,12 +128,14 @@ namespace Pronome
                     // set the offset on all sources
                     double offsetSamples = newOffsetBpm - OffsetBpm;
 
+					OffsetBpm = newOffsetBpm;
+
                     if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
                     {
-						foreach (IStreamProvider stream in GetAllStreams())
-						{
-							stream.Offset = stream.Offset + offsetSamples;
-						}
+                        foreach (IStreamProvider stream in GetAllStreams())
+                        {
+                            stream.Offset = stream.Offset + offsetSamples;
+                        }
                     }
                     else
                     {
@@ -141,7 +143,6 @@ namespace Pronome
                         Metronome.Instance.ExecuteLayerChange(this);
                     }
 
-					OffsetBpm = newOffsetBpm;
 				}
                 DidChangeValue("Offset");
             }
@@ -339,8 +340,11 @@ namespace Pronome
             {
                 SetBaseSource(baseSource);
             }
-			
-            Offset = offset;
+
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+            {
+				Offset = offset;
+            }
 
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {

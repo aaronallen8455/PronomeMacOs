@@ -332,69 +332,6 @@ namespace Pronome
 
             if (busNumber == 0)
             {
-				// check for a queued layer change
-				if (Metronome.Instance.NeedToChangeLayer == true)
-				{
-					Metronome.Instance.CycleToChange = cycle + 1;
-					Metronome.Instance.ChangeLayerTurnstyle.Set();
-				}
-				else if (Metronome.Instance.NeedToChangeLayer == null)
-				{
-					// top off the fat forward
-					double cycleDiff = cycle - Metronome.Instance.CycleToChange;
-					
-					Metronome.Instance.FastForwardChangedLayers(cycleDiff);
-					
-					foreach (KeyValuePair<int, Layer> pair in Metronome.Instance.LayersToChange)
-					{
-						Layer copy = pair.Value;
-						Layer real = Metronome.Instance.Layers[pair.Key];
-
-                        int numberRemoved = 0;
-						// remove old sources
-						foreach (IStreamProvider src in real.GetAllStreams())
-						{
-							Metronome.Instance.RemoveAudioSource(src);
-							src.Dispose();
-                            numberRemoved++;
-						}
-						
-						// transfer sources to real layer
-						real.AudioSources = copy.AudioSources;
-						real.BaseAudioSource = copy.BaseAudioSource;
-						real.PitchSource = copy.PitchSource;
-						real.BaseSourceName = copy.BaseSourceName;
-						real.Beat = copy.Beat;
-						
-						foreach (IStreamProvider src in real.GetAllStreams().OrderBy(x => x.Info.HiHatStatus != StreamInfoProvider.HiHatStatuses.Down))
-						{
-							src.Layer = real;
-                            if (numberRemoved <= 0)
-                            {
-                                Metronome.Instance.AddAudioSource(src);
-                            }
-                            else
-                            {
-								Streams.Add(src);
-                            }
-							
-                            numberRemoved--;
-						}
-						
-						// put in new sources
-						//Metronome.Instance.AddSourcesFromLayer(real);
-
-						copy.AudioSources = null;
-						copy.BaseAudioSource = null;
-						copy.PitchSource = null;
-						copy.Beat = null;
-						Metronome.Instance.Layers.Remove(copy);
-					}
-					
-					Metronome.Instance.LayersToChange.Clear();
-					Metronome.Instance.NeedToChangeLayer = false;
-				}
-				
 				// propagate tempo change on start of a new cycle
 				if (_tempoChanged)
 				{
@@ -403,7 +340,7 @@ namespace Pronome
 					_tempoChanged = false;
 				}
 
-                cycle++;
+                //cycle++;
             }
 
 
@@ -413,6 +350,74 @@ namespace Pronome
             var outRight = (float*)data[1].Data;
 
             source.Read(outLeft, outRight, numberFrames);
+
+            // make changes last because new streams won't be read until a new cycle
+            if (busNumber == Streams.Count - 1)
+            {
+                cycle++;
+
+				// check for a queued layer change
+				if (Metronome.Instance.NeedToChangeLayer == true)
+				{
+					Metronome.Instance.CycleToChange = cycle;
+                    Metronome.Instance.NeedToChangeLayer = false;
+					Metronome.Instance.ChangeLayerTurnstyle.Set();
+				}
+				else if (Metronome.Instance.NeedToChangeLayer == null)
+				{
+                    // top off the fat forward
+                    double cycleDiff = cycle - Metronome.Instance.CycleToChange;
+
+					Metronome.Instance.FastForwardChangedLayers(cycleDiff);
+
+					foreach (KeyValuePair<int, Layer> pair in Metronome.Instance.LayersToChange)
+					{
+						Layer copy = pair.Value;
+						Layer real = Metronome.Instance.Layers[pair.Key];
+
+						int numberRemoved = 0;
+						// remove old sources
+						foreach (IStreamProvider src in real.GetAllStreams())
+						{
+							Metronome.Instance.RemoveAudioSource(src);
+							src.Dispose();
+							numberRemoved++;
+						}
+
+						// transfer sources to real layer
+						real.AudioSources = copy.AudioSources;
+						real.BaseAudioSource = copy.BaseAudioSource;
+						real.PitchSource = copy.PitchSource;
+						real.BaseSourceName = copy.BaseSourceName;
+						real.Beat = copy.Beat;
+
+						foreach (IStreamProvider src in real.GetAllStreams().OrderBy(x => x.Info.HiHatStatus != StreamInfoProvider.HiHatStatuses.Down))
+						{
+							src.Layer = real;
+							if (numberRemoved <= 0)
+							{
+								// it crashes if we try to add a rendercallback for preexisting bus
+								Metronome.Instance.AddAudioSource(src);
+							}
+							else
+							{
+								Streams.Add(src);
+							}
+
+							numberRemoved--;
+						}
+
+						copy.AudioSources = null;
+						copy.BaseAudioSource = null;
+						copy.PitchSource = null;
+						copy.Beat = null;
+						Metronome.Instance.Layers.Remove(copy);
+					}
+
+					Metronome.Instance.LayersToChange.Clear();
+					Metronome.Instance.NeedToChangeLayer = false;
+				}
+            }
 
             return AudioUnitStatus.OK;
 		}

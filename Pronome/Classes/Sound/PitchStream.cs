@@ -132,7 +132,6 @@ namespace Pronome
         {
             _frequencies.Clear();
         }
-
         private float sampleValue = 0;
 
         public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true)
