@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Foundation;
 
 namespace Pronome
 {
-    public class StreamInfoProvider
+    [Register("StreamInfoProvider")]
+    public class StreamInfoProvider : NSObject
     {
         #region private variables
         private string _uri;
@@ -20,7 +22,17 @@ namespace Pronome
         /// Gets the URI. A note name or frequency for pitch, a file path for samples.
         /// </summary>
         /// <value>The URI.</value>
-        public string Uri { get => _uri; }
+        [Export("Uri")]
+        public string Uri 
+        { 
+            get => _uri; 
+            set
+            {
+                WillChangeValue("Uri");
+                _uri = value;
+                DidChangeValue("Uri");
+            }
+        }
 
         /// <summary>
         /// True if this is a pitch source.
@@ -28,9 +40,29 @@ namespace Pronome
         /// <value><c>true</c> if is pitch; otherwise, <c>false</c>.</value>
         public bool IsPitch { get => _isPitch; }
 
-        public int Index { get => _index; }
+        [Export("Index")]
+        public nint Index 
+        { 
+            get => _index;
+            set
+            {
+                WillChangeValue("Index");
+                _index = (int)value;
+                DidChangeValue("Index");
+            }
+        }
 
-        public string Title { get => _title; }
+        [Export("Title")]
+        public string Title 
+        { 
+            get => _title; 
+            set
+            {
+                WillChangeValue("Title");
+                _title = value;
+                DidChangeValue("Title");
+            }
+        }
 
         /// <summary>
         /// Whether this is an internal or user defined source

@@ -79,7 +79,11 @@ namespace Pronome
 		public override void KeyDown(NSEvent theEvent)
 		{
             // don't allow new lines
-            if (theEvent.Characters == "\r") return;
+            if (theEvent.Characters == "\r") 
+            {
+                NSApplication.SharedApplication.MainWindow.MakeFirstResponder(null);
+                return;
+			}
 
 			base.KeyDown(theEvent);
 			// add some color

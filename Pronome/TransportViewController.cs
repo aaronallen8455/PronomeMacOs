@@ -124,9 +124,8 @@ namespace Pronome
 
         partial void PlayButtonAction(NSObject sender)
         {
-            // focus and unfocus the tempo field to cause edits to beat code to be committed
-            TempoField.BecomeFirstResponder();
-            TempoField.AbortEditing();
+            // remove focus from any fields to complete editing.
+            NSApplication.SharedApplication.MainWindow.MakeFirstResponder(null);
 
             if (Metronome.Instance.Play())
             {

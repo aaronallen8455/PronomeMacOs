@@ -12,6 +12,9 @@ namespace Pronome
 	[Register ("AdditionalSettingsController")]
 	partial class AdditionalSettingsController
 	{
+		[Outlet]
+		AppKit.NSTableView CustomSourceTable { get; set; }
+
 		[Action ("ExportWavFileAction:")]
 		partial void ExportWavFileAction (Foundation.NSObject sender);
 
@@ -20,6 +23,10 @@ namespace Pronome
 		
 		void ReleaseDesignerOutlets ()
 		{
+			if (CustomSourceTable != null) {
+				CustomSourceTable.Dispose ();
+				CustomSourceTable = null;
+			}
 		}
 	}
 }

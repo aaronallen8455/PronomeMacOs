@@ -112,8 +112,8 @@ namespace Pronome
 		/// <summary>
 		/// User's custom sources
 		/// </summary>
-		//[DataMember]
-		//public UserSourceLibrary UserSourceLibrary;
+		[DataMember]
+        public NSMutableArray<StreamInfoProvider> UserSourceLibrary = new NSMutableArray<StreamInfoProvider>();
 
         [DataMember(IsRequired = false)]
         private bool _persistSession = true;
@@ -268,6 +268,9 @@ namespace Pronome
             if (_settings == null)
             {
                 _settings = new UserSettings();
+
+                _settings.UserSourceLibrary.Add(new StreamInfoProvider(1, "test", "Test Title"));
+                _settings.UserSourceLibrary.Add(new StreamInfoProvider(2, "test2", "Another Test"));
             }
 
             return _settings;

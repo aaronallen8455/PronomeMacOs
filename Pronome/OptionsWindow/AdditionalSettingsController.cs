@@ -9,6 +9,10 @@ namespace Pronome
 {
     public partial class AdditionalSettingsController : NSViewController
     {
+        #region Private Fields
+        StreamInfoProvider _selectedSource;
+        #endregion
+
         #region Public Properties
         [Export("Settings")]
         public UserSettings Settings
@@ -20,6 +24,24 @@ namespace Pronome
         public Metronome Metronome
         {
             get => Metronome.Instance;
+        }
+
+        [Export("streamInfoProviderArray")]
+        public NSArray CustomSources
+        {
+            get => UserSettings.GetSettings().UserSourceLibrary;
+        }
+
+        [Export("SelectedSource")]
+        public StreamInfoProvider SelectedSource
+        {
+            get => _selectedSource;
+            set
+            {
+                WillChangeValue("SelectedSource");
+                _selectedSource = value;
+                DidChangeValue("SelectedSource");
+            }
         }
         #endregion
 
@@ -48,5 +70,62 @@ namespace Pronome
 
         }
         #endregion
+
+        #region Array Controller
+        [Export("addObject:")]
+        public void AddCustomSource(StreamInfoProvider source)
+        {
+            WillChangeValue("streamInfoProviderArray");
+            UserSettings.GetSettings().UserSourceLibrary.Add(source);
+            DidChangeValue("streamInfoProviderArray");
+        }
+
+        [Export("insertObject:inStreamInfoProviderArrayAtIndex:")]
+        public void InsertCustomSource(StreamInfoProvider source, nint index)
+        {
+            WillChangeValue("streamInfoProviderArray");
+            UserSettings.GetSettings().UserSourceLibrary.Insert(source, index);
+            DidChangeValue("streamInfoProviderArray");
+        }
+
+        [Export("removeObjectFromStreamInfoProviderArrayAtIndex:")]
+        public void RemoveCustomSource(nint index)
+        {
+            WillChangeValue("streamInfoProviderArray");
+            UserSettings.GetSettings().UserSourceLibrary.RemoveObject(index);
+            DidChangeValue("streamInfoProviderArray");
+        }
+
+        [Export("setStreamInfoProviderArray:")]
+        public void SetCustomSources(NSMutableArray<StreamInfoProvider> array)
+        {
+            WillChangeValue("streamInfoProviderArray");
+            UserSettings.GetSettings().UserSourceLibrary = array;
+            DidChangeValue("streamInfoProviderArray");
+        }
+        #endregion
+
+        #region Overrides
+        public override void ViewDidLoad()
+        {
+            base.ViewDidLoad();
+
+            CustomSourceTable.SelectionDidChange += CustomSourceTable_SelectionDidChange;
+        }
+        #endregion
+
+        void CustomSourceTable_SelectionDidChange(object sender, EventArgs e)
+        {
+            if (CustomSourceTable.SelectedRowCount > 0)
+            {
+				nuint index = (nuint)CustomSourceTable.SelectedRow;
+				
+				SelectedSource = UserSettings.GetSettings().UserSourceLibrary.GetItem<StreamInfoProvider>(index);
+            }
+            else
+            {
+                SelectedSource = null;
+            }
+        }
     }
 }
