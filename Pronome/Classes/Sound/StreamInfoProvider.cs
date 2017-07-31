@@ -46,12 +46,18 @@ namespace Pronome
             get => _index;
             set
             {
+                WillChangeValue("String");
                 WillChangeValue("Index");
                 _index = (int)value;
                 DidChangeValue("Index");
+                DidChangeValue("String");
             }
         }
 
+        /// <summary>
+        /// Gets or sets the title.
+        /// </summary>
+        /// <value>The title.</value>
         [Export("Title")]
         public string Title 
         { 
@@ -59,8 +65,54 @@ namespace Pronome
             set
             {
                 WillChangeValue("Title");
+                WillChangeValue("String");
                 _title = value;
                 DidChangeValue("Title");
+                DidChangeValue("String");
+            }
+        }
+
+        /// <summary>
+        /// Gets the string representation.
+        /// </summary>
+        /// <value>The string.</value>
+        [Export("String")]
+        public string String
+        {
+            get => ToString();
+        }
+
+        [Export("HiHatStatusSelection")]
+        public nint HiHatStatusSelection
+        {
+            get
+            {
+                switch (HiHatStatus)
+                {
+                    case HiHatStatuses.None:
+                        return 0;
+                    case HiHatStatuses.Open:
+                        return 1;
+                    default:
+                        return 2;
+                }
+            }
+            set
+            {
+                WillChangeValue("HiHatStatusSelection");
+                switch (value)
+                {
+                    case 0:
+                        HiHatStatus = HiHatStatuses.None;
+                        break;
+                    case 1:
+                        HiHatStatus = HiHatStatuses.Open;
+                        break;
+                    default:
+                        HiHatStatus = HiHatStatuses.Down;
+                        break;
+                }
+                DidChangeValue("HiHatStatusSelection");
             }
         }
 

@@ -12,7 +12,7 @@ namespace Pronome
         #region static variables
         //public static double DecayLength = .04;
 
-		static double NewGainStep = 1 / (Metronome.SampleRate * .04);
+        static double NewGainStep = 1 / (Metronome.SampleRate * UserSettings.GetSettings().PitchDecayLength);
 		#endregion
 
 		#region private/protected variables
@@ -75,6 +75,10 @@ namespace Pronome
 		#endregion
 
 		#region Static Methods
+        /// <summary>
+        /// Sets the length of the decay in seconds.
+        /// </summary>
+        /// <param name="value">Value.</param>
         public static void SetDecayLength(double value)
         {
             NewGainStep = 1 / (Metronome.SampleRate * value);

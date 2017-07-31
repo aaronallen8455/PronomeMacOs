@@ -104,6 +104,8 @@ namespace Pronome
                 if (value > 0)
                 {
 					_pitchDecayLength = value;
+                    // propagate to pitch sources
+                    PitchStream.SetDecayLength(value);
                 }
 				DidChangeValue("PitchDecayLength");
             }
@@ -269,8 +271,11 @@ namespace Pronome
             {
                 _settings = new UserSettings();
 
-                _settings.UserSourceLibrary.Add(new StreamInfoProvider(1, "test", "Test Title"));
-                _settings.UserSourceLibrary.Add(new StreamInfoProvider(2, "test2", "Another Test"));
+                _settings.PitchDecayLength = (nfloat).04;
+
+                _settings.UserSourceLibrary.Add(new StreamInfoProvider(1, "test.wav", "Test Title", StreamInfoProvider.HiHatStatuses.None, false));
+
+                _settings.UserSourceLibrary.Add(new StreamInfoProvider(2, "test2.wav", "Another Test", StreamInfoProvider.HiHatStatuses.None, false));
             }
 
             return _settings;

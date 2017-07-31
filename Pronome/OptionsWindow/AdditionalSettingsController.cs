@@ -110,7 +110,10 @@ namespace Pronome
         {
             base.ViewDidLoad();
 
-            CustomSourceTable.SelectionDidChange += CustomSourceTable_SelectionDidChange;
+            if (CustomSourceTable != null)
+            {
+				CustomSourceTable.SelectionDidChange += CustomSourceTable_SelectionDidChange;
+            }
         }
         #endregion
 
