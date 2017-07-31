@@ -145,7 +145,7 @@ namespace Pronome
 		{
             // initialize the source library
 			CompleteSourceLibrary =
-				new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSourceLibrary);
+                new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSettings.GetSettings().UserSourceLibrary);
 		}
         #endregion
 
@@ -215,8 +215,8 @@ namespace Pronome
 			{
 				// it's a custom source
 				int id = int.Parse(modifier.Substring(1));
-                var s = UserSourceLibrary.FirstOrDefault(x => x.Index == id);
-				return s ?? (StreamInfoProvider)GetDefault();
+                var s = UserSettings.GetSettings().UserSourceLibrary.FirstOrDefault(x => x.Index == id);
+				return s ?? GetDefault();
 			}
 			else // ref is a plain number (wav source) or "" base source.
 			{
@@ -229,6 +229,20 @@ namespace Pronome
 				return src; // will return null for a base source mirror
 			}
 		}
+
+        static public StreamInfoProvider GetFromUri(string uri)
+        {
+            if (IsPitchUri(uri))
+            {
+                return GetFromPitch(uri);
+            }
+            // check internal source library
+            var inSrc = InternalSourceLibrary.Where(x => x.Uri == uri).FirstOrDefault();
+            if (inSrc != null) return inSrc;
+
+            // otherwise it's a user source
+            return UserSettings.GetSettings().UserSourceLibrary.Where(x => x.Uri == uri).FirstOrDefault() ?? GetDefault();
+        }
         #endregion
 
         /// <summary>
@@ -262,7 +276,7 @@ namespace Pronome
         /// <summary>
         /// The user source library.
         /// </summary>
-        public static List<StreamInfoProvider> UserSourceLibrary = new List<StreamInfoProvider>();
+        //public static List<StreamInfoProvider> UserSourceLibrary = new List<StreamInfoProvider>();
 
         /// <summary>
         /// The internal source library for audio files.

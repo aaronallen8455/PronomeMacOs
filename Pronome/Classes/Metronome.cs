@@ -3,6 +3,7 @@ using Foundation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Pronome
 {
@@ -345,6 +346,8 @@ namespace Pronome
         public void AddLayer(Layer layer)
         {
             Layers.Add(layer);
+
+            OnLayerAdded(new EventArgs());
         }
 
         /// <summary>
@@ -361,6 +364,8 @@ namespace Pronome
             Layers.Remove(layer);
 
             layer.Cleanup();
+
+            OnLayerRemoved(new EventArgs());
         }
 
         /// <summary>
@@ -455,6 +460,11 @@ namespace Pronome
 			Started = null;
 			Stopped = null;
 			Paused = null;
+
+            foreach (Layer layer in Layers)
+            {
+                layer.Cleanup();
+            }
         }
         #endregion
 
@@ -512,6 +522,26 @@ namespace Pronome
         {
             Stopped?.Invoke(this, e);
         }
+
+        /// <summary>
+        /// Occurs when layer added.
+        /// </summary>
+		public event EventHandler LayerAdded;
+
+		protected virtual void OnLayerAdded(EventArgs e)
+		{
+			LayerAdded?.Invoke(this, e);
+		}
+
+        /// <summary>
+        /// Occurs when layer removed.
+        /// </summary>
+		public event EventHandler LayerRemoved;
+
+		protected virtual void OnLayerRemoved(EventArgs e)
+		{
+			LayerRemoved?.Invoke(this, e);
+		}
         #endregion
 
         #region Public Static Methods
@@ -528,6 +558,34 @@ namespace Pronome
 			int r = Rand.Value.Next(0, 99);
 			return r;
 		}
+        #endregion
+
+        #region Serialization
+        [OnDeserializing]
+        void BeforeDeserialization(StreamingContext sc)
+        {
+            Instance.Cleanup();
+            PlayState = PlayStates.Paused;
+
+            _instance = this;
+            Mixer = new Mixer();
+        }
+
+        [OnDeserialized]
+        void Deserialized(StreamingContext sc)
+        {
+            PlayState = PlayStates.Stopped;
+            NeedToChangeLayer = false;
+            LayersToChange = new Dictionary<int, Layer>();
+            ChangeLayerTurnstyle = new AutoResetEvent(false);
+
+            foreach (Layer layer in Layers)
+            {
+                layer.Deserialize();
+                AddSourcesFromLayer(layer);
+            }
+
+        }
         #endregion
 
         /// <summary>

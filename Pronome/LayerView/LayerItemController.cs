@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Foundation;
 using AppKit;
 
@@ -74,12 +72,18 @@ namespace Pronome
         // Shared initialization code
         void Initialize()
         {
+			// need to re-highlight syntax when layers are removed or added. don't know why...
+			Metronome.LayerAdded += HighlightBeatCodeSyntax;
+			Metronome.LayerRemoved += HighlightBeatCodeSyntax;
         }
         #endregion
 
         #region Overriden Methods
         partial void CloseLayerAction(NSObject sender)
         {
+            Metronome.LayerAdded -= HighlightBeatCodeSyntax;
+            Metronome.LayerRemoved -= HighlightBeatCodeSyntax;
+
             ((TransportViewController)NSApplication.SharedApplication.MainWindow.ContentViewController)
                 .RemoveLayer(Layer);
 
@@ -118,6 +122,7 @@ namespace Pronome
                 open = false;
             };
         }
+
         #endregion
 
         #region Public Methods
@@ -132,6 +137,10 @@ namespace Pronome
             BeatCodeInput.HighlightSyntax();
         }
 
+        public void HighlightBeatCodeSyntax(object sender, EventArgs e)
+        {
+            HighlightBeatCodeSyntax();
+        }
         #endregion
 
         //strongly typed view accessor

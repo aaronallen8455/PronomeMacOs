@@ -42,12 +42,12 @@ namespace Pronome
 		public void AddLayer(Layer layer)
 		{
             // sometimes the colors get stripped
-            ColorAllBeatCodeSyntax();
-			
+            //ColorAllBeatCodeSyntax();
+            
             // add the layer to the datasource
             Datasource.Data.Add(layer);
 
-			LayerCollection.ReloadData();
+            LayerCollection.ReloadData();
 		}
 
 		/// <summary>
@@ -61,7 +61,7 @@ namespace Pronome
 			LayerCollection.ReloadData();
 
 			// sometimes the colors get stripped
-			ColorAllBeatCodeSyntax();
+			//ColorAllBeatCodeSyntax();
 
 			// remove from metronome
 			Metronome.Instance.RemoveLayer(layer);
@@ -98,18 +98,18 @@ namespace Pronome
 			LayerCollection.ReloadData();
 		}
 
-        /// <summary>
-        /// Colors all beat code syntax for each layer.
-        /// </summary>
-        private void ColorAllBeatCodeSyntax()
-        {
-			var collection = Datasource.ParentCollectionView;
-			for (nint i = 0; i < collection.GetNumberOfItems(0); i++)
-			{
-				LayerItemController cont = collection.ItemAtIndex(i) as LayerItemController;
-				cont.HighlightBeatCodeSyntax();
-			}
-        }
+        ///// <summary>
+        ///// Colors all beat code syntax for each layer.
+        ///// </summary>
+        //private void ColorAllBeatCodeSyntax()
+        //{
+        //	var collection = Datasource.ParentCollectionView;
+        //	for (nint i = 0; i < collection.GetNumberOfItems(0); i++)
+        //	{
+        //		LayerItemController cont = collection.ItemAtIndex(i) as LayerItemController;
+        //		cont.HighlightBeatCodeSyntax();
+        //	}
+        //}
         #endregion
 
         #region Override Methods
@@ -119,7 +119,21 @@ namespace Pronome
         /// <param name="sender">Sender.</param>
         partial void NewLayerAction(NSObject sender)
         {
-            AddLayer(new Layer());
+            // when adding layer while playing,
+            // need to switch to Stopped so that the layer gets fully instantiated
+            var currentState = Metronome.Instance.PlayState;
+            Metronome.Instance.PlayState = Metronome.PlayStates.Stopped;
+            Layer newLayer = new Layer();
+            Metronome.Instance.PlayState = currentState;
+
+            // if playing, mute the new layer and sync it
+            if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
+            {
+                newLayer.IsMuted = true;
+                Metronome.Instance.ExecuteLayerChange(newLayer);
+            }
+
+            AddLayer(newLayer);
         }
 
         partial void PlayButtonAction(NSObject sender)

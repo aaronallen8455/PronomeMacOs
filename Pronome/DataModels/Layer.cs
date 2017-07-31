@@ -1156,6 +1156,9 @@ namespace Pronome
 			}
         }
 
+        /// <summary>
+        /// Release resources
+        /// </summary>
         public void Cleanup()
         {
             Beat = null;
@@ -1163,6 +1166,20 @@ namespace Pronome
 			{
 				src.Dispose();
 			}
+        }
+
+        public void Deserialize()
+        {
+            AudioSources = new Dictionary<string, IStreamProvider>();
+            var source = StreamInfoProvider.GetFromUri(BaseSourceName);
+            SetBaseSource(source);
+            ProcessBeat(ParsedString);
+            if (ParsedOffset != string.Empty)
+            {
+                Offset = ParsedOffset;
+            }
+            Pan = _pan;
+            Volume = _volume;
         }
         #endregion
     }

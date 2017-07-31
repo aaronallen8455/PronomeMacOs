@@ -51,6 +51,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.Mac" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json" />
@@ -144,6 +145,7 @@
     <Compile Include="OptionsWindow\AdditionalSettingsController.designer.cs">
       <DependentUpon>AdditionalSettingsController.cs</DependentUpon>
     </Compile>
+    <Compile Include="Classes\SavedFileManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
