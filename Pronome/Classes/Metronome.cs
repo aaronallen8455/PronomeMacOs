@@ -3,9 +3,8 @@ using Foundation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
-using System.Runtime.Serialization;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class Metronome : NSObject
     {
@@ -560,33 +559,33 @@ namespace Pronome
 		}
         #endregion
 
-        #region Serialization
-        [OnDeserializing]
-        void BeforeDeserialization(StreamingContext sc)
-        {
-            Instance.Cleanup();
-            PlayState = PlayStates.Paused;
-
-            _instance = this;
-            Mixer = new Mixer();
-        }
-
-        [OnDeserialized]
-        void Deserialized(StreamingContext sc)
-        {
-            PlayState = PlayStates.Stopped;
-            NeedToChangeLayer = false;
-            LayersToChange = new Dictionary<int, Layer>();
-            ChangeLayerTurnstyle = new AutoResetEvent(false);
-
-            foreach (Layer layer in Layers)
-            {
-                layer.Deserialize();
-                AddSourcesFromLayer(layer);
-            }
-
-        }
-        #endregion
+        //#region Serialization
+        //[OnDeserializing]
+        //void BeforeDeserialization(StreamingContext sc)
+        //{
+        //    Instance.Cleanup();
+        //    PlayState = PlayStates.Paused;
+		//
+        //    _instance = this;
+        //    Mixer = new Mixer();
+        //}
+		//
+        //[OnDeserialized]
+        //void Deserialized(StreamingContext sc)
+        //{
+        //    PlayState = PlayStates.Stopped;
+        //    NeedToChangeLayer = false;
+        //    LayersToChange = new Dictionary<int, Layer>();
+        //    ChangeLayerTurnstyle = new AutoResetEvent(false);
+		//
+        //    foreach (Layer layer in Layers)
+        //    {
+        //        layer.Deserialize();
+        //        AddSourcesFromLayer(layer);
+        //    }
+		//
+        //}
+        //#endregion
 
         /// <summary>
         /// private constructor, singleton class.

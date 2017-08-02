@@ -3,7 +3,7 @@ using AudioToolbox;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class PitchStream : AbstractStream
     {

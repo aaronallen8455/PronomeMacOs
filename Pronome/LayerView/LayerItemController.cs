@@ -2,7 +2,7 @@
 using Foundation;
 using AppKit;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     /// <summary>
     /// Layer item controller. The controller for the layer items in the layer collection view
@@ -31,7 +31,12 @@ namespace Pronome
             set
             {
                 WillChangeValue("Layer");
-                _layer = value;
+                if (value != null)
+                {
+					_layer = value;
+					
+					_layer.Controller = this;
+                }
                 DidChangeValue("Layer");
             }
         }
@@ -76,20 +81,14 @@ namespace Pronome
 			Metronome.LayerAdded += HighlightBeatCodeSyntax;
 			Metronome.LayerRemoved += HighlightBeatCodeSyntax;
         }
+
         #endregion
 
         #region Overriden Methods
         partial void CloseLayerAction(NSObject sender)
         {
-            Metronome.LayerAdded -= HighlightBeatCodeSyntax;
-            Metronome.LayerRemoved -= HighlightBeatCodeSyntax;
-
-            ((TransportViewController)NSApplication.SharedApplication.MainWindow.ContentViewController)
-                .RemoveLayer(Layer);
-
-            Layer = null;
-
-            Dispose();
+            
+            Remove();
         }
 
         public override void AwakeFromNib()
@@ -123,6 +122,13 @@ namespace Pronome
             };
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+			Metronome.LayerAdded -= HighlightBeatCodeSyntax;
+			Metronome.LayerRemoved -= HighlightBeatCodeSyntax;
+        }
         #endregion
 
         #region Public Methods
@@ -140,6 +146,17 @@ namespace Pronome
         public void HighlightBeatCodeSyntax(object sender, EventArgs e)
         {
             HighlightBeatCodeSyntax();
+        }
+
+        public void Remove()
+        {
+			Dispose();
+
+            ((TransportViewController)NSApplication.SharedApplication.MainWindow.ContentViewController)
+                .RemoveLayer(Layer);
+
+            Layer = null;
+
         }
         #endregion
 

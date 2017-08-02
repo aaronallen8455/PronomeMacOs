@@ -1,19 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     [Register("StreamInfoProvider")]
+    [DataContract]
     public class StreamInfoProvider : NSObject
     {
         #region private variables
+        [DataMember]
         private string _uri;
+
+        [DataMember]
         private bool _isPitch;
+
+        [DataMember]
         private int _index;
+
+        [DataMember]
         private string _title;
+
+        [DataMember]
         private bool _isInternal;
         #endregion
 
@@ -243,6 +254,7 @@ namespace Pronome
             // otherwise it's a user source
             return UserSettings.GetSettings().UserSourceLibrary.Where(x => x.Uri == uri).FirstOrDefault() ?? GetDefault();
         }
+
         #endregion
 
         /// <summary>
@@ -269,14 +281,8 @@ namespace Pronome
 
         public enum HiHatStatuses { None, Open, Down };
 
-        public static IEnumerable<StreamInfoProvider> CompleteSourceLibrary;// =
-            //InternalSourceLibrary.Concat(UserSourceLibrary);
-            //new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSourceLibrary);
+        public static IEnumerable<StreamInfoProvider> CompleteSourceLibrary;
 
-        /// <summary>
-        /// The user source library.
-        /// </summary>
-        //public static List<StreamInfoProvider> UserSourceLibrary = new List<StreamInfoProvider>();
 
         /// <summary>
         /// The internal source library for audio files.

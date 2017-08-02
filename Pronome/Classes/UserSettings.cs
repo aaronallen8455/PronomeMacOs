@@ -8,179 +8,187 @@ using System;
 using AppKit;
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
-	/// <summary>
-	/// A class used to manage user's settings
-	/// </summary>
-	[DataContract]
+    /// <summary>
+    /// A class used to manage user's settings
+    /// </summary>
+    [DataContract]
     public class UserSettings : NSObject
-	{
-        [DataMember]
-        private bool _blinkingEnabled;
-
-		/// <summary>
-		/// Beat graph blinking toggle
-		/// </summary>
+    {
+        /// <summary>
+        /// Beat graph blinking toggle
+        /// </summary>
         [Export("BlinkingEnabled")]
         public bool BlinkingEnabled
         {
-            get => _blinkingEnabled;
+            get => LoadBool("BlinkingEnabled", true);
             set
             {
                 WillChangeValue("BlinkedEnabled");
-                _blinkingEnabled = value;
+                SaveBool("BlinkingEnabled", value, true);
                 DidChangeValue("BlinkingEnabled");
             }
         }
 
-        [DataMember]
-        private double _bounceQueueSize;
-
-		/// <summary>
-		/// Bounce animation queue size
-		/// </summary>
+        /// <summary>
+        /// Bounce animation queue size
+        /// </summary>
         [Export("BounceQueueSize")]
         public nfloat BounceQueueSize
         {
-            get => (nfloat)_bounceQueueSize;
+            get => (nfloat)LoadDouble("BounceQueueSize", 6);
             set
             {
                 WillChangeValue("BounceQueueSize");
-                _bounceQueueSize = value;
+                SaveDouble("BounceQueueSize", value, true);
                 DidChangeValue("BounceQueueSize");
             }
         }
 
-        [DataMember]
-        private double _bounceDivision;
-
-		/// <summary>
-		/// Bounce animation screen division location
-		/// </summary>
+        /// <summary>
+        /// Bounce animation screen division location
+        /// </summary>
         [Export("BounceDivision")]
         public nfloat BounceDivision
         {
-            get => (nfloat)_bounceDivision;
+            get => (nfloat)LoadDouble("BounceDivision", .5);
             set
             {
                 WillChangeValue("BounceDivision");
-                _bounceDivision = value;
+                SaveDouble("BounceDivision", value, true);
                 DidChangeValue("BounceDivision");
             }
         }
 
-        [DataMember]
-        private double _bounceWidthPad;
-
-		/// <summary>
-		/// Bounce animation taper
-		/// </summary>
+        /// <summary>
+        /// Bounce animation taper
+        /// </summary>
         [Export("BounceWidthPad")]
         public nfloat BounceWidthPad
         {
-            get => (nfloat)_bounceWidthPad;
+            get => (nfloat)LoadDouble("BounceWidthPad", 20);
             set
             {
                 WillChangeValue("BounceWidthPad");
-                _bounceWidthPad = value;
+                SaveDouble("BounceWidthPad", value, true);
                 DidChangeValue("BounceWidthPad");
             }
         }
 
-        [DataMember]
-        private double _pitchDecayLength;
-
-		/// <summary>
-		/// Length of pitch decay
-		/// </summary>
+        /// <summary>
+        /// Length of pitch decay
+        /// </summary>
         [Export("PitchDecayLength")]
         public nfloat PitchDecayLength
         {
-            get => (nfloat)_pitchDecayLength;
+            get => (nfloat)LoadDouble("PitchDecayLength", .04);
             set
             {
-				WillChangeValue("PitchDecayLength");
+                WillChangeValue("PitchDecayLength");
                 if (value > 0)
                 {
-					_pitchDecayLength = value;
+                    SaveDouble("PitchDecayLength", value, true);
                     // propagate to pitch sources
                     PitchStream.SetDecayLength(value);
                 }
-				DidChangeValue("PitchDecayLength");
+                DidChangeValue("PitchDecayLength");
             }
         }
 
-		/// <summary>
-		/// User's custom sources
-		/// </summary>
-		[DataMember]
+        /// <summary>
+        /// User's custom sources
+        /// </summary>
         public NSMutableArray<StreamInfoProvider> UserSourceLibrary = new NSMutableArray<StreamInfoProvider>();
 
-        [DataMember(IsRequired = false)]
-        private bool _persistSession = true;
 
-		/// <summary>
-		/// Whether to load the previous session on startup
-		/// </summary>
+        /// <summary>
+        /// Whether to load the previous session on startup
+        /// </summary>
         [Export("PersistSession")]
         public bool PersistSession
         {
-            get => _persistSession;
+            get => LoadBool("PersistSession", true);
             set
             {
                 WillChangeValue("PersistSession");
-                _persistSession = value;
+                SaveBool("PersistSession", value, true);
                 DidChangeValue("PersistSession");
             }
         }
 
-		/// <summary>
-		/// Holds the current state of the persist session toggle
-		/// </summary>
-		public static bool PersistSessionStatic = true;
+        /// <summary>
+        /// Holds the current state of the persist session toggle
+        /// </summary>
+        //public static bool PersistSessionStatic = true;
 
-        [DataMember(IsRequired = false)]
-        private string _persistedSession;
 
-		/// <summary>
-		/// The serialized beat from the previous session.
-		/// </summary>
+        /// <summary>
+        /// The serialized beat from the previous session.
+        /// </summary>
         [Export("PersistedSession")]
         public string PersistedSession
         {
-            get => _persistedSession;
+            get => LoadString("PersistedSession", "");
             set
             {
                 WillChangeValue("PersistedSession");
-                _persistedSession = value;
+                SaveString("PersistedSession", value, true);
                 DidChangeValue("PersistedSession");
             }
         }
 
-		/// <summary>
-		/// Store the settings
-		/// </summary>
-		public void SaveToStorage()
-		{
-			DataContractSerializer ds = new DataContractSerializer(typeof(UserSettings));
-			using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForAssembly())
-			{
-				using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream("pronomeSettings", FileMode.Create, isf))
-				{
-					//using (XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(isfs))
-					//{
-					//	ds.WriteObject(writer, this);
-					//}
-				}
-			}
-		}
+        /// <summary>
+        /// Store the settings
+        /// </summary>
+        public void SaveToStorage()
+        {
+            // save the serialized current beat
+            if (PersistSession)
+            {
+				var ds = new DataContractSerializer(typeof(Pronome.Metronome));
+                using (var stream = new MemoryStream())
+                {
+					using (var writer = XmlDictionaryWriter.CreateTextWriter(stream, new UTF8Encoding(false)))
+					{
+                        ds.WriteObject(writer, new Pronome.Metronome(Metronome.Instance));
+					}
+                    PersistedSession = Encoding.UTF8.GetString(stream.ToArray());
+                }
+            }
 
-		/// <summary>
-		/// Apply the settings
-		/// </summary>
-		public void ApplySettings()
-		{
+            // serialize the user source collection
+            if (UserSourceLibrary.Count > 0)
+            {
+                string serialized;
+                List<Serialization.StreamInfoProvider> collection = new List<Serialization.StreamInfoProvider>();
+                foreach (StreamInfoProvider info in UserSourceLibrary)
+                {
+                    collection.Add(new Serialization.StreamInfoProvider(info));
+                }
+
+                var ds = new DataContractSerializer(typeof(List<Serialization.StreamInfoProvider>));
+				using (var stream = new MemoryStream())
+				{
+					using (var writer = XmlDictionaryWriter.CreateTextWriter(stream, new UTF8Encoding(false)))
+					{
+                        ds.WriteObject(writer, collection);
+					}
+                    serialized = Encoding.UTF8.GetString(stream.ToArray());
+                    SaveString("UserSourceLibrary", serialized, true);
+				}
+            }
+            else
+            {
+                NSUserDefaults.StandardUserDefaults.RemoveObject("UserSourceLibrary");
+            }
+        }
+
+        /// <summary>
+        /// Apply the settings
+        /// </summary>
+        public void ApplySettings()
+        {
             //Window mainWindow = Application.Current.MainWindow;
 
             //mainWindow.Left = WinX;
@@ -229,14 +237,42 @@ namespace Pronome
             //	}
             //}
             throw new NotImplementedException();
-		}
+        }
 
-		/// <summary>
-		/// Get the stored settings
-		/// </summary>
-		/// <returns></returns>
-		public static UserSettings GetSettingsFromStorage()
-		{
+        /// <summary>
+        /// Get the stored settings
+        /// </summary>
+        /// <returns></returns>
+        public void GetSettingsFromStorage()
+        {
+            if (PersistSession)
+            {
+				var ds = new DataContractSerializer(typeof(Pronome.Metronome));
+                byte[] bytes = Encoding.UTF8.GetBytes(PersistedSession);
+                using (XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(bytes, XmlDictionaryReaderQuotas.Max))
+                {
+                    var m = ds.ReadObject(reader) as Pronome.Metronome;
+
+                    SavedFileManager.ImportMetronome(m);
+                }
+            }
+
+            string lib = LoadString("UserSourceLibrary", "");
+            if (lib != "")
+            {
+                var ds = new DataContractSerializer(typeof(List<Serialization.StreamInfoProvider>));
+                byte[] bytes = Encoding.UTF8.GetBytes(lib);
+                using (XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(bytes, XmlDictionaryReaderQuotas.Max))
+                {
+                    var sources = ds.ReadObject(reader) as List<Serialization.StreamInfoProvider>;
+
+                    foreach (Serialization.StreamInfoProvider src in sources)
+                    {
+                        UserSourceLibrary.Add(src.Deserialize());
+                    }
+                }
+            }
+
             //DataContractSerializer ds = new DataContractSerializer(typeof(UserSettings));
             //using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForAssembly())
             //{
@@ -256,22 +292,21 @@ namespace Pronome
             //		}
             //	}
             //}
-            throw new NotImplementedException();
-		}
+            //throw new NotImplementedException();
+        }
 
         static UserSettings _settings;
 
-		/// <summary>
-		/// Get the current settings
-		/// </summary>
-		/// <returns></returns>
-		public static UserSettings GetSettings()
-		{
+        /// <summary>
+        /// Get the current settings
+        /// </summary>
+        /// <returns></returns>
+        public static UserSettings GetSettings()
+        {
             if (_settings == null)
             {
                 _settings = new UserSettings();
-
-                _settings.PitchDecayLength = (nfloat).04;
+                //_settings.PitchDecayLength = (nfloat)LoadDouble("pitchDecayLength", .04);
 
                 _settings.UserSourceLibrary.Add(new StreamInfoProvider(1, "test.wav", "Test Title", StreamInfoProvider.HiHatStatuses.None, false));
 
@@ -315,6 +350,64 @@ namespace Pronome
             //	PersistSession = persistSession,
             //	PersistedSession = serializedBeat
             //};
-		}
-	}
+        }
+
+        #region Protected Static Methods
+        static protected void SaveString(string key, string value, bool sync)
+        {
+            NSUserDefaults.StandardUserDefaults.SetString(value, key);
+
+            if (sync)
+            {
+                NSUserDefaults.StandardUserDefaults.Synchronize();
+            }
+        }
+
+        static protected string LoadString(string key, string defaultValue)
+        {
+            if (NSUserDefaults.StandardUserDefaults[key] == null) return defaultValue;
+
+            string value = NSUserDefaults.StandardUserDefaults.StringForKey(key);
+
+            return value;
+        }
+
+        static protected void SaveBool(string key, bool value, bool sync)
+        {
+            NSUserDefaults.StandardUserDefaults.SetBool(value, key);
+
+            if (sync)
+            {
+                NSUserDefaults.StandardUserDefaults.Synchronize();
+            }
+        }
+
+        static protected bool LoadBool(string key, bool defaultValue)
+        {
+            if (NSUserDefaults.StandardUserDefaults[key] == null) return defaultValue;
+
+            var value = NSUserDefaults.StandardUserDefaults.BoolForKey(key);
+
+            return value;
+        }
+
+        static protected void SaveDouble(string key, double value, bool sync)
+        {
+            NSUserDefaults.StandardUserDefaults.SetDouble(value, key);
+            if (sync)
+            {
+                NSUserDefaults.StandardUserDefaults.Synchronize();
+            }
+        }
+
+        static protected double LoadDouble(string key, double def)
+        {
+            if (NSUserDefaults.StandardUserDefaults[key] == null) return def;
+
+            double value = NSUserDefaults.StandardUserDefaults.DoubleForKey(key);
+
+            return value;
+        }
+        #endregion
+    }
 }

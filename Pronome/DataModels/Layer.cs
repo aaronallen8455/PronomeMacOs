@@ -1,19 +1,17 @@
 ﻿using System;
 using Foundation;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Text;
 using AppKit;
 using CoreText;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     /// <summary>
     /// An object that represents a single beat layer.
     /// </summary>
-    [DataContract]
     public class Layer : NSObject
     {
         #region Public Variables
@@ -28,15 +26,12 @@ namespace Pronome
         public List<BeatCell> Beat = new List<BeatCell>();
 
         /** <summary>The beat code string that was passed in to create the rhythm of this layer.</summary> */
-        [DataMember]
         public string ParsedString = "1";
 
         /**<summary>The string that was parsed to get the offset value.</summary>*/
-        [DataMember]
         public string ParsedOffset = "0";
 
         /** <summary>The name of the base source.</summary> */
-        [DataMember]
         public string BaseSourceName;
 
         /** <summary>True if a solo group exists.</summary> */
@@ -62,6 +57,8 @@ namespace Pronome
         public PitchStream PitchSource;
 
         public double OffsetBpm;
+
+        public LayerItemController Controller;
         #endregion
 
         #region Databound Properties
@@ -148,7 +145,6 @@ namespace Pronome
             }
         }
 
-        [DataMember]
         private nfloat _volume = 1f;
         /// <summary>
         /// Gets or sets the volume.
@@ -170,7 +166,6 @@ namespace Pronome
             }
         }
 
-        [DataMember]
         private nfloat _pan = 0f;
         /// <summary>
         /// Gets or sets the pan.
@@ -629,6 +624,8 @@ namespace Pronome
             Metronome met = Metronome.Instance;
 
 			if (visitedIndexes == null) visitedIndexes = new HashSet<int>();
+
+            if (met.Layers.Count == 0) return "1"; // if no layers, emit a dummy value
 
 			if (reference >= met.Layers.Count || reference < 0) reference = 0;
 

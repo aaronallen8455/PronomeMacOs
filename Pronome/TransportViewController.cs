@@ -7,12 +7,15 @@ using System.Linq;
 using Foundation;
 using AppKit;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public partial class TransportViewController : NSViewController
     {
+        public static TransportViewController Instance;
+
         public TransportViewController(IntPtr handle) : base(handle)
         {
+            Instance = this;
         }	
 
         #region Computed Properties
@@ -35,6 +38,28 @@ namespace Pronome
 		#endregion
 
 		#region Public Methods
+        /// <summary>
+        /// Create a new layer and add it to backend and frontend
+        /// </summary>
+        public void NewLayer(string beat = "1", StreamInfoProvider baseSource = null, string offset = "", float pan = 0f, float volume = 1f)
+        {
+			// when adding layer while playing,
+			// need to switch to Stopped so that the layer gets fully instantiated
+			var currentState = Metronome.Instance.PlayState;
+			Metronome.Instance.PlayState = Metronome.PlayStates.Stopped;
+            Layer newLayer = new Layer(beat, baseSource, offset, pan, volume);
+			Metronome.Instance.PlayState = currentState;
+
+			// if playing, mute the new layer and sync it
+			if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
+			{
+				newLayer.IsMuted = true;
+				Metronome.Instance.ExecuteLayerChange(newLayer);
+			}
+
+			AddLayer(newLayer);
+        }
+
 		/// <summary>
 		/// Adds the new layer.
 		/// </summary>
@@ -89,27 +114,18 @@ namespace Pronome
 
 		private void PopulateWithData()
 		{
-			// Make datasource
-			Datasource = new LayerCollectionViewDataSource(LayerCollection);
+            // Make datasource
+            Datasource = new LayerCollectionViewDataSource(LayerCollection);
 
-			Datasource.Data.Add(new Layer());
-
-			// Populate collection view
-			LayerCollection.ReloadData();
+            // this will instantiate the previous session if enabled
+            UserSettings.GetSettings().GetSettingsFromStorage();
+            // use the persisted session if enabled, otherwise create a new one
+            if (Metronome.Instance.Layers.Count == 0)
+            {
+				NewLayer();
+            }
 		}
 
-        ///// <summary>
-        ///// Colors all beat code syntax for each layer.
-        ///// </summary>
-        //private void ColorAllBeatCodeSyntax()
-        //{
-        //	var collection = Datasource.ParentCollectionView;
-        //	for (nint i = 0; i < collection.GetNumberOfItems(0); i++)
-        //	{
-        //		LayerItemController cont = collection.ItemAtIndex(i) as LayerItemController;
-        //		cont.HighlightBeatCodeSyntax();
-        //	}
-        //}
         #endregion
 
         #region Override Methods
@@ -119,21 +135,7 @@ namespace Pronome
         /// <param name="sender">Sender.</param>
         partial void NewLayerAction(NSObject sender)
         {
-            // when adding layer while playing,
-            // need to switch to Stopped so that the layer gets fully instantiated
-            var currentState = Metronome.Instance.PlayState;
-            Metronome.Instance.PlayState = Metronome.PlayStates.Stopped;
-            Layer newLayer = new Layer();
-            Metronome.Instance.PlayState = currentState;
-
-            // if playing, mute the new layer and sync it
-            if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
-            {
-                newLayer.IsMuted = true;
-                Metronome.Instance.ExecuteLayerChange(newLayer);
-            }
-
-            AddLayer(newLayer);
+            NewLayer();
         }
 
         partial void PlayButtonAction(NSObject sender)

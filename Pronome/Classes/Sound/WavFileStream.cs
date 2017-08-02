@@ -7,7 +7,7 @@ using AudioUnit;
 using CoreFoundation;
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class WavFileStream : AbstractStream
     {

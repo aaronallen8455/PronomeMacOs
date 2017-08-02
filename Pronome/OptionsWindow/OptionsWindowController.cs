@@ -5,7 +5,7 @@ using System;
 using Foundation;
 using AppKit;
 
-namespace Pronome
+namespace Pronome.Mac
 {
 	public partial class OptionsWindowController : NSWindowController
 	{
@@ -16,7 +16,7 @@ namespace Pronome
     }
 }
 
-namespace Pronome.OptionsWindow
+namespace Pronome.Mac.OptionsWindow
 {
 	public enum SubviewType { None, RandomMuting, IntervallicMuting, SaveAndLoad, CustomSoundLibrary, WavFileCreation, Visuals, AdditionalSettings };
 }

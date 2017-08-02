@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using AppKit;
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     /// <summary>
     /// Represents a section of the options window, which can be nested

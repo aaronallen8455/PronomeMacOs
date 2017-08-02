@@ -6,7 +6,7 @@
     <ProjectGuid>{8EF2A9A6-BD6E-41DD-B0CE-BE1FEA21B913}</ProjectGuid>
     <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Pronome</RootNamespace>
+    <RootNamespace>Pronome.Mac</RootNamespace>
     <AssemblyName>Pronome</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
@@ -74,6 +74,7 @@
     <Folder Include="Classes\" />
     <Folder Include="Classes\Sound\" />
     <Folder Include="OptionsWindow\" />
+    <Folder Include="Classes\Serialization\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -146,6 +147,12 @@
       <DependentUpon>AdditionalSettingsController.cs</DependentUpon>
     </Compile>
     <Compile Include="Classes\SavedFileManager.cs" />
+    <Compile Include="AppDelegate.designer.cs">
+      <DependentUpon>AppDelegate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Classes\Serialization\Metronome.cs" />
+    <Compile Include="Classes\Serialization\Layer.cs" />
+    <Compile Include="Classes\Serialization\StreamInfoProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

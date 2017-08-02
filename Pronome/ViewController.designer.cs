@@ -6,7 +6,7 @@
 //
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     [Register("ViewController")]
     partial class ViewController

@@ -3,7 +3,7 @@ using AppKit;
 using Foundation;
 using System.Collections.Generic;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class LayerCollectionViewDataSource : NSCollectionViewDataSource
     {

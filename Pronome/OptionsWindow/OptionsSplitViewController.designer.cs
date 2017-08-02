@@ -1,4 +1,4 @@
-﻿namespace Pronome
+﻿namespace Pronome.Mac
 {
 
     // Should subclass AppKit.NSViewController

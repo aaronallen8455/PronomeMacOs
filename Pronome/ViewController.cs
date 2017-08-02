@@ -3,7 +3,7 @@
 using AppKit;
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public partial class ViewController : NSViewController
     {

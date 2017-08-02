@@ -7,13 +7,13 @@
 using Foundation;
 using System.CodeDom.Compiler;
 
-namespace Pronome
+namespace Pronome.Mac
 {
 	[Register ("OptionsLeftViewController")]
 	partial class OptionsLeftViewController
 	{
 		[Outlet]
-		Pronome.OptionListView SourceList { get; set; }
+		Pronome.Mac.OptionListView SourceList { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{

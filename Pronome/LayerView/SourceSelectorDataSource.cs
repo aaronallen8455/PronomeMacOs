@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class SourceSelectorDataSource : NSComboBoxDataSource
     {

@@ -7,7 +7,7 @@
 using Foundation;
 using System.CodeDom.Compiler;
 
-namespace Pronome
+namespace Pronome.Mac
 {
 	[Register ("LayerItemController")]
 	partial class LayerItemController
@@ -16,7 +16,7 @@ namespace Pronome
 		AppKit.NSBox BackgroundBox { get; set; }
 
 		[Outlet]
-		Pronome.BeatCodeEditor BeatCodeInput { get; set; }
+		Pronome.Mac.BeatCodeEditor BeatCodeInput { get; set; }
 
 		[Outlet]
 		AppKit.NSScroller BeatCodeScroller { get; set; }

@@ -4,7 +4,7 @@ using System.Linq;
 using Foundation;
 using AppKit;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public partial class LayerItem : AppKit.NSView
     {

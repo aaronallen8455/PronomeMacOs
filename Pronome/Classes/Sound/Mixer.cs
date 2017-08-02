@@ -4,7 +4,7 @@ using AudioUnit;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class Mixer : IDisposable
     {

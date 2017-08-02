@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
-using Pronome.OptionsWindow;
+using Pronome.Mac.OptionsWindow;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public partial class OptionsSplitViewController : NSSplitViewController
     {

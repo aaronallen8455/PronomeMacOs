@@ -1,7 +1,7 @@
 ﻿using System;
 using AudioToolbox;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public interface IStreamProvider
     {

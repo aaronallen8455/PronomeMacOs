@@ -7,7 +7,7 @@
 using Foundation;
 using System.CodeDom.Compiler;
 
-namespace Pronome
+namespace Pronome.Mac
 {
 	[Register ("TransportViewController")]
 	partial class TransportViewController

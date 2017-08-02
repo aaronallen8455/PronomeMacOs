@@ -2,7 +2,7 @@
 using AppKit;
 using Foundation;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     [Register("MyScroller")]
     public class MyScroller : NSScroller

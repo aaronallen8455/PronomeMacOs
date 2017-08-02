@@ -5,7 +5,7 @@ using Foundation;
 using AppKit;
 using System.Linq;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public partial class BeatCodeEditor : NSTextView
 	{

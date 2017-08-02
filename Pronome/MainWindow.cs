@@ -5,7 +5,7 @@ using System;
 using Foundation;
 using AppKit;
 
-namespace Pronome
+namespace Pronome.Mac
 {
 	public partial class MainWindow : NSWindow
 	{

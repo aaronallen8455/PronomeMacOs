@@ -1,6 +1,6 @@
 ﻿using AppKit;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     static class MainClass
     {

@@ -7,7 +7,7 @@
 using Foundation;
 using System.CodeDom.Compiler;
 
-namespace Pronome
+namespace Pronome.Mac
 {
 	[Register ("MainWindow")]
 	partial class MainWindow

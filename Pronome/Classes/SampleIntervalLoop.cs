@@ -3,7 +3,7 @@ using System.Collections;
 using System.Linq;
 using System;
 
-namespace Pronome
+namespace Pronome.Mac
 {
     public class SampleIntervalLoop : IEnumerable<long>, IDisposable
     {
