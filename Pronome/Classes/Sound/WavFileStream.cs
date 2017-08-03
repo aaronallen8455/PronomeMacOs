@@ -49,7 +49,7 @@ namespace Pronome.Mac
 			// if it's an open hihat sound that will be muted, get the first mute point (possibly more than one)
 			if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
 			{
-			    CurrentHiHatDuration = HiHatDurations.Min;
+                CurrentHiHatDuration = HiHatDurations.Min - offset;
 			}
 
 			for (int i = offset; i < count; i++)

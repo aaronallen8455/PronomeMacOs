@@ -38,6 +38,8 @@ namespace Pronome.Mac
 					_layer.Controller = this;
                 }
                 DidChangeValue("Layer");
+
+				HighlightBeatCodeSyntax();
             }
         }
 
@@ -78,8 +80,8 @@ namespace Pronome.Mac
         void Initialize()
         {
 			// need to re-highlight syntax when layers are removed or added. don't know why...
-			Metronome.LayerAdded += HighlightBeatCodeSyntax;
-			Metronome.LayerRemoved += HighlightBeatCodeSyntax;
+			//Metronome.LayerAdded += HighlightBeatCodeSyntax;
+			//Metronome.LayerRemoved += HighlightBeatCodeSyntax;
         }
 
         #endregion
@@ -126,8 +128,8 @@ namespace Pronome.Mac
         {
             base.Dispose(disposing);
 
-			Metronome.LayerAdded -= HighlightBeatCodeSyntax;
-			Metronome.LayerRemoved -= HighlightBeatCodeSyntax;
+			//Metronome.LayerAdded -= HighlightBeatCodeSyntax;
+			//Metronome.LayerRemoved -= HighlightBeatCodeSyntax;
         }
         #endregion
 
@@ -155,7 +157,7 @@ namespace Pronome.Mac
             ((TransportViewController)NSApplication.SharedApplication.MainWindow.ContentViewController)
                 .RemoveLayer(Layer);
 
-            Layer = null;
+            _layer = null;
 
         }
         #endregion

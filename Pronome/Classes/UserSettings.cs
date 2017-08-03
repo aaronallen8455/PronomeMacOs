@@ -1,11 +1,9 @@
 ﻿using System.Runtime.Serialization;
 using System.IO;
-using System.IO.IsolatedStorage;
 using System.Xml;
 using System.Text;
 using System.Collections.Generic;
 using System;
-using AppKit;
 using Foundation;
 
 namespace Pronome.Mac
@@ -118,12 +116,6 @@ namespace Pronome.Mac
         }
 
         /// <summary>
-        /// Holds the current state of the persist session toggle
-        /// </summary>
-        //public static bool PersistSessionStatic = true;
-
-
-        /// <summary>
         /// The serialized beat from the previous session.
         /// </summary>
         [Export("PersistedSession")]
@@ -185,62 +177,7 @@ namespace Pronome.Mac
         }
 
         /// <summary>
-        /// Apply the settings
-        /// </summary>
-        public void ApplySettings()
-        {
-            //Window mainWindow = Application.Current.MainWindow;
-
-            //mainWindow.Left = WinX;
-            //mainWindow.Top = WinY;
-            //mainWindow.Width = WinWidth;
-            //mainWindow.Height = WinHeight;
-            //Application.Current.Resources["textBoxFontSize"] = BeatFontSize;
-
-            //BeatGraphWindow.BlinkingIsEnabled = BlinkingEnabled;
-            //BounceWindow.Tick.QueueSize = BounceQueueSize;
-            //BounceWindow.divisionPoint = BounceDivision;
-            //BounceWindow.widthPad = BounceWidthPad;
-            //PitchStream.DecayLength = PitchDecayLength;
-            //UserSourceLibrary s = (mainWindow.Resources["optionsWindow"] as Window).Resources["userSourceLibrary"] as UserSourceLibrary;
-            //PersistSessionStatic = PersistSession;
-            //
-            //foreach (UserSource source in UserSourceLibrary)
-            //{
-            //	s.Add(source);
-            //}
-            //
-            //// deserialize the peristed session beat if enabled
-            //if (PersistSession && PersistedSession != string.Empty)
-            //{
-            //	DataContractSerializer ds = new DataContractSerializer(typeof(Metronome));
-            //	byte[] bin = Encoding.UTF8.GetBytes(PersistedSession);
-            //	using (var stream = new MemoryStream(bin))
-            //	{
-            //		using (var reader = XmlDictionaryReader.CreateTextReader(stream, XmlDictionaryReaderQuotas.Max))
-            //		{
-            //			try
-            //			{
-            //				ds.ReadObject(reader);
-            //
-            //				// need to initiate these values
-            //				Metronome.GetInstance().TempoChangeCued = false;
-            //				Metronome.GetInstance().TempoChangedSet = new HashSet<IStreamProvider>();
-            //			}
-            //			catch (SerializationException)
-            //			{
-            //				new TaskDialogWrapper(Application.Current.MainWindow).Show(
-            //					"Session Persistence Failed", "An error occured while attempting to load the beat from your last session, sorry about that!",
-            //					"", TaskDialogWrapper.TaskDialogButtons.Ok, TaskDialogWrapper.TaskDialogIcon.Error);
-            //			}
-            //		}
-            //	}
-            //}
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Get the stored settings
+        /// Instantiate the persisted session and load the user source library.
         /// </summary>
         /// <returns></returns>
         public void GetSettingsFromStorage()
@@ -272,27 +209,6 @@ namespace Pronome.Mac
                     }
                 }
             }
-
-            //DataContractSerializer ds = new DataContractSerializer(typeof(UserSettings));
-            //using (IsolatedStorageFile isf = IsolatedStorageFile.GetUserStoreForAssembly())
-            //{
-            //	using (IsolatedStorageFileStream isfs = new IsolatedStorageFileStream("pronomeSettings", FileMode.OpenOrCreate, isf))
-            //	{
-            //		using (XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(isfs, XmlDictionaryReaderQuotas.Max))
-            //		{
-            //			try
-            //			{
-            //				return (UserSettings)ds.ReadObject(reader);
-            //			}
-            //			catch (SerializationException)
-            //			{
-            //				// settings don't exist or are corrupt
-            //				return null;
-            //			}
-            //		}
-            //	}
-            //}
-            //throw new NotImplementedException();
         }
 
         static UserSettings _settings;
@@ -306,50 +222,9 @@ namespace Pronome.Mac
             if (_settings == null)
             {
                 _settings = new UserSettings();
-                //_settings.PitchDecayLength = (nfloat)LoadDouble("pitchDecayLength", .04);
-
-                _settings.UserSourceLibrary.Add(new StreamInfoProvider(1, "test.wav", "Test Title", StreamInfoProvider.HiHatStatuses.None, false));
-
-                _settings.UserSourceLibrary.Add(new StreamInfoProvider(2, "test2.wav", "Another Test", StreamInfoProvider.HiHatStatuses.None, false));
             }
 
             return _settings;
-            //Window mainWindow = MainWindow.Instance;
-            //
-            //bool persistSession = PersistSessionStatic;
-            //
-            //string serializedBeat = "";
-            //
-            //// stringify the current beat if it is to be persisted.
-            //if (persistSession)
-            //{
-            //	var ds = new DataContractSerializer(typeof(Metronome));
-            //	using (var stream = new MemoryStream())
-            //	{
-            //		using (var writer = XmlDictionaryWriter.CreateTextWriter(stream, new UTF8Encoding(false)))
-            //		{
-            //			ds.WriteObject(writer, Metronome.GetInstance());
-            //		}
-            //		serializedBeat = Encoding.UTF8.GetString(stream.ToArray());
-            //	}
-            //}
-            //
-            //return new UserSettings()
-            //{
-            //	WinX = mainWindow.Left,
-            //	WinY = mainWindow.Top,
-            //	WinWidth = mainWindow.Width,
-            //	WinHeight = mainWindow.Height,
-            //	BeatFontSize = (double)Application.Current.Resources["textBoxFontSize"],
-            //	BlinkingEnabled = BeatGraphWindow.BlinkingIsEnabled,
-            //	BounceQueueSize = BounceWindow.Tick.QueueSize,
-            //	BounceDivision = BounceWindow.divisionPoint,
-            //	BounceWidthPad = BounceWindow.widthPad,
-            //	PitchDecayLength = PitchStream.DecayLength,
-            //	UserSourceLibrary = UserSource.Library,
-            //	PersistSession = persistSession,
-            //	PersistedSession = serializedBeat
-            //};
         }
 
         #region Protected Static Methods

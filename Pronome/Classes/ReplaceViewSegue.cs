@@ -34,21 +34,6 @@ namespace Pronome.Mac
         #region Override Methods
         public override void Perform()
         {
-            //// Cast the source and destination controllers
-            //var source = SourceController as NSViewController;
-            //var destination = DestinationController as NSViewController;
-			//
-            //// remove any existing view
-            //if (source.View.Subviews.Length > 0)
-            //{
-            //    source.View.Subviews[0].RemoveFromSuperview();
-            //}
-			//
-            //// adjust sizing and add new view
-            //destination.View.Frame = new CGRect(0, 0, source.View.Frame.Width, source.View.Frame.Height);
-            //destination.View.AutoresizingMask = NSViewResizingMask.HeightSizable | NSViewResizingMask.WidthSizable;
-            //source.View.AddSubview(destination.View);
-
 			// Cast the source and destination controllers
 			var source = SourceController as NSViewController;
 			var destination = DestinationController as NSViewController;
@@ -59,16 +44,27 @@ namespace Pronome.Mac
 				// No, get the current key window
 				var window = NSApplication.SharedApplication.KeyWindow;
 
+                // resize and reposition the window to keep it from jumping around.
+                var oldContentFrame = window.ContentViewController.View.Frame;
+                var oldFrame = window.Frame;
+                var location = oldFrame.Location;
+                location.Y -= destination.View.Frame.Height - oldContentFrame.Height;
+                oldFrame.Location = location;
+                oldFrame.Height += destination.View.Frame.Height - oldContentFrame.Height;
+
 				// Swap the controllers
 				window.ContentViewController = destination;
+                window.SetFrame(oldFrame, true);
 
 				// Release memory
 				window.ContentViewController?.RemoveFromParentViewController();
 			}
 			else
 			{
-				// Swap the controllers
+                // Swap the controllers
+                var m = source.View.Window.IsMovable = false;
 				source.View.Window.ContentViewController = destination;
+                var t = source.View.Window.ContentLayoutRect;
 
 				// Release memory
 				source.RemoveFromParentViewController();

@@ -247,6 +247,13 @@ namespace Pronome.Mac
             {
                 return GetFromPitch(uri);
             }
+
+            // remove the path prefix for windows internal URIs
+            if (uri.IndexOf("Pronome.wav.", StringComparison.InvariantCulture) == 0)
+            {
+                uri = uri.Substring(12);
+            }
+
             // check internal source library
             var inSrc = InternalSourceLibrary.Where(x => x.Uri == uri).FirstOrDefault();
             if (inSrc != null) return inSrc;

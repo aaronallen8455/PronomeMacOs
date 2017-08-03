@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -237,14 +236,14 @@
         <scene sceneID="FM0-xT-KaJ">
             <objects>
                 <windowController id="171-se-L7v" sceneMemberID="viewController">
-                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="RMa-4D-TEr">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                    <window key="window" title="Options" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" oneShot="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="RMa-4D-TEr">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" unifiedTitleAndToolbar="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="163" y="199" width="524" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
                         <toolbar key="toolbar" implicitIdentifier="F7AC34F4-7BD9-41C4-A7EE-F2E7C609F7D9" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="gZf-CZ-rXg">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="6D793D37-6D3C-4F18-9F6A-157E6F692AC6" label="Random Muting" paletteLabel="Random Muting" tag="-1" image="NSPreferencesGeneral" id="hev-os-JaU">
+                                <toolbarItem implicitItemIdentifier="6D793D37-6D3C-4F18-9F6A-157E6F692AC6" label="Random Muting" paletteLabel="Random Muting" tag="-1" image="NSPreferencesGeneral" visibilityPriority="1" id="hev-os-JaU">
                                     <connections>
                                         <segue destination="XZv-7K-1kB" kind="custom" customClass="ReplaceViewSegue" id="6mg-qN-Gzd"/>
                                     </connections>
@@ -264,7 +263,7 @@
                                         <segue destination="Qb1-Ou-L5R" kind="custom" customClass="ReplaceViewSegue" id="Qf9-pD-2gU"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="D3E77AE6-7401-48E0-9E2A-17AAE23F4352" label="Visuals" paletteLabel="Visuals" tag="-1" image="NSQuickLookTemplate" id="XVr-Rd-ufs">
+                                <toolbarItem implicitItemIdentifier="D3E77AE6-7401-48E0-9E2A-17AAE23F4352" label="Visuals" paletteLabel="Visuals" tag="-1" image="NSComputer" id="XVr-Rd-ufs">
                                     <connections>
                                         <segue destination="Ju7-H7-3ec" kind="custom" customClass="ReplaceViewSegue" id="VAX-Rs-xmi"/>
                                     </connections>
@@ -1038,7 +1037,7 @@
         <scene sceneID="R2V-B0-nI4">
             <objects>
                 <windowController id="B8D-0N-5wS" sceneMemberID="viewController">
-                    <window key="window" title="ProNome" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA" customClass="MainWindow">
+                    <window key="window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA" customClass="MainWindow">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="196" y="240" width="550" height="500"/>
@@ -1218,9 +1217,9 @@ IA
     </scenes>
     <resources>
         <image name="NSAdvanced" width="32" height="32"/>
+        <image name="NSComputer" width="32" height="32"/>
         <image name="NSMultipleDocuments" width="32" height="32"/>
         <image name="NSPreferencesGeneral" width="32" height="32"/>
-        <image name="NSQuickLookTemplate" width="19" height="12"/>
         <image name="NSUser" width="32" height="32"/>
     </resources>
 </document>

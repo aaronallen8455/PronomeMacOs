@@ -365,6 +365,9 @@ namespace Pronome.Mac
             layer.Cleanup();
 
             OnLayerRemoved(new EventArgs());
+
+            // if no layers, clear the currently opened file field
+            SavedFileManager.CurrentlyOpenFile = null;
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
+using System.Text.RegularExpressions;
 
 namespace Pronome.Mac
 {
@@ -43,12 +44,17 @@ namespace Pronome.Mac
         /// </summary>
         public void NewLayer(string beat = "1", StreamInfoProvider baseSource = null, string offset = "", float pan = 0f, float volume = 1f)
         {
+            // remove white space from beatcode
+            beat = Regex.Replace(beat, @"\s", "");
+
 			// when adding layer while playing,
 			// need to switch to Stopped so that the layer gets fully instantiated
 			var currentState = Metronome.Instance.PlayState;
 			Metronome.Instance.PlayState = Metronome.PlayStates.Stopped;
             Layer newLayer = new Layer(beat, baseSource, offset, pan, volume);
 			Metronome.Instance.PlayState = currentState;
+
+            newLayer.SourceInput = newLayer.BaseStreamInfo.ToString();
 
 			// if playing, mute the new layer and sync it
 			if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
@@ -73,6 +79,8 @@ namespace Pronome.Mac
             Datasource.Data.Add(layer);
 
             LayerCollection.ReloadData();
+
+            //Metronome.Instance.AddLayer(layer);
 		}
 
 		/// <summary>
