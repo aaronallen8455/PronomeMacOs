@@ -10,25 +10,47 @@ namespace Pronome.Mac
     public class SourceSelectorDataSource : NSComboBoxDataSource
     {
         #region Static Properties
-        private List<string> _data =
-            new List<StreamInfoProvider>(StreamInfoProvider.CompleteSourceLibrary)
-			.Select(x => x.ToString()).ToList();
+        //private static List<string> _data = StreamInfoProvider.CompleteSourceLibraryStrings;
+            //new List<StreamInfoProvider>(StreamInfoProvider.CompleteSourceLibrary)
+			//.Select(x => x.ToString()).ToList();
         /// <summary>
         /// Gets or sets the data. From the Complete Source Library
         /// </summary>
         /// <value>The data.</value>
-        public List<string> Data
+        public static List<string> Data
         {
-            get => _data;
-            set
-            {
-                _data = value;
-            }
+            get => StreamInfoProvider.CompleteSourceLibraryStrings;//StreamInfoProvider.CompleteSourceLibrary.Select(x => x.ToString()).ToList();
         }
         #endregion
 
-        public SourceSelectorDataSource()
+        public SourceSelectorDataSource(NSComboBox parent)
         {
+            // update the data whenever a change to user sources is made
+            StreamInfoProvider.UserSourcesChanged += (sender, e) =>
+            {
+                string currentString = parent.StringValue;
+                int index = (int)parent.SelectedIndex;
+                // if name of source was changed or removed
+                string atIndex = StreamInfoProvider.CompleteSourceLibraryStrings.ElementAtOrDefault(index);
+                if (atIndex != currentString)
+                {
+                    // do nothing if source exists but at different index
+                    if (!StreamInfoProvider.CompleteSourceLibraryStrings.Contains(currentString))
+                    {
+                        if (atIndex == default(string))
+                        {
+                            parent.SelectItem(0);
+                        }
+                        else
+                        {
+                            // change to new string
+                            parent.StringValue = atIndex;
+                        }
+                    }
+                }
+
+                parent.ReloadData();
+            };
         }
 
         #region Overriden Methods

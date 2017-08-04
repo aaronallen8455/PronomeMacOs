@@ -15,11 +15,20 @@ namespace Pronome.Mac
 		[Outlet]
 		AppKit.NSTableView CustomSourceTable { get; set; }
 
+		[Action ("AddCustomSource:")]
+		partial void AddCustomSource (Foundation.NSObject sender);
+
 		[Action ("ExportWavFileAction:")]
 		partial void ExportWavFileAction (Foundation.NSObject sender);
 
+		[Action ("NewCustomSource:")]
+		partial void NewCustomSource (Foundation.NSObject sender);
+
 		[Action ("RecordWavFileAction:")]
 		partial void RecordWavFileAction (Foundation.NSObject sender);
+
+		[Action ("RemoveCustomSource:")]
+		partial void RemoveCustomSource (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

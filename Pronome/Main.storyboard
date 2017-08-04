@@ -243,32 +243,32 @@
                         <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
                         <toolbar key="toolbar" implicitIdentifier="F7AC34F4-7BD9-41C4-A7EE-F2E7C609F7D9" autosavesConfiguration="NO" displayMode="iconAndLabel" sizeMode="regular" id="gZf-CZ-rXg">
                             <allowedToolbarItems>
-                                <toolbarItem implicitItemIdentifier="6D793D37-6D3C-4F18-9F6A-157E6F692AC6" label="Random Muting" paletteLabel="Random Muting" tag="-1" image="NSPreferencesGeneral" visibilityPriority="1" id="hev-os-JaU">
+                                <toolbarItem implicitItemIdentifier="6D793D37-6D3C-4F18-9F6A-157E6F692AC6" label="Random Muting" paletteLabel="Random Muting" tag="-1" image="NSPreferencesGeneral" visibilityPriority="1" selectable="YES" id="hev-os-JaU">
                                     <connections>
                                         <segue destination="XZv-7K-1kB" kind="custom" customClass="ReplaceViewSegue" id="6mg-qN-Gzd"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="5EC2FE12-DC86-4D63-843B-141D3C1651A9" label="Intervallic Muting" paletteLabel="Intervallic Muting" tag="-1" image="NSPreferencesGeneral" id="W2m-EK-sPS">
+                                <toolbarItem implicitItemIdentifier="5EC2FE12-DC86-4D63-843B-141D3C1651A9" label="Intervallic Muting" paletteLabel="Intervallic Muting" tag="-1" image="NSPreferencesGeneral" selectable="YES" id="W2m-EK-sPS">
                                     <connections>
                                         <segue destination="tzd-O7-TYG" kind="custom" customClass="ReplaceViewSegue" id="lNZ-1o-jVq"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="CBBE0479-70EA-4D02-AB6C-EE7472793483" label="Custom Sound Library" paletteLabel="Custom Sound Library" tag="-1" image="NSUser" id="Iko-Qh-4Wi">
+                                <toolbarItem implicitItemIdentifier="CBBE0479-70EA-4D02-AB6C-EE7472793483" label="Custom Sound Library" paletteLabel="Custom Sound Library" tag="-1" image="NSUser" selectable="YES" id="Iko-Qh-4Wi">
                                     <connections>
                                         <segue destination="NU5-7Y-huI" kind="custom" customClass="ReplaceViewSegue" id="62V-Qd-jY6"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="9E4E210D-CD52-4872-A804-4605CF1BCE86" label="Create Wav File" paletteLabel="Create Wav File" tag="-1" image="NSMultipleDocuments" id="Fh4-0n-1yC">
+                                <toolbarItem implicitItemIdentifier="9E4E210D-CD52-4872-A804-4605CF1BCE86" label="Create Wav File" paletteLabel="Create Wav File" tag="-1" image="NSMultipleDocuments" selectable="YES" id="Fh4-0n-1yC">
                                     <connections>
                                         <segue destination="Qb1-Ou-L5R" kind="custom" customClass="ReplaceViewSegue" id="Qf9-pD-2gU"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="D3E77AE6-7401-48E0-9E2A-17AAE23F4352" label="Visuals" paletteLabel="Visuals" tag="-1" image="NSComputer" id="XVr-Rd-ufs">
+                                <toolbarItem implicitItemIdentifier="D3E77AE6-7401-48E0-9E2A-17AAE23F4352" label="Visuals" paletteLabel="Visuals" tag="-1" image="NSComputer" selectable="YES" id="XVr-Rd-ufs">
                                     <connections>
                                         <segue destination="Ju7-H7-3ec" kind="custom" customClass="ReplaceViewSegue" id="VAX-Rs-xmi"/>
                                     </connections>
                                 </toolbarItem>
-                                <toolbarItem implicitItemIdentifier="D094F3CC-80E6-45FC-95B5-B3E4209A5F0F" label="Additional" paletteLabel="Additional" tag="-1" image="NSAdvanced" id="gR7-O7-Tnq">
+                                <toolbarItem implicitItemIdentifier="D094F3CC-80E6-45FC-95B5-B3E4209A5F0F" label="Additional" paletteLabel="Additional" tag="-1" image="NSAdvanced" selectable="YES" id="gR7-O7-Tnq">
                                     <connections>
                                         <segue destination="oiS-QQ-CFc" kind="custom" customClass="ReplaceViewSegue" id="wTw-cI-ZtB"/>
                                     </connections>
@@ -397,10 +397,9 @@
                                             <string key="NSValueTransformerName">NSIsNotNil</string>
                                         </dictionary>
                                     </binding>
-                                    <binding destination="NU5-7Y-huI" name="value" keyPath="self.SelectedSource.Title" id="7ih-Xu-WoW">
+                                    <binding destination="NU5-7Y-huI" name="value" keyPath="self.SelectedSource.Title" id="w18-i7-8fz">
                                         <dictionary key="options">
                                             <bool key="NSAllowsEditingMultipleValuesSelection" value="NO"/>
-                                            <bool key="NSContinuouslyUpdatesValue" value="YES"/>
                                             <string key="NSNoSelectionPlaceholder">None</string>
                                             <string key="NSNullPlaceholder">None</string>
                                         </dictionary>
@@ -414,6 +413,9 @@
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="NewCustomSource:" target="NU5-7Y-huI" id="ULt-Gu-kWm"/>
+                                </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HVE-Zj-Rx1">
                                 <rect key="frame" x="10" y="234" width="89" height="32"/>
@@ -423,6 +425,7 @@
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
+                                    <action selector="RemoveCustomSource:" target="NU5-7Y-huI" id="rqj-Gm-hnr"/>
                                     <binding destination="NU5-7Y-huI" name="enabled" keyPath="self.SelectedSource" id="aO2-0J-leb">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSIsNotNil</string>

@@ -26,7 +26,7 @@ namespace Pronome.Mac
         public List<BeatCell> Beat = new List<BeatCell>();
 
         /** <summary>The beat code string that was passed in to create the rhythm of this layer.</summary> */
-        public string ParsedString = "1";
+        public string ParsedString;
 
         /**<summary>The string that was parsed to get the offset value.</summary>*/
         public string ParsedOffset = "0";

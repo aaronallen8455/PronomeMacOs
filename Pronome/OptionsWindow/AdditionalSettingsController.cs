@@ -69,6 +69,60 @@ namespace Pronome.Mac
         {
 
         }
+
+        partial void NewCustomSource(NSObject sender)
+        {
+            var dlg = NSOpenPanel.OpenPanel;
+            dlg.CanChooseFiles = true;
+            dlg.CanChooseDirectories = false;
+            dlg.AllowedFileTypes = new string[] { "wav", "aiff", "mp3", "ogg" };
+
+            if (dlg.RunModal() == 1)
+            {
+                var url = dlg.Urls[0];
+
+                if (url != null)
+                {
+                    string path = url.Path;
+
+                    string fileName = path.Substring(path.LastIndexOf('/') + 1);
+                    fileName = fileName.Substring(0, fileName.LastIndexOf('.'));
+
+                    var library = UserSettings.GetSettings().UserSourceLibrary;
+                    // get index of new source
+                    uint index = 1;
+                    for (; index <= library.Count; index++)
+                    {
+                        if (library[index - 1].Index != index)
+                        {
+                            break;
+                        }
+                    }
+
+                    var newSource = new StreamInfoProvider((int)index, path, fileName, StreamInfoProvider.HiHatStatuses.None, false);
+
+                    AddCustomSource(newSource);
+
+                    // need to update the source lists
+                    StreamInfoProvider.OnUserSourcesChanged(null);
+                }
+            }
+        }
+
+        partial void RemoveCustomSource(NSObject sender)
+        {
+            if (SelectedSource != null)
+            {
+                // remove the source
+                nint index = CustomSourceTable.SelectedRow;
+                UserSettings.GetSettings().UserSourceLibrary.RemoveObject(index);
+                CustomSourceTable.RemoveRows(new NSIndexSet(index), NSTableViewAnimation.SlideUp);
+                CustomSourceTable.SelectRow(index, false);
+                //RemoveCustomSource(index);
+
+                StreamInfoProvider.OnUserSourcesChanged(null);
+            }
+        }
         #endregion
 
         #region Array Controller
@@ -112,23 +166,25 @@ namespace Pronome.Mac
 
             if (CustomSourceTable != null)
             {
-				CustomSourceTable.SelectionDidChange += CustomSourceTable_SelectionDidChange;
+                CustomSourceTable.SelectionDidChange += CustomSourceTable_SelectionDidChange;
             }
         }
         #endregion
 
+        #region Private Methods
         void CustomSourceTable_SelectionDidChange(object sender, EventArgs e)
         {
             if (CustomSourceTable.SelectedRowCount > 0)
             {
-				nuint index = (nuint)CustomSourceTable.SelectedRow;
-				
-				SelectedSource = UserSettings.GetSettings().UserSourceLibrary.GetItem<StreamInfoProvider>(index);
+                nuint index = (nuint)CustomSourceTable.SelectedRow;
+
+                SelectedSource = UserSettings.GetSettings().UserSourceLibrary.GetItem<StreamInfoProvider>(index);
             }
             else
             {
                 SelectedSource = null;
             }
         }
+        #endregion
     }
 }

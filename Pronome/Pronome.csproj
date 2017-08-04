@@ -120,27 +120,7 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="LayerView\MyScroller.cs" />
-    <Compile Include="OptionsWindow\OptionsWindowController.cs" />
-    <Compile Include="OptionsWindow\OptionsWindowController.designer.cs">
-      <DependentUpon>OptionsWindowController.cs</DependentUpon>
-    </Compile>
     <Compile Include="Classes\ReplaceViewSegue.cs" />
-    <Compile Include="OptionsWindow\OptionItem.cs" />
-    <Compile Include="OptionsWindow\OptionListDataSource.cs" />
-    <Compile Include="OptionsWindow\OptionListDelegate.cs" />
-    <Compile Include="OptionsWindow\OptionListView.cs" />
-    <Compile Include="OptionsWindow\OptionsSplitViewController.cs" />
-    <Compile Include="OptionsWindow\OptionsSplitViewController.designer.cs">
-      <DependentUpon>OptionsSplitViewController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="OptionsWindow\OptionsLeftViewController.cs" />
-    <Compile Include="OptionsWindow\OptionsLeftViewController.designer.cs">
-      <DependentUpon>OptionsLeftViewController.cs</DependentUpon>
-    </Compile>
-    <Compile Include="OptionsWindow\OptionsRightViewController.cs" />
-    <Compile Include="OptionsWindow\OptionsRightViewController.designer.cs">
-      <DependentUpon>OptionsRightViewController.cs</DependentUpon>
-    </Compile>
     <Compile Include="Classes\UserSettings.cs" />
     <Compile Include="OptionsWindow\AdditionalSettingsController.cs" />
     <Compile Include="OptionsWindow\AdditionalSettingsController.designer.cs">

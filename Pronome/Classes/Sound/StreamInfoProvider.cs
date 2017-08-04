@@ -8,23 +8,17 @@ using Foundation;
 namespace Pronome.Mac
 {
     [Register("StreamInfoProvider")]
-    [DataContract]
     public class StreamInfoProvider : NSObject
     {
         #region private variables
-        [DataMember]
         private string _uri;
 
-        [DataMember]
         private bool _isPitch;
 
-        [DataMember]
         private int _index;
 
-        [DataMember]
         private string _title;
 
-        [DataMember]
         private bool _isInternal;
         #endregion
 
@@ -77,7 +71,12 @@ namespace Pronome.Mac
             {
                 WillChangeValue("Title");
                 WillChangeValue("String");
-                _title = value;
+                if (value != string.Empty)
+                {
+					_title = value;
+                    if (!IsInternal)
+                        OnUserSourcesChanged(null);
+                }
                 DidChangeValue("Title");
                 DidChangeValue("String");
             }
@@ -157,6 +156,8 @@ namespace Pronome.Mac
             // initialize the source library
 			CompleteSourceLibrary =
                 new StreamInfoProvider[] { GetDefault() }.Concat(InternalSourceLibrary).Concat(UserSettings.GetSettings().UserSourceLibrary);
+
+            CompleteSourceLibraryStrings = CompleteSourceLibrary.Select(x => x.ToString()).ToList();
 		}
         #endregion
 
@@ -262,13 +263,24 @@ namespace Pronome.Mac
             return UserSettings.GetSettings().UserSourceLibrary.Where(x => x.Uri == uri).FirstOrDefault() ?? GetDefault();
         }
 
-        #endregion
+		#endregion
 
-        /// <summary>
-        /// The string that will be displayed in the source selectors.
-        /// </summary>
-        /// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Pronome.StreamInfoProvider"/>.</returns>
-        public override string ToString()
+		#region Events
+		public static event EventHandler UserSourcesChanged;
+
+		public static void OnUserSourcesChanged(EventArgs e)
+		{
+            CompleteSourceLibraryStrings = CompleteSourceLibrary.Select(x => x.ToString()).ToList();
+
+			UserSourcesChanged?.Invoke(null, e);
+		}
+		#endregion
+
+		/// <summary>
+		/// The string that will be displayed in the source selectors.
+		/// </summary>
+		/// <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:Pronome.StreamInfoProvider"/>.</returns>
+		public override string ToString()
         {
             if (IsPitch)
             {
@@ -290,6 +302,7 @@ namespace Pronome.Mac
 
         public static IEnumerable<StreamInfoProvider> CompleteSourceLibrary;
 
+        public static List<string> CompleteSourceLibraryStrings;
 
         /// <summary>
         /// The internal source library for audio files.

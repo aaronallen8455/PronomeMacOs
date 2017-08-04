@@ -182,6 +182,7 @@ namespace Pronome.Mac
         /// <returns></returns>
         public void GetSettingsFromStorage()
         {
+            // get the persisted session from storage
             if (PersistSession)
             {
 				var ds = new DataContractSerializer(typeof(Pronome.Metronome));
@@ -190,10 +191,12 @@ namespace Pronome.Mac
                 {
                     var m = ds.ReadObject(reader) as Pronome.Metronome;
 
+                    // import the beat
                     SavedFileManager.ImportMetronome(m);
                 }
             }
 
+            // git the user source library from storage
             string lib = LoadString("UserSourceLibrary", "");
             if (lib != "")
             {
@@ -208,6 +211,8 @@ namespace Pronome.Mac
                         UserSourceLibrary.Add(src.Deserialize());
                     }
                 }
+
+                StreamInfoProvider.OnUserSourcesChanged(null);
             }
         }
 

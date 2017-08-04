@@ -96,8 +96,7 @@ namespace Pronome.Mac
         public override void AwakeFromNib()
         {
             // add sources to source selector
-            SoundSourceSelector.DataSource = new SourceSelectorDataSource();
-
+            SoundSourceSelector.DataSource = new SourceSelectorDataSource(SoundSourceSelector);
             SoundSourceSelector.VisibleItems = 10;
 
             // autoselect the first source
