@@ -133,6 +133,7 @@
     <Compile Include="Classes\Serialization\Metronome.cs" />
     <Compile Include="Classes\Serialization\Layer.cs" />
     <Compile Include="Classes\Serialization\StreamInfoProvider.cs" />
+    <Compile Include="Classes\Sound\FileRecorder.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

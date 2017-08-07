@@ -10,16 +10,14 @@ namespace Pronome.Mac
     public class SourceSelectorDataSource : NSComboBoxDataSource
     {
         #region Static Properties
-        //private static List<string> _data = StreamInfoProvider.CompleteSourceLibraryStrings;
-            //new List<StreamInfoProvider>(StreamInfoProvider.CompleteSourceLibrary)
-			//.Select(x => x.ToString()).ToList();
+
         /// <summary>
         /// Gets or sets the data. From the Complete Source Library
         /// </summary>
         /// <value>The data.</value>
         public static List<string> Data
         {
-            get => StreamInfoProvider.CompleteSourceLibraryStrings;//StreamInfoProvider.CompleteSourceLibrary.Select(x => x.ToString()).ToList();
+            get => StreamInfoProvider.CompleteSourceLibraryStrings;
         }
         #endregion
 

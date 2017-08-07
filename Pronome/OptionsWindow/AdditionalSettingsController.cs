@@ -58,7 +58,24 @@ namespace Pronome.Mac
         /// <param name="sender">Sender.</param>
         partial void ExportWavFileAction(NSObject sender)
         {
-            // should use a modal segue instead...
+			// should use a modal segue instead...
+
+			var dlg = new NSSavePanel();
+			dlg.Title = "Save Wav File";
+			dlg.AllowedFileTypes = new string[] { "wav" };
+
+			if (dlg.RunModal() == 1)
+			{
+				NSUrl url = dlg.Url;
+
+				if (url != null)
+				{
+					string path = url.Path;
+
+                    //FileRecorder.ExportWavFile(path, 1);
+                    Metronome.Instance.Mixer.RenderToFile(path, 4);
+				}
+			}
         }
 
         /// <summary>

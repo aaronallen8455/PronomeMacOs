@@ -3,6 +3,7 @@ using AudioToolbox;
 using AudioUnit;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Pronome.Mac
 {
@@ -140,6 +141,90 @@ namespace Pronome.Mac
 			}
 		}
 
+        public void Render(uint samples, AudioBuffers buffers, double offset)
+        {
+            AudioTimeStamp timeStamp = new AudioTimeStamp();
+            timeStamp.SampleTime = offset;
+
+            var flag = AudioUnitRenderActionFlags.DoNotCheckRenderArgs;
+
+			var e = MixerNode.Render(
+                ref flag,
+				timeStamp,
+				0,
+                samples,
+				buffers
+			);
+
+            if (e != AudioUnitStatus.OK) throw new ApplicationException();
+        }
+
+        public void RenderToFile(string fileName, double seconds)
+        {
+            long samples = (long)(seconds * Metronome.SampleRate);
+
+            var inputStream = MixerNode.GetAudioFormat(AudioUnitScopeType.Output);
+
+            var outputStream = AudioStreamBasicDescription.CreateLinearPCM(44100, 2);
+
+            AudioConverter converter = AudioConverter.Create(inputStream, outputStream);
+
+			var file = ExtAudioFile.CreateWithUrl(
+                new Foundation.NSUrl(fileName, false),
+                AudioFileType.WAVE,
+                outputStream,
+                AudioFileFlags.EraseFlags,
+                out ExtAudioFileError e
+            );
+
+            long samplesRead = 0;
+
+			while (samples > 0)
+			{
+				int numSamples = (int)(Math.Min(BufferSize, samples));
+				// initialize the buffers
+				var leftBuffer = new AudioBuffer();
+				leftBuffer.DataByteSize = BufferSize * 4;
+				leftBuffer.NumberChannels = 1;
+				leftBuffer.Data = Marshal.AllocHGlobal(sizeof(float) * numSamples);
+				var rightBuffer = new AudioBuffer();
+				rightBuffer.DataByteSize = BufferSize * 4;
+				rightBuffer.NumberChannels = 1;
+				rightBuffer.Data = Marshal.AllocHGlobal(sizeof(float) * numSamples);
+				var buffers = new AudioBuffers(2);
+				buffers[0] = leftBuffer;
+				buffers[1] = rightBuffer;
+				
+				// get samples from the mixer
+				
+				Render((uint)numSamples, buffers, samplesRead);
+
+                // conver to the file's format
+                var convBuffers = new AudioBuffers(1);
+                convBuffers[0] = new AudioBuffer()
+                {
+                    DataByteSize = BufferSize * 4,
+                    NumberChannels = 2,
+                    Data = Marshal.AllocHGlobal(sizeof(float) * numSamples)
+                };
+
+                converter.ConvertComplexBuffer(numSamples, buffers, convBuffers);
+
+                // write samples to the file
+                var error = file.Write((uint)numSamples, convBuffers);
+                if (error != ExtAudioFileError.OK)
+				{
+					throw new ApplicationException();
+				}
+				
+				samples -= BufferSize;
+                samplesRead += numSamples;
+			}
+                
+            converter.Dispose();
+            file.Dispose();
+        }
+
         /// <summary>
         /// Enables the input.
         /// </summary>
@@ -246,6 +331,8 @@ namespace Pronome.Mac
         protected void BuildAUGraph()
         {
             Graph = new AUGraph();
+
+            // use splitter sub-type to create file writer tap
 
             // output unit. output to default audio device
             int outputNode = Graph.AddNode(AudioComponentDescription.CreateOutput(AudioTypeOutput.Default));
