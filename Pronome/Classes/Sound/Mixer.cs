@@ -141,6 +141,13 @@ namespace Pronome.Mac
 			}
 		}
 
+        /// <summary>
+        /// Renders out the beat to the given buffers
+        /// </summary>
+        /// <returns>The render.</returns>
+        /// <param name="samples">Samples.</param>
+        /// <param name="buffers">Buffers.</param>
+        /// <param name="offset">Offset.</param>
         public void Render(uint samples, AudioBuffers buffers, double offset)
         {
             AudioTimeStamp timeStamp = new AudioTimeStamp();
@@ -159,6 +166,11 @@ namespace Pronome.Mac
             if (e != AudioUnitStatus.OK) throw new ApplicationException();
         }
 
+        /// <summary>
+        /// Renders the given number of seconds to the given wav file
+        /// </summary>
+        /// <param name="fileName">File name.</param>
+        /// <param name="seconds">Seconds.</param>
         public void RenderToFile(string fileName, double seconds)
         {
             long samples = (long)(seconds * Metronome.SampleRate);
@@ -179,35 +191,37 @@ namespace Pronome.Mac
 
             long samplesRead = 0;
 
+			// initialize the buffers
+			var buffers = new AudioBuffers(2);
+			buffers[0] = new AudioBuffer()
+			{
+				DataByteSize = BufferSize * 4,
+				NumberChannels = 1,
+                Data = Marshal.AllocHGlobal(sizeof(float) * BufferSize)
+			};
+			buffers[1] = new AudioBuffer()
+			{
+				DataByteSize = BufferSize * 4,
+				NumberChannels = 1,
+                Data = Marshal.AllocHGlobal(sizeof(float) * BufferSize)
+			};
+
+			var convBuffers = new AudioBuffers(1);
+			convBuffers[0] = new AudioBuffer()
+			{
+				DataByteSize = BufferSize * 4,
+				NumberChannels = 2,
+                Data = Marshal.AllocHGlobal(sizeof(float) * BufferSize)
+			};
+
 			while (samples > 0)
 			{
 				int numSamples = (int)(Math.Min(BufferSize, samples));
-				// initialize the buffers
-				var leftBuffer = new AudioBuffer();
-				leftBuffer.DataByteSize = BufferSize * 4;
-				leftBuffer.NumberChannels = 1;
-				leftBuffer.Data = Marshal.AllocHGlobal(sizeof(float) * numSamples);
-				var rightBuffer = new AudioBuffer();
-				rightBuffer.DataByteSize = BufferSize * 4;
-				rightBuffer.NumberChannels = 1;
-				rightBuffer.Data = Marshal.AllocHGlobal(sizeof(float) * numSamples);
-				var buffers = new AudioBuffers(2);
-				buffers[0] = leftBuffer;
-				buffers[1] = rightBuffer;
-				
+
 				// get samples from the mixer
-				
 				Render((uint)numSamples, buffers, samplesRead);
 
                 // conver to the file's format
-                var convBuffers = new AudioBuffers(1);
-                convBuffers[0] = new AudioBuffer()
-                {
-                    DataByteSize = BufferSize * 4,
-                    NumberChannels = 2,
-                    Data = Marshal.AllocHGlobal(sizeof(float) * numSamples)
-                };
-
                 converter.ConvertComplexBuffer(numSamples, buffers, convBuffers);
 
                 // write samples to the file
@@ -220,7 +234,9 @@ namespace Pronome.Mac
 				samples -= BufferSize;
                 samplesRead += numSamples;
 			}
-                
+
+            buffers.Dispose();
+            convBuffers.Dispose();
             converter.Dispose();
             file.Dispose();
         }
@@ -511,6 +527,11 @@ namespace Pronome.Mac
 
         object _tempoLock = new object();
 
+        /// <summary>
+        /// Handle the tempo change event
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        /// <param name="e">E.</param>
         public void TempoChanged(object sender, Metronome.TempoChangedEventArgs e)
 		{
             lock (_tempoLock)
