@@ -133,6 +133,10 @@
     <Compile Include="Classes\Serialization\Metronome.cs" />
     <Compile Include="Classes\Serialization\Layer.cs" />
     <Compile Include="Classes\Serialization\StreamInfoProvider.cs" />
+    <Compile Include="OptionsWindow\ExportWavDialog.cs" />
+    <Compile Include="OptionsWindow\ExportWavDialog.designer.cs">
+      <DependentUpon>ExportWavDialog.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

@@ -72,7 +72,6 @@ namespace Pronome.Mac
 				{
 					string path = url.Path;
 
-                    //FileRecorder.ExportWavFile(path, 1);
                     Metronome.Instance.Mixer.RenderToFile(path, 4);
 				}
 			}
@@ -84,7 +83,21 @@ namespace Pronome.Mac
         /// <param name="sender">Sender.</param>
         partial void RecordWavFileAction(NSObject sender)
         {
+			var dlg = new NSSavePanel();
+			dlg.Title = "Save Wav File";
+			dlg.AllowedFileTypes = new string[] { "wav" };
 
+			if (dlg.RunModal() == 1)
+			{
+				NSUrl url = dlg.Url;
+
+				if (url != null)
+				{
+					string path = url.Path;
+
+                    Metronome.Instance.Mixer.QueueFileRecording(path);
+				}
+			}
         }
 
         partial void NewCustomSource(NSObject sender)
@@ -184,6 +197,17 @@ namespace Pronome.Mac
             if (CustomSourceTable != null)
             {
                 CustomSourceTable.SelectionDidChange += CustomSourceTable_SelectionDidChange;
+            }
+        }
+
+        public override void PrepareForSegue(NSStoryboardSegue segue, NSObject sender)
+        {
+            base.PrepareForSegue(segue, sender);
+
+            if (segue.Identifier == "ExportSettings")
+            {
+                var dialog = segue.DestinationController as ExportWavDialog;
+                dialog.Presentor = this;
             }
         }
         #endregion

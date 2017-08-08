@@ -33,6 +33,12 @@ namespace Pronome.Mac
         double _tempoChangeRatio;
 
         private double cycle;
+
+        bool _fileRecordingQueued;
+        ExtAudioFile _file;
+        //AudioBuffers _conversionBuffer;
+
+        AudioConverter _converter;
         #endregion
 
         #region Public Variables
@@ -43,6 +49,8 @@ namespace Pronome.Mac
         public Mixer()
         {
 			BuildAUGraph();
+
+            _converter = AudioConverter.Create(MixerNode.GetAudioFormat(AudioUnitScopeType.Output), AudioStreamBasicDescription.CreateLinearPCM());
 
             Metronome.Instance.TempoChanged += TempoChanged;
         }
@@ -72,7 +80,7 @@ namespace Pronome.Mac
 
                 // add the callback
                 //if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped || i != 0)
-                if (MixerNode.SetRenderCallback(HandleRenderDelegate, AudioUnitScopeType.Global, i) != AudioUnitStatus.OK)
+                if (MixerNode.SetRenderCallback(MixerRenderDelegate, AudioUnitScopeType.Global, i) != AudioUnitStatus.OK)
 				{
 					throw new ApplicationException();
 				}
@@ -135,11 +143,27 @@ namespace Pronome.Mac
 				if (Graph.Stop() != AUGraphError.OK)
 					throw new ApplicationException();
 
+                _file?.Dispose(); // finished recording to file
+                _fileRecordingQueued = false;
+
 				IsPlaying = false;
                 _tempoChanged = false;
                 cycle = 0;
 			}
 		}
+
+        public void QueueFileRecording(string fileName)
+        {
+            _file = ExtAudioFile.CreateWithUrl(
+                new Foundation.NSUrl(fileName, false),
+                AudioFileType.WAVE,
+                AudioStreamBasicDescription.CreateLinearPCM(),
+                AudioFileFlags.EraseFlags,
+                out ExtAudioFileError e
+            );
+
+            _fileRecordingQueued = true;
+        }
 
         /// <summary>
         /// Renders out the beat to the given buffers
@@ -335,6 +359,8 @@ namespace Pronome.Mac
         public void Dispose()
         {
             Graph.Dispose();
+            MixerNode.Dispose();
+            _converter.Dispose();
 
             Metronome.Instance.TempoChanged -= TempoChanged;
         }
@@ -354,13 +380,16 @@ namespace Pronome.Mac
             int outputNode = Graph.AddNode(AudioComponentDescription.CreateOutput(AudioTypeOutput.Default));
 
             // mixer unit
-            int mixerNode = Graph.AddNode(AudioComponentDescription.CreateMixer(AudioTypeMixer.MultiChannel));
+            //int mixerNode = Graph.AddNode(AudioComponentDescription.CreateMixer(AudioTypeMixer.MultiChannel));
+
+            //var mixerDesc = AudioComponentDescription.CreateMixer(AudioTypeMixer.MultiChannel);
+            MixerNode = AudioComponent.FindComponent(AudioTypeMixer.MultiChannel).CreateAudioUnit();
 
             // connect the mixer's output to the output's input
-            if (Graph.ConnnectNodeInput(mixerNode, 0, outputNode, 0) != AUGraphError.OK)
-            {
-                throw new ApplicationException();
-            }
+            //if (Graph.ConnnectNodeInput(mixerNode, 0, outputNode, 0) != AUGraphError.OK)
+            //{
+            //    throw new ApplicationException();
+            //}
 
             // open the graph
             if (Graph.TryOpen() != 0)
@@ -368,7 +397,9 @@ namespace Pronome.Mac
                 throw new ApplicationException();
             }
 
-            MixerNode = Graph.GetNodeInfo(mixerNode);
+            Graph.SetNodeInputCallback(outputNode, 0, OutputRenderDelegate);
+
+            //MixerNode = Graph.GetNodeInfo(mixerNode);
             // must set ouput volume because it defaults to 0
             MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerVolume, 1, AudioUnitScopeType.Output, 0);
             //MixerNode.SetMaximumFramesPerSlice(4096, AudioUnitScopeType.Global);
@@ -390,6 +421,8 @@ namespace Pronome.Mac
             {
                 throw new ApplicationException();
             }
+
+            MixerNode.Initialize();
         }
 
         /// <summary>
@@ -410,7 +443,7 @@ namespace Pronome.Mac
                 for (int i = 0; i < Streams.Count; i++)
                 {
                     // set the render callback
-                    if (MixerNode.SetRenderCallback(HandleRenderDelegate, AudioUnitScopeType.Global, (uint)i) != AudioUnitStatus.OK)
+                    if (MixerNode.SetRenderCallback(MixerRenderDelegate, AudioUnitScopeType.Global, (uint)i) != AudioUnitStatus.OK)
                     {
                         throw new ApplicationException();
                     }
@@ -425,7 +458,7 @@ namespace Pronome.Mac
             }
         }
 
-        unsafe AudioUnitStatus HandleRenderDelegate(AudioUnitRenderActionFlags actionFlags, AudioTimeStamp timeStamp, uint busNumber, uint numberFrames, AudioBuffers data)
+        unsafe AudioUnitStatus MixerRenderDelegate(AudioUnitRenderActionFlags actionFlags, AudioTimeStamp timeStamp, uint busNumber, uint numberFrames, AudioBuffers data)
 		{
             if (busNumber >= Streams.Count) 
             {
@@ -524,6 +557,41 @@ namespace Pronome.Mac
 
             return AudioUnitStatus.OK;
 		}
+
+        /// <summary>
+        /// Render callback for the output node. Can simulataneously write to a file.
+        /// </summary>
+        /// <returns>The render delegate.</returns>
+        /// <param name="actionFlags">Action flags.</param>
+        /// <param name="timeStamp">Time stamp.</param>
+        /// <param name="busNumber">Bus number.</param>
+        /// <param name="numberFrames">Number frames.</param>
+        /// <param name="data">Data.</param>
+        AudioUnitStatus OutputRenderDelegate(AudioUnitRenderActionFlags actionFlags, AudioTimeStamp timeStamp, uint busNumber, uint numberFrames, AudioBuffers data)
+        {
+            var e = MixerNode.Render(ref actionFlags, timeStamp, busNumber, numberFrames, data);
+
+            // check if recording to file
+            if (_fileRecordingQueued)
+            {
+                // convert the buffer
+                using (AudioBuffers convBuffer = new AudioBuffers(1))
+                {
+                    convBuffer[0] = new AudioBuffer()
+                    {
+                        DataByteSize = data[0].DataByteSize,
+                        NumberChannels = 1,
+                        Data = Marshal.AllocHGlobal(sizeof(float) * data[0].DataByteSize)
+                    };
+
+                    _converter.ConvertComplexBuffer((int)numberFrames, data, convBuffer);
+
+                    _file.Write(numberFrames, convBuffer);
+                }
+            }
+
+            return AudioUnitStatus.OK;
+        }
 
         object _tempoLock = new object();
 
