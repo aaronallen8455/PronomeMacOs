@@ -107,7 +107,18 @@ namespace Pronome.Mac
         {
             if (!Streams.Contains(stream)) return;
 
+            bool needToReset = Streams.IndexOf(stream) != Streams.Count - 1;
+
             Streams.Remove(stream);
+
+            if (needToReset)
+            {
+                foreach (IStreamProvider src in Streams)
+                {
+                    SetPan(src, src.Pan);
+                    SetInputVolume(src, (float)src.Volume);
+                }
+            }
 
             // re-configure the mixer inputs
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
@@ -152,6 +163,10 @@ namespace Pronome.Mac
 			}
 		}
 
+        /// <summary>
+        /// Queues up a file to record to the next time the beat is played
+        /// </summary>
+        /// <param name="fileName">File name.</param>
         public void QueueFileRecording(string fileName)
         {
             _file = ExtAudioFile.CreateWithUrl(
@@ -458,6 +473,15 @@ namespace Pronome.Mac
             }
         }
 
+        /// <summary>
+        /// Renders the mixer node. Orchestrates dynamic changes to tempo and beatcode.
+        /// </summary>
+        /// <returns>The render delegate.</returns>
+        /// <param name="actionFlags">Action flags.</param>
+        /// <param name="timeStamp">Time stamp.</param>
+        /// <param name="busNumber">Bus number.</param>
+        /// <param name="numberFrames">Number frames.</param>
+        /// <param name="data">Data.</param>
         unsafe AudioUnitStatus MixerRenderDelegate(AudioUnitRenderActionFlags actionFlags, AudioTimeStamp timeStamp, uint busNumber, uint numberFrames, AudioBuffers data)
 		{
             if (busNumber >= Streams.Count) 

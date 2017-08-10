@@ -397,6 +397,9 @@ namespace Pronome.Mac
 			{
 				AddAudioSource(src);
 			}
+
+            // Calling this method signifies that the beat has changed.
+            // TODO OnBeatChanged
 		}
 
         public void ExecuteLayerChange(Layer layer)
