@@ -75,6 +75,8 @@
     <Folder Include="Classes\Sound\" />
     <Folder Include="OptionsWindow\" />
     <Folder Include="Classes\Serialization\" />
+    <Folder Include="Visualizer\" />
+    <Folder Include="Visualizer\Graph\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -137,6 +139,17 @@
     <Compile Include="OptionsWindow\ExportWavDialog.designer.cs">
       <DependentUpon>ExportWavDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Visualizer\AnimationHelper.cs" />
+    <Compile Include="Visualizer\AbstractLayerDelegate.cs" />
+    <Compile Include="Visualizer\Graph\GraphLayerDelegate.cs" />
+    <Compile Include="Visualizer\AbstractVisualizerView.cs" />
+    <Compile Include="Visualizer\Graph\BeatGraphView.cs" />
+    <Compile Include="Visualizer\Graph\BeatGraphView.designer.cs">
+      <DependentUpon>BeatGraphView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Visualizer\BeatAnimationLayer.cs" />
+    <Compile Include="Visualizer\Graph\GraphingHelper.cs" />
+    <Compile Include="Visualizer\Graph\Ring.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

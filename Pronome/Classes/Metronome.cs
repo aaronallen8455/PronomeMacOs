@@ -236,7 +236,7 @@ namespace Pronome.Mac
 
         #region Public Methods
         /// <summary>
-        /// Converts a BPM value to bytes based on current tempo. As a double to preserve any left overs.
+        /// Converts a BPM value to samples based on current tempo. As a double to preserve any left overs.
         /// </summary>
         /// <returns>The to bytes.</returns>
         /// <param name="bpm">Bpm.</param>
@@ -247,6 +247,12 @@ namespace Pronome.Mac
             if (result > long.MaxValue) throw new Exception(bpm.ToString());
 
             return result;
+        }
+
+        public double ConvertSamplesToBpm(double samples)
+        {
+            double seconds = samples / SampleRate;
+            return seconds * (Tempo / 60);
         }
 
         /// <summary>
@@ -455,6 +461,29 @@ namespace Pronome.Mac
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the number of quarter notes for a complete beat cycle.
+        /// </summary>
+        /// <returns>The quarters for complete cycle.</returns>
+		public double GetQuartersForCompleteCycle()
+		{
+			Func<double, double, double> Gcf = null;
+			Gcf = delegate (double x, double y)
+			{
+				double r = x % y;
+				if (Math.Round(r, 5) == 0) return y;
+
+				return Gcf(y, r);
+			};
+
+			Func<double, double, double> Lcm = delegate (double x, double y)
+			{
+				return x * y / Gcf(x, y);
+			};
+
+			return Layers.Select(x => x.GetTotalBpmValue()).Aggregate((a, b) => Lcm(a, b));
+		}
 
         public void Cleanup()
         {
