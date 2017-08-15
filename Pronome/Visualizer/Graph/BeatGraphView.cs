@@ -3,6 +3,7 @@
 using System;
 using Pronome.Mac.Visualizer.Graph;
 using System.Collections.Generic;
+using CoreAnimation;
 using Pronome.Mac.Visualizer;
 
 namespace Pronome.Mac
@@ -16,6 +17,8 @@ namespace Pronome.Mac
 		/// </summary>
 		protected double BeatLength;
 
+        protected double BpmAccumulator;
+
         public BeatGraphView (IntPtr handle) : base (handle) 
         {
             BeatLength = Metronome.Instance.GetQuartersForCompleteCycle();
@@ -28,19 +31,32 @@ namespace Pronome.Mac
             {
                 BeatLength = BeatLength
             };
+
+			Metronome.Instance.Started += Instance_Started;
         }
 
         public override void DrawFrame(double bpm)
         {
-			// progress the rings. Animate any blinking if needed.
-			foreach (Ring ring in Rings)
-			{
-				ring.Progress(bpm);
-			}
+            BpmAccumulator += bpm;
+            BpmAccumulator %= BeatLength;
 
-            // draw the needle last
-            ((GraphLayerDelegate)AnimationLayer.Delegate).ElapsedBpm = bpm;
-            AnimationLayer.SetNeedsDisplay();
+			// pass the accumulated BPM to the layer delegate
+			((GraphLayerDelegate)AnimationLayer.Delegate).BpmAccumulator = BpmAccumulator;
+
+            // determines duration of the blink effect
+			CATransaction.AnimationDuration = .1;
+
+			AnimationLayer.SetNeedsDisplay();
+            // progress the rings. Animate any blinking if needed.
+            foreach (Ring ring in Rings)
+            {
+                ring.Progress(bpm);
+            }
+        }
+
+        void Instance_Started(object sender, EventArgs e)
+        {
+            BpmAccumulator = 0;
         }
     }
 }

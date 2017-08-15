@@ -3,6 +3,7 @@ using Foundation;
 using CoreAnimation;
 using CoreGraphics;
 using System.Collections.Generic;
+using AppKit;
 
 namespace Pronome.Mac.Visualizer.Graph
 {
@@ -20,6 +21,8 @@ namespace Pronome.Mac.Visualizer.Graph
         /// </summary>
         public double BeatLength;
 
+        public double BpmAccumulator;
+
         const double TWOPI = 2 * Math.PI;
 
         public GraphLayerDelegate()
@@ -29,17 +32,26 @@ namespace Pronome.Mac.Visualizer.Graph
         [Export("drawLayer:inContext:")]
         public void DrawLayer(CALayer layer, CGContext context)
         {
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped) return;
+
             context.SaveState();
+            context.SetLineWidth(2);
+            context.SetStrokeColor(NSColor.Green.CGColor);
             // draw the current frame
-
-            context.RestoreState();
+            //BpmAccumulator += ElapsedBpm;
+            //BpmAccumulator %= BeatLength;
             // draw the needle
-            nfloat angle = (nfloat)(ElapsedBpm / BeatLength * TWOPI);
+            nfloat angle = (nfloat)(BpmAccumulator / BeatLength * TWOPI);
 
-            context.RotateCTM(angle);
-            var mid = (int)layer.Frame.Width / 2;
-            context.MoveTo(mid, 0);
-            context.AddLineToPoint(mid,mid);
+			var mid = (int)layer.Frame.Width / 2;
+            context.TranslateCTM(mid,mid);
+            context.RotateCTM(-angle);
+            context.MoveTo(0, 0);
+            context.AddLineToPoint(0,mid);
+
+            context.StrokePath();
+
+			context.RestoreState();
         }
     }
 }

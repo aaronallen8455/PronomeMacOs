@@ -11,7 +11,7 @@ namespace Pronome.Mac.Visualizer.Graph
     /// <summary>
     /// Encompasses the drawing of the background and tick marks for a single ring section of a beat graph.
     /// </summary>
-    public class Ring
+    public class Ring : IDisposable
     {
         const double TWOPI = 2 * Math.PI;
 
@@ -29,7 +29,9 @@ namespace Pronome.Mac.Visualizer.Graph
         /// <summary>
         /// Index of the current beat cell
         /// </summary>
-        int BeatIndex;
+        int BeatIndex = -1;
+
+        double CurrentBpmInterval;
 
         /// <summary>
         /// The inner radius location. Multiply by frame size.
@@ -66,15 +68,20 @@ namespace Pronome.Mac.Visualizer.Graph
             Layer = layer;
 
             // init the CALayers
-            BackgroundLayer = new CALayer();
-            BackgroundLayer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
-            BackgroundLayer.Frame = superLayer.Frame;
-            BackgroundLayer.Delegate = new BackgroundLayerDelegate(this);
+            BackgroundLayer = new CALayer()
+            {
+				ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
+				Frame = superLayer.Frame,
+				Delegate = new BackgroundLayerDelegate(this)
+            };
 
-            TickMarksLayer = new CALayer();
-            TickMarksLayer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
-            TickMarksLayer.Frame = superLayer.Frame;
-            TickMarksLayer.Delegate = new TickLayerDelegate(this, beatLength, layer);
+            TickMarksLayer = new CALayer()
+            {
+                ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
+                Frame = superLayer.Frame,
+                Delegate = new TickLayerDelegate(this, beatLength, layer),
+                ZPosition = 5
+            };
 
             superLayer.AddSublayer(BackgroundLayer);
             superLayer.AddSublayer(TickMarksLayer);
@@ -104,13 +111,51 @@ namespace Pronome.Mac.Visualizer.Graph
             OuterRadiusLocation = (nfloat)endPoint * superLayer.Frame.Width;
 
             DrawStaticElements();
+
+            // do some reseting when playback stops
+            Metronome.Instance.Stopped += Instance_Stopped;
         }
         #endregion
 
         #region Public methods
         public void Progress(double elapsedBpm)
         {
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+            {
+                return;
+            }
 
+            CurrentBpmInterval -= elapsedBpm;
+
+            var bgDelegate = (BackgroundLayerDelegate)BackgroundLayer.Delegate;
+
+            // see if a cell played
+            while (CurrentBpmInterval <= 0)
+            {
+                BeatIndex++;
+                BeatIndex %= Layer.Beat.Count;
+
+                // fold in the silent cells
+                int tries = 0;
+                while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+                {
+                    CurrentBpmInterval += Layer.Beat[BeatIndex++].Bpm;
+                    BeatIndex %= Layer.Beat.Count;
+                    // if layer is completely silent, break out
+                    tries++;
+                    if (tries == Layer.Beat.Count) break;
+                }
+
+                CurrentBpmInterval += Layer.Beat[BeatIndex].Bpm;
+
+                // tell the ring to start a blink
+                bgDelegate.BlinkingCountdown = BackgroundLayerDelegate.BlinkCount;
+            }
+
+            if (bgDelegate.BlinkingCountdown > 0) 
+            {
+                BackgroundLayer.SetNeedsDisplay();
+            }
         }
 
         /// <summary>
@@ -123,6 +168,13 @@ namespace Pronome.Mac.Visualizer.Graph
             // draw tick marks
             TickMarksLayer.SetNeedsDisplay();
         }
+
+        public void Dispose()
+        {
+            Metronome.Instance.Stopped -= Instance_Stopped;
+            BackgroundLayer.Dispose();
+            TickMarksLayer.Dispose();
+        }
         #endregion
 
         #region Layer delegates
@@ -131,10 +183,12 @@ namespace Pronome.Mac.Visualizer.Graph
         /// </summary>
         class BackgroundLayerDelegate : NSObject, ICALayerDelegate
         {
+            public const int BlinkCount = 2;
+
             /// <summary>
             /// Used to animate the blinking effect
             /// </summary>
-            public int BlinkingCountdown;
+            public int BlinkingCountdown = 0;
 
             Ring Ring;
 
@@ -146,10 +200,19 @@ namespace Pronome.Mac.Visualizer.Graph
             [Export("drawLayer:inContext:")]
             public void DrawLayer(CALayer layer, CGContext context)
             {
+                //CATransaction.AnimationDuration = .001;
+
+                nfloat gradStart = .15f;
+                if (BlinkingCountdown > 0)
+                {
+					BlinkingCountdown--;
+                    gradStart += .15f * ((nfloat)BlinkingCountdown / (BlinkCount - 1));
+                }
+
                 var gradient = new CGGradient(
                     CGColorSpace.CreateDeviceRGB(),
                     new CGColor[] { NSColor.Black.CGColor, NSColor.Red.CGColor },
-                    new nfloat[] { .15f, 1 }
+                    new nfloat[] { gradStart, 1 }
                 );
 
                 context.DrawRadialGradient(
@@ -239,5 +302,15 @@ namespace Pronome.Mac.Visualizer.Graph
             }
         }
         #endregion
+
+        void Instance_Stopped(object sender, EventArgs e)
+        {
+            ((BackgroundLayerDelegate)BackgroundLayer.Delegate).BlinkingCountdown = 0;
+            BackgroundLayer.SetNeedsDisplay();
+
+			BeatIndex = -1;
+
+			CurrentBpmInterval = 0;
+        }
     }
 }

@@ -14,10 +14,13 @@ namespace Pronome.Mac
         {
 			WantsLayer = true;
 
-			AnimationLayer = new BeatAnimationLayer();
-            AnimationLayer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
-			//AnimationLayer.Delegate = new T();
-			AnimationLayer.Frame = Layer.Frame;
+            AnimationLayer = new BeatAnimationLayer()
+            {
+                ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
+                Frame = Layer.Frame,
+                ZPosition = 50
+            };
+
 			Layer.AddSublayer(AnimationLayer);
         }
 

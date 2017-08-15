@@ -51,6 +51,17 @@ namespace Pronome.Mac
         }
         #endregion
 
+        static AnimationHelper()
+        {
+            Metronome.Instance.Started += Instance_Started;
+        }
+
+        static void Instance_Started(object sender, EventArgs e)
+        {
+            // reset to starting position
+            LastCycle = 0;
+        }
+
         private AnimationHelper()
         {
         }
