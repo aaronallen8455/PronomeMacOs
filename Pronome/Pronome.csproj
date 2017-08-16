@@ -150,6 +150,11 @@
     <Compile Include="Visualizer\BeatAnimationLayer.cs" />
     <Compile Include="Visualizer\Graph\GraphingHelper.cs" />
     <Compile Include="Visualizer\Graph\Ring.cs" />
+    <Compile Include="Visualizer\ColorHelper.cs" />
+    <Compile Include="Visualizer\BeatGraphWindow.cs" />
+    <Compile Include="Visualizer\BeatGraphWindow.designer.cs">
+      <DependentUpon>BeatGraphWindow.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

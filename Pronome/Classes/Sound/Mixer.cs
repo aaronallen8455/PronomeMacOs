@@ -598,6 +598,11 @@ namespace Pronome.Mac
 
 				Metronome.Instance.LayersToChange.Clear();
 				Metronome.Instance.NeedToChangeLayer = false;
+
+
+				// trigger beat changed event 
+				AppKit.NSApplication.SharedApplication.BeginInvokeOnMainThread(
+                    () => { Metronome.Instance.OnBeatChanged(null); });
 			}
 
             // check if recording to file

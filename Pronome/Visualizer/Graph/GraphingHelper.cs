@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CoreAnimation;
 
@@ -7,16 +6,12 @@ namespace Pronome.Mac.Visualizer.Graph
 {
     public class GraphingHelper
     {
-        public GraphingHelper()
-        {
-        }
-
         public static LinkedList<Ring> BuildGraph(CALayer superLayer, double beatLength)
         {
             LinkedList<Ring> rings = new LinkedList<Ring>();
 
             // create a ring for each layer
-            double outerRadius = .45;
+            double outerRadius = .48;
             double ringSize = .35 / (Metronome.Instance.Layers.Count + 1);
             foreach (Layer beatLayer in Metronome.Instance.Layers.Reverse<Layer>())
             {

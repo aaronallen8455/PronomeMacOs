@@ -404,8 +404,11 @@ namespace Pronome.Mac
 				AddAudioSource(src);
 			}
 
-            // Calling this method signifies that the beat has changed.
-            // TODO OnBeatChanged
+            // triggers the beat changed event if stopped
+            if (PlayState == PlayStates.Stopped)
+            {
+				OnBeatChanged(null);
+            }
 		}
 
         public void ExecuteLayerChange(Layer layer)
@@ -576,6 +579,13 @@ namespace Pronome.Mac
 		{
 			LayerRemoved?.Invoke(this, e);
 		}
+
+        public event EventHandler BeatChanged;
+
+        public virtual void OnBeatChanged(EventArgs e)
+        {
+            BeatChanged?.Invoke(this, e);
+        }
         #endregion
 
         #region Public Static Methods

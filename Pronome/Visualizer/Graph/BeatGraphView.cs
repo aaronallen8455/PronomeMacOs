@@ -12,15 +12,16 @@ namespace Pronome.Mac
 	{
         protected LinkedList<Ring> Rings;
 
+        object _ringLock = new object();
+
 		/// <summary>
 		/// The length of the beat in bpm.
 		/// </summary>
 		protected double BeatLength;
 
-        protected double BpmAccumulator;
-
         public BeatGraphView (IntPtr handle) : base (handle) 
         {
+            // TODO: check that beat is graphable
             BeatLength = Metronome.Instance.GetQuartersForCompleteCycle();
 
 			// build the graph, get rings
@@ -32,31 +33,71 @@ namespace Pronome.Mac
                 BeatLength = BeatLength
             };
 
-			Metronome.Instance.Started += Instance_Started;
+            Metronome.Instance.BeatChanged += Instance_BeatChanged;
         }
 
         public override void DrawFrame(double bpm)
         {
-            BpmAccumulator += bpm;
-            BpmAccumulator %= BeatLength;
+            //BpmAccumulator %= BeatLength;
 
 			// pass the accumulated BPM to the layer delegate
-			((GraphLayerDelegate)AnimationLayer.Delegate).BpmAccumulator = BpmAccumulator;
+            //((GraphLayerDelegate)AnimationLayer.Delegate).BpmAccumulator = AnimationHelper.BpmAccumulator % BeatLength;
 
             // determines duration of the blink effect
 			CATransaction.AnimationDuration = .1;
 
 			AnimationLayer.SetNeedsDisplay();
-            // progress the rings. Animate any blinking if needed.
-            foreach (Ring ring in Rings)
+
+            lock (_ringLock)
             {
-                ring.Progress(bpm);
+				// progress the rings. Animate any blinking if needed.
+				foreach (Ring ring in Rings)
+				{
+					ring.Progress(bpm);
+				}
             }
         }
 
-        void Instance_Started(object sender, EventArgs e)
+        void Instance_BeatChanged(object sender, EventArgs e)
         {
-            BpmAccumulator = 0;
+            // update the beat length
+            BeatLength = Metronome.Instance.GetQuartersForCompleteCycle();
+
+            ((GraphLayerDelegate)AnimationLayer.Delegate).BeatLength = BeatLength;
+
+            var newRings = GraphingHelper.BuildGraph(Layer, BeatLength);
+
+            // need to fast forward the new rings
+            if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
+            {
+				foreach (Ring ring in newRings)
+				{
+					ring.Progress(AnimationHelper.BpmAccumulator);
+				}
+            }
+
+            lock (_ringLock)
+            {
+				// replace old rings
+				foreach (Ring ring in Rings)
+				{
+					ring.Dispose();
+				}
+				
+				Rings = newRings;
+            }
+        }
+
+        protected override void Window_DidResize(object sender, EventArgs e)
+        {
+            base.Window_DidResize(sender, e);
+
+            // resize the rings
+            foreach (Ring ring in Rings)
+            {
+                ring.InnerRadiusLocation = (nfloat)(ring.StartPoint * Layer.Frame.Width);
+                ring.OuterRadiusLocation = (nfloat)(ring.EndPoint * Layer.Frame.Width);
+            }
         }
     }
 }

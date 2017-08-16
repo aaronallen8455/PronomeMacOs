@@ -38,6 +38,7 @@ namespace Pronome.Mac
 			Window.WillClose -= Window_WillClose;
 			Window.WillClose += Window_WillClose;
 
+            Window.DidResize -= Window_DidResize;
             Window.DidResize += Window_DidResize;
 
 			return base.AcceptsFirstResponder();
@@ -48,7 +49,7 @@ namespace Pronome.Mac
 			AnimationHelper.AnimationViews.Remove(this);
 		}
 
-        void Window_DidResize(object sender, EventArgs e)
+        protected virtual void Window_DidResize(object sender, EventArgs e)
         {
             // resize and reposition all layers to match the window
             double size = Math.Min(Window.Frame.Width, Window.Frame.Height);
@@ -56,12 +57,19 @@ namespace Pronome.Mac
             int posY = (int)(Window.Frame.Height / 2 - (size / 2));
             CGRect frame = new CGRect(posX, posY, size, size);
 
+            CATransaction.Begin();
+            CATransaction.DisableActions = true;
             Layer.Frame = frame;
+
+            CGRect subFrame = new CGRect(0, 0, size, size);
 
             foreach (CALayer layer in Layer.Sublayers)
             {
-                layer.Frame = frame;
+                layer.Frame = subFrame;
+
+                layer.SetNeedsDisplay();
             }
+            CATransaction.Commit();
         }
     }
 }

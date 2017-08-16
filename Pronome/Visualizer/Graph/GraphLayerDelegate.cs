@@ -13,21 +13,11 @@ namespace Pronome.Mac.Visualizer.Graph
     public class GraphLayerDelegate : AbstractLayerDelegate
     {
         /// <summary>
-        /// The ring display elements.
-        /// </summary>
-
-        /// <summary>
         /// The length of the beat in bpm.
         /// </summary>
         public double BeatLength;
 
-        public double BpmAccumulator;
-
         const double TWOPI = 2 * Math.PI;
-
-        public GraphLayerDelegate()
-        {
-        }
 
         [Export("drawLayer:inContext:")]
         public void DrawLayer(CALayer layer, CGContext context)
@@ -37,17 +27,15 @@ namespace Pronome.Mac.Visualizer.Graph
             context.SaveState();
             context.SetLineWidth(2);
             context.SetStrokeColor(NSColor.Green.CGColor);
-            // draw the current frame
-            //BpmAccumulator += ElapsedBpm;
-            //BpmAccumulator %= BeatLength;
+
             // draw the needle
-            nfloat angle = (nfloat)(BpmAccumulator / BeatLength * TWOPI);
+            nfloat angle = (nfloat)((AnimationHelper.BpmAccumulator % BeatLength) / BeatLength * TWOPI);
 
 			var mid = (int)layer.Frame.Width / 2;
             context.TranslateCTM(mid,mid);
             context.RotateCTM(-angle);
             context.MoveTo(0, 0);
-            context.AddLineToPoint(0,mid);
+            context.AddLineToPoint(0, mid);
 
             context.StrokePath();
 

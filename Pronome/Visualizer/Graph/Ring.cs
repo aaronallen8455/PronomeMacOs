@@ -34,14 +34,24 @@ namespace Pronome.Mac.Visualizer.Graph
         double CurrentBpmInterval;
 
         /// <summary>
-        /// The inner radius location. Multiply by frame size.
+        /// The inner radius location.
         /// </summary>
         public nfloat InnerRadiusLocation;
 
         /// <summary>
-        /// The outer radius location. Multiply by frame size
+        /// The outer radius location. 
         /// </summary>
         public nfloat OuterRadiusLocation;
+
+        /// <summary>
+        /// The value form 0 to 1 showing where the start point is. Multiply by frame size
+        /// </summary>
+        public double StartPoint;
+
+        /// <summary>
+        /// Value from 0 to 1 showing where the end point is. Multiply by frame size to get outerRadius
+        /// </summary>
+        public double EndPoint;
         #endregion
 
         #region Public Properties
@@ -87,8 +97,6 @@ namespace Pronome.Mac.Visualizer.Graph
             superLayer.AddSublayer(TickMarksLayer);
 
             // find the tick rotations
-            //TickRotations = layer.Beat.Select(x => x.Bpm / beatLength).ToList();
-
             TickRotations = new LinkedList<nfloat>();
 
             foreach(BeatCell bc in layer.Beat)
@@ -109,6 +117,9 @@ namespace Pronome.Mac.Visualizer.Graph
 
             InnerRadiusLocation = (nfloat)startPoint * superLayer.Frame.Width;
             OuterRadiusLocation = (nfloat)endPoint * superLayer.Frame.Width;
+
+            StartPoint = startPoint;
+            EndPoint = endPoint;
 
             DrawStaticElements();
 
@@ -152,7 +163,8 @@ namespace Pronome.Mac.Visualizer.Graph
                 bgDelegate.BlinkingCountdown = BackgroundLayerDelegate.BlinkCount;
             }
 
-            if (bgDelegate.BlinkingCountdown > 0) 
+            // trigger blink animation if enabled
+            if (UserSettings.GetSettings().BlinkingEnabled && bgDelegate.BlinkingCountdown > 0) 
             {
                 BackgroundLayer.SetNeedsDisplay();
             }
@@ -172,6 +184,8 @@ namespace Pronome.Mac.Visualizer.Graph
         public void Dispose()
         {
             Metronome.Instance.Stopped -= Instance_Stopped;
+            BackgroundLayer.RemoveFromSuperLayer();
+            TickMarksLayer.RemoveFromSuperLayer();
             BackgroundLayer.Dispose();
             TickMarksLayer.Dispose();
         }
@@ -190,18 +204,23 @@ namespace Pronome.Mac.Visualizer.Graph
             /// </summary>
             public int BlinkingCountdown = 0;
 
+            protected CGColor Color;
+            protected CGColor DarkendedColor;
+
             Ring Ring;
 
             public BackgroundLayerDelegate(Ring ring)
             {
                 Ring = ring;
+
+                Color = ColorHelper.ColorWheel(Metronome.Instance.Layers.IndexOf(ring.Layer));
+                // use semi-transparent color for darkened portion
+                DarkendedColor = new CGColor(Color, .3f);
             }
 
             [Export("drawLayer:inContext:")]
             public void DrawLayer(CALayer layer, CGContext context)
             {
-                //CATransaction.AnimationDuration = .001;
-
                 nfloat gradStart = .15f;
                 if (BlinkingCountdown > 0)
                 {
@@ -211,7 +230,7 @@ namespace Pronome.Mac.Visualizer.Graph
 
                 var gradient = new CGGradient(
                     CGColorSpace.CreateDeviceRGB(),
-                    new CGColor[] { NSColor.Black.CGColor, NSColor.Red.CGColor },
+                    new CGColor[] { DarkendedColor, Color },
                     new nfloat[] { gradStart, 1 }
                 );
 

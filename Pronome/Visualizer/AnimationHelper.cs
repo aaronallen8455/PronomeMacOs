@@ -13,6 +13,8 @@ namespace Pronome.Mac
     {
         #region Static Public Fields
         public static List<AbstractVisualizerView> AnimationViews = new List<AbstractVisualizerView>();
+
+        public static double BpmAccumulator;
         #endregion
 
         #region Protected Static Fields
@@ -40,6 +42,8 @@ namespace Pronome.Mac
 				// convert frames to quarter-notes
                 double bpm = Metronome.Instance.ConvertSamplesToBpm(numFrames);
 
+                BpmAccumulator += bpm;
+
                 // send the info to each animation layer to draw the new frame
                 foreach (AbstractVisualizerView view in AnimationViews)
                 {
@@ -60,6 +64,7 @@ namespace Pronome.Mac
         {
             // reset to starting position
             LastCycle = 0;
+            BpmAccumulator = 0;
         }
 
         private AnimationHelper()
