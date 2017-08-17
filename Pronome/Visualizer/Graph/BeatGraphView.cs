@@ -5,6 +5,7 @@ using Pronome.Mac.Visualizer.Graph;
 using System.Collections.Generic;
 using CoreAnimation;
 using Pronome.Mac.Visualizer;
+using CoreGraphics;
 
 namespace Pronome.Mac
 {
@@ -38,11 +39,6 @@ namespace Pronome.Mac
 
         public override void DrawFrame(double bpm)
         {
-            //BpmAccumulator %= BeatLength;
-
-			// pass the accumulated BPM to the layer delegate
-            //((GraphLayerDelegate)AnimationLayer.Delegate).BpmAccumulator = AnimationHelper.BpmAccumulator % BeatLength;
-
             // determines duration of the blink effect
 			CATransaction.AnimationDuration = .1;
 
@@ -57,6 +53,14 @@ namespace Pronome.Mac
 				}
             }
         }
+
+        protected override CGRect GetFrame(nfloat winWidth, nfloat winHeight)
+        {
+            double size = Math.Min(winWidth, winHeight);
+            int posX = (int)(winWidth / 2 - (size / 2));
+            int posY = (int)(winHeight / 2 - (size / 2));
+			return new CGRect(posX, posY, size, size);
+		}
 
         void Instance_BeatChanged(object sender, EventArgs e)
         {

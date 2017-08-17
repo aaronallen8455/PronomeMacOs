@@ -77,6 +77,7 @@
     <Folder Include="Classes\Serialization\" />
     <Folder Include="Visualizer\" />
     <Folder Include="Visualizer\Graph\" />
+    <Folder Include="Visualizer\Bounce\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -155,6 +156,17 @@
     <Compile Include="Visualizer\BeatGraphWindow.designer.cs">
       <DependentUpon>BeatGraphWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="Visualizer\Bounce\BounceWindow.cs" />
+    <Compile Include="Visualizer\Bounce\BounceWindow.designer.cs">
+      <DependentUpon>BounceWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Visualizer\Bounce\BounceView.cs" />
+    <Compile Include="Visualizer\Bounce\BounceView.designer.cs">
+      <DependentUpon>BounceView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Visualizer\Bounce\BounceLayerDelegate.cs" />
+    <Compile Include="Visualizer\Bounce\Lane.cs" />
+    <Compile Include="Visualizer\Bounce\Ball.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

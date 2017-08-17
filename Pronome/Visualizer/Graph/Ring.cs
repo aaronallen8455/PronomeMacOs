@@ -215,7 +215,7 @@ namespace Pronome.Mac.Visualizer.Graph
 
                 Color = ColorHelper.ColorWheel(Metronome.Instance.Layers.IndexOf(ring.Layer));
                 // use semi-transparent color for darkened portion
-                DarkendedColor = new CGColor(Color, .3f);
+                DarkendedColor = new CGColor(Color, .2f);
             }
 
             [Export("drawLayer:inContext:")]

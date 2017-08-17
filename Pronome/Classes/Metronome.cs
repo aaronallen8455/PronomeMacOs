@@ -485,6 +485,8 @@ namespace Pronome.Mac
 				return x * y / Gcf(x, y);
 			};
 
+            if (Layers.Count == 0) return 0;
+
 			return Layers.Select(x => x.GetTotalBpmValue()).Aggregate((a, b) => Lcm(a, b));
 		}
 

@@ -23,6 +23,21 @@ namespace Pronome.Mac
             }
         }
 
+        double BeatLengthSeconds;
+        [Export("CanUseBeatLength")]
+        public bool CanUseBeatLength
+        {
+            get
+            {
+                if (BeatLengthSeconds == 0)
+                {
+                    BeatLengthSeconds = Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.GetQuartersForCompleteCycle()) / Metronome.SampleRate;
+                }
+                // don't use beat length if > 5 hours
+                return BeatLengthSeconds < 60 * 60 * 5;
+            }
+        }
+
         bool _useBeatLength;
         [Export("UseBeatLength")]
         public bool UseBeatLength
@@ -31,12 +46,9 @@ namespace Pronome.Mac
             set
             {
                 WillChangeValue("UseBeatLength");
-                WillChangeValue("Seconds");
-                WillChangeValue("FileSize");
+                Seconds = (nfloat)BeatLengthSeconds;
                 _useBeatLength = value;
                 DidChangeValue("UseBeatLength");
-                DidChangeValue("Seconds");
-                DidChangeValue("FileSize");
             }
         }
 

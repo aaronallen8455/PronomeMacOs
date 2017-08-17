@@ -14,19 +14,25 @@ namespace Pronome.Mac
         {
 			WantsLayer = true;
 
-            AnimationLayer = new BeatAnimationLayer()
-            {
-                ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
-                Frame = Layer.Frame,
-                ZPosition = 50
-            };
+			AnimationLayer = new BeatAnimationLayer()
+			{
+				ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
+				ZPosition = 50
+			};
 
-			Layer.AddSublayer(AnimationLayer);
+            Layer.AddSublayer(AnimationLayer);
         }
 
         public abstract void DrawFrame(double bpm);
 
-		public override bool AcceptsFirstResponder()
+        /// <summary>
+        /// Sizes and positions used for the frames
+        /// </summary>
+        /// <returns>The frame.</returns>
+        protected abstract CGRect GetFrame(nfloat winWidth, nfloat winHeight);
+
+        #region Overriden Methods
+        public override bool AcceptsFirstResponder()
 		{
 			// add this view's layer to the queue when the window becomes active
 			if (!AnimationHelper.AnimationViews.Contains(this))
@@ -44,7 +50,34 @@ namespace Pronome.Mac
 			return base.AcceptsFirstResponder();
 		}
 
-		void Window_WillClose(object sender, EventArgs e)
+        public override void ViewWillMoveToWindow(NSWindow newWindow)
+        {
+            base.ViewWillMoveToWindow(newWindow);
+
+            Layer.Frame = GetFrame(newWindow.Frame.Width, newWindow.Frame.Height);
+			var innerFrame = new CGRect(0, 0, Layer.Frame.Width, Layer.Frame.Height);
+
+            AnimationLayer.Frame = innerFrame;
+			//AnimationLayer = new BeatAnimationLayer()
+			//{
+			//	ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
+			//	Frame = innerFrame,
+			//	ZPosition = 50
+			//};
+			//
+			//Layer.AddSublayer(AnimationLayer);
+        }
+
+        public override void AwakeFromNib()
+        {
+            base.AwakeFromNib();
+
+            var x = Window;
+            var y = Layer.Frame;
+        }
+        #endregion
+
+        void Window_WillClose(object sender, EventArgs e)
 		{
 			AnimationHelper.AnimationViews.Remove(this);
 		}
@@ -52,16 +85,16 @@ namespace Pronome.Mac
         protected virtual void Window_DidResize(object sender, EventArgs e)
         {
             // resize and reposition all layers to match the window
-            double size = Math.Min(Window.Frame.Width, Window.Frame.Height);
-            int posX = (int)(Window.Frame.Width / 2 - (size / 2));
-            int posY = (int)(Window.Frame.Height / 2 - (size / 2));
-            CGRect frame = new CGRect(posX, posY, size, size);
+            var frame = GetFrame(Window.Frame.Width, Window.Frame.Height);
 
             CATransaction.Begin();
             CATransaction.DisableActions = true;
             Layer.Frame = frame;
 
-            CGRect subFrame = new CGRect(0, 0, size, size);
+            nfloat width = frame.Width;
+            nfloat height = frame.Height;
+
+            CGRect subFrame = new CGRect(0, 0, width, height);
 
             foreach (CALayer layer in Layer.Sublayers)
             {

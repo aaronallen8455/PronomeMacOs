@@ -53,36 +53,24 @@ namespace Pronome.Mac
 
         #region Actions
         /// <summary>
-        /// Opens dialog to get the seconds duration to export to a wav file.
-        /// </summary>
-        /// <param name="sender">Sender.</param>
-        partial void ExportWavFileAction(NSObject sender)
-        {
-			// should use a modal segue instead...
-
-			var dlg = new NSSavePanel();
-			dlg.Title = "Save Wav File";
-			dlg.AllowedFileTypes = new string[] { "wav" };
-
-			if (dlg.RunModal() == 1)
-			{
-				NSUrl url = dlg.Url;
-
-				if (url != null)
-				{
-					string path = url.Path;
-
-                    Metronome.Instance.Mixer.RenderToFile(path, 4);
-				}
-			}
-        }
-
-        /// <summary>
         /// Starts playing out to a wav file.
         /// </summary>
         /// <param name="sender">Sender.</param>
         partial void RecordWavFileAction(NSObject sender)
         {
+            if (Metronome.Instance.Layers.Count == 0)
+            {
+				var alert = new NSAlert()
+				{
+					MessageText = "There are no layers in the beat."
+				};
+				alert.AddButton("Ok");
+
+				alert.RunModal();
+
+                return;
+            }
+
 			var dlg = new NSSavePanel();
 			dlg.Title = "Save Wav File";
 			dlg.AllowedFileTypes = new string[] { "wav" };
@@ -200,14 +188,33 @@ namespace Pronome.Mac
             }
         }
 
+        public override bool ShouldPerformSegue(string identifier, NSObject sender)
+        {
+            // cancel the segue if there arn't any layers
+            if (identifier == "ExportSettings" && Metronome.Instance.Layers.Count == 0)
+            {
+				var alert = new NSAlert()
+				{
+					MessageText = "There are no layers in the beat."
+				};
+				alert.AddButton("Ok");
+
+				alert.RunModal();
+
+                return false;
+            }
+
+            return base.ShouldPerformSegue(identifier, sender);
+        }
+
         public override void PrepareForSegue(NSStoryboardSegue segue, NSObject sender)
         {
             base.PrepareForSegue(segue, sender);
 
             if (segue.Identifier == "ExportSettings")
             {
-                var dialog = segue.DestinationController as ExportWavDialog;
-                dialog.Presentor = this;
+				var dialog = segue.DestinationController as ExportWavDialog;
+				dialog.Presentor = this;
             }
         }
         #endregion

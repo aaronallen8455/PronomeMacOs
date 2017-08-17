@@ -22,7 +22,38 @@
                 </windowController>
                 <customObject id="hw5-Tr-Za4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="513" y="-928"/>
+            <point key="canvasLocation" x="771" y="-1371"/>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="24g-pl-gqs">
+            <objects>
+                <windowController id="bBJ-Qu-422" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="AFc-e1-wRG" customClass="BounceWindow">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="163" y="199" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+                    </window>
+                    <connections>
+                        <segue destination="gJz-tp-az1" kind="relationship" relationship="window.shadowedContentViewController" id="kX8-ZC-rFg"/>
+                    </connections>
+                </windowController>
+                <customObject id="opm-wd-7VZ" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="719" y="-679"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="Unp-wW-Dto">
+            <objects>
+                <viewController id="gJz-tp-az1" sceneMemberID="viewController">
+                    <view key="view" id="afB-fv-QcD" customClass="BounceView">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="UU5-ji-Niz" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1426" y="-704"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="Tht-U5-NWk">
@@ -40,7 +71,7 @@
                 </viewController>
                 <customObject id="U6P-6H-cPL" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1158" y="-928"/>
+            <point key="canvasLocation" x="1416" y="-1371"/>
         </scene>
         <!--Application-->
         <scene sceneID="JPo-4y-FX3">
@@ -200,6 +231,9 @@
                                         </menuItem>
                                         <menuItem title="Bounce" id="6el-8H-r6e">
                                             <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <segue destination="bBJ-Qu-422" kind="show" id="XoE-0y-rZ7"/>
+                                            </connections>
                                         </menuItem>
                                     </items>
                                 </menu>
@@ -336,7 +370,7 @@
             <objects>
                 <viewController id="J6W-s1-oxL" sceneMemberID="viewController">
                     <view key="view" id="fyd-cf-MLv">
-                        <rect key="frame" x="0.0" y="0.0" width="609" height="270"/>
+                        <rect key="frame" x="0.0" y="0.0" width="608" height="270"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </view>
                 </viewController>
@@ -875,7 +909,7 @@
                                         <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jut-dn-Uaj">
                                             <rect key="frame" x="18" y="18" width="376" height="19"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                            <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="600" doubleValue="300" tickMarkPosition="above" sliderType="linear" id="dYl-OU-xgy"/>
+                                            <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="1" doubleValue="0.5" tickMarkPosition="above" sliderType="linear" id="dYl-OU-xgy"/>
                                             <connections>
                                                 <binding destination="Ju7-H7-3ec" name="value" keyPath="self.Settings.BounceWidthPad" id="bqz-aX-9CA"/>
                                             </connections>
@@ -1019,6 +1053,7 @@
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
+                                    <binding destination="miv-0G-iMJ" name="enabled" keyPath="self.CanUseBeatLength" id="FFO-BS-xue"/>
                                     <binding destination="miv-0G-iMJ" name="value" keyPath="self.UseBeatLength" id="sja-ti-fF5"/>
                                 </connections>
                             </button>
