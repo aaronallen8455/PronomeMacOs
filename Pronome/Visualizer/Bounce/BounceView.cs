@@ -7,6 +7,7 @@ using AppKit;
 using Pronome.Mac.Visualizer.Bounce;
 using System.Linq;
 using CoreGraphics;
+using CoreAnimation;
 
 namespace Pronome.Mac
 {
@@ -16,6 +17,10 @@ namespace Pronome.Mac
         protected Lane[] Lanes;
 
         protected Ball[] Balls;
+
+        protected CALayer BallLayer;
+
+        protected CALayer TickLayer;
         #endregion
 
         public BounceView(IntPtr handle) : base(handle)
@@ -26,16 +31,25 @@ namespace Pronome.Mac
 
             AnimationLayer.Delegate = new BounceLayerDelegate();
 
+            TickLayer = new CALayer();
+            TickLayer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
+            TickLayer.Delegate = new TickMarksDelegate(Lanes);
+            Layer.AddSublayer(TickLayer);
+
             // draw the framework
-            AnimationLayer.SetNeedsDisplay();
+            //AnimationLayer.SetNeedsDisplay();
+            //TickLayer.SetNeedsDisplay();
         }
 
         #region public methods
         public override void DrawFrame(double bpm)
         {
+            BounceHelper.ElapsedBpm = bpm;
+
             // animate the balls
 
             // animate the tick marks
+            TickLayer.SetNeedsDisplay();
         }
         #endregion
 
@@ -45,7 +59,7 @@ namespace Pronome.Mac
             nfloat min = winWidth < winHeight ? winWidth : winHeight;
 
             // a value from 0 to 1
-            nfloat spread = UserSettings.GetSettings().BounceWidthPad;
+            nfloat spread = UserSettings.GetSettings().BounceWidthPad * 2;
             nfloat width, height, xPos, yPos;
 
             var ratio = winHeight / winWidth;
@@ -67,6 +81,8 @@ namespace Pronome.Mac
                 xPos = 0;
                 yPos = winHeight / 2 - height / 2;
             }
+
+            BounceHelper.SetDimensions(width, height);
 
             return new CGRect(xPos, yPos, width, height);
         }

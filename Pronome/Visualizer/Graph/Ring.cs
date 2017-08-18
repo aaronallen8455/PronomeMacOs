@@ -81,14 +81,14 @@ namespace Pronome.Mac.Visualizer.Graph
             BackgroundLayer = new CALayer()
             {
 				ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
-				Frame = superLayer.Frame,
+				//Frame = superLayer.Frame,
 				Delegate = new BackgroundLayerDelegate(this)
             };
 
             TickMarksLayer = new CALayer()
             {
                 ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
-                Frame = superLayer.Frame,
+                //Frame = superLayer.Frame,
                 Delegate = new TickLayerDelegate(this, beatLength, layer),
                 ZPosition = 5
             };
@@ -121,7 +121,7 @@ namespace Pronome.Mac.Visualizer.Graph
             StartPoint = startPoint;
             EndPoint = endPoint;
 
-            DrawStaticElements();
+            //DrawStaticElements();
 
             // do some reseting when playback stops
             Metronome.Instance.Stopped += Instance_Stopped;

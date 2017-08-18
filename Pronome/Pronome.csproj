@@ -167,6 +167,8 @@
     <Compile Include="Visualizer\Bounce\BounceLayerDelegate.cs" />
     <Compile Include="Visualizer\Bounce\Lane.cs" />
     <Compile Include="Visualizer\Bounce\Ball.cs" />
+    <Compile Include="Visualizer\Bounce\BounceHelper.cs" />
+    <Compile Include="Visualizer\Bounce\TickMarksDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

@@ -56,16 +56,13 @@ namespace Pronome.Mac
 
             Layer.Frame = GetFrame(newWindow.Frame.Width, newWindow.Frame.Height);
 			var innerFrame = new CGRect(0, 0, Layer.Frame.Width, Layer.Frame.Height);
-
-            AnimationLayer.Frame = innerFrame;
-			//AnimationLayer = new BeatAnimationLayer()
-			//{
-			//	ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
-			//	Frame = innerFrame,
-			//	ZPosition = 50
-			//};
-			//
-			//Layer.AddSublayer(AnimationLayer);
+            			
+			foreach (CALayer layer in Layer.Sublayers)
+			{
+                layer.Frame = innerFrame;
+                // draw initial state
+                layer.SetNeedsDisplay();
+			}
         }
 
         public override void AwakeFromNib()
@@ -89,6 +86,8 @@ namespace Pronome.Mac
 
             CATransaction.Begin();
             CATransaction.DisableActions = true;
+            CATransaction.AnimationDuration = 0;
+
             Layer.Frame = frame;
 
             nfloat width = frame.Width;

@@ -24,6 +24,8 @@ namespace Pronome.Mac.Visualizer.Graph
         {
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped) return;
 
+            CATransaction.DisableActions = true;
+
             context.SaveState();
             context.SetLineWidth(2);
             context.SetStrokeColor(NSColor.Green.CGColor);
