@@ -31,6 +31,8 @@ namespace Pronome.Mac
         /// <returns>The frame.</returns>
         protected abstract CGRect GetFrame(nfloat winWidth, nfloat winHeight);
 
+
+
         #region Overriden Methods
         public override bool AcceptsFirstResponder()
 		{

@@ -17,12 +17,12 @@ namespace Pronome.Mac.Visualizer.Bounce
         {
             CATransaction.DisableActions = true;
 
-            nfloat width = layer.Frame.Width;
-            nfloat spread = UserSettings.GetSettings().BounceWidthPad;
-            nfloat division = UserSettings.GetSettings().BounceDivision;
+            //nfloat width = layer.Frame.Width;
+            //nfloat spread = UserSettings.GetSettings().BounceWidthPad;
+            //nfloat division = UserSettings.GetSettings().BounceDivision;
 
-            nfloat pad = (layer.Frame.Width - layer.Frame.Height) / 2;
-            nfloat horiz = layer.Frame.Height * division;
+            nfloat pad = (nfloat)BounceHelper.LanePadding; //(layer.Frame.Width - layer.Frame.Height) / 2;
+            nfloat horiz = (nfloat)BounceHelper.LaneAreaHeight; //layer.Frame.Height * division;
 
             context.SetLineWidth(2);
             context.SetStrokeColor(NSColor.White.CGColor);
@@ -31,8 +31,8 @@ namespace Pronome.Mac.Visualizer.Bounce
             context.AddLineToPoint(pad, horiz);
 
             // draw each lane divider
-            nfloat horizSpacing = (width - 2 * pad) / Metronome.Instance.Layers.Count;
-            nfloat baseSpacing = width / Metronome.Instance.Layers.Count;
+            nfloat horizSpacing = (nfloat)BounceHelper.TopLaneSpacing; //(width - 2 * pad) / Metronome.Instance.Layers.Count;
+            nfloat baseSpacing = (nfloat)BounceHelper.BottomLaneSpacing; //width / Metronome.Instance.Layers.Count;
             for (int i = 1; i <= Metronome.Instance.Layers.Count; i++)
             {
                 context.MoveTo(baseSpacing * i, 0);

@@ -99,19 +99,19 @@ namespace Pronome.Mac.Visualizer.Bounce
                 }
 
                 var factor = Ticks[i] / UserSettings.GetSettings().BounceQueueSize;
-                if (factor >= 1)
+                if (factor > 1)
                 {
                     // remove completed tick
                     indexesToRemove.AddFirst(i);
                     continue;
                 }
 
-                double yFactor = BounceHelper.EasingFunction(Ticks[i] / UserSettings.GetSettings().BounceQueueSize);
+                double yFactor = BounceHelper.EasingFunction(factor);
 
                 // draw line
-                double y = yFactor * BounceHelper.LaneHeight;
-                double lx = y / LeftSlope;
-                double rx = y / RightSlope + BounceHelper.BottomLaneSpacing;
+                double y = yFactor * BounceHelper.LaneAreaHeight;
+                double lx = LeftSlope == double.NaN ? 0 : y / LeftSlope;
+                double rx = RightSlope == double.NaN ? BounceHelper.BottomLaneSpacing : y / RightSlope + BounceHelper.BottomLaneSpacing;
                 ctx.MoveTo((int)lx, (int)y);
                 ctx.AddLineToPoint((int)rx, (int)y);
 
@@ -146,7 +146,7 @@ namespace Pronome.Mac.Visualizer.Bounce
             if (Layer.Beat.All(x => x.StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])) return;
 
             double qSize = UserSettings.GetSettings().BounceQueueSize - Layer.OffsetBpm;
-            while (qSize > 0)
+            while (qSize >= 0)
             {
                 while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
                 {
@@ -155,13 +155,13 @@ namespace Pronome.Mac.Visualizer.Bounce
                     CurrentInterval += Layer.Beat[BeatIndex].Bpm;
                     BeatIndex++;
 
-                    if (qSize <= 0) return;
+                    if (qSize < 0) return;
                 }
 
                 Ticks.Add(qSize);
-                qSize -= Layer.Beat[BeatIndex].Bpm;
 
-                CurrentInterval = Layer.Beat[BeatIndex].Bpm - qSize;
+				CurrentInterval = Layer.Beat[BeatIndex].Bpm - qSize;
+                qSize -= Layer.Beat[BeatIndex].Bpm;
 
                 BeatIndex++;
             }

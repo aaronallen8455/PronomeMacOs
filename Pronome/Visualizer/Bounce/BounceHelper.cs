@@ -10,23 +10,21 @@ namespace Pronome.Mac.Visualizer.Bounce
         static public double ElapsedBpm;
 
         /// <summary>
-        /// The height of the lanes in pxs.
-        /// </summary>
-        static public double LaneHeight;
-
-        /// <summary>
         /// Spacing between the lanes at the bottom of the screen.
         /// </summary>
         static public double BottomLaneSpacing;
 
         /// <summary>
-        /// Size of padding on either side of ball. It's a percentage of TopLaneSpacing.
+        /// Size of padding on either side of ball.
         /// </summary>
-        const double BallPadding = .15;
+        static public double BallPadding;
 
         static public int BallSize;
 
-        static public double LaneAreaHeight;
+		/// <summary>
+		/// The height of the lanes in pxs.
+		/// </summary>
+		static public double LaneAreaHeight;
 
         static public double BallAreaHeight;
 
@@ -60,10 +58,19 @@ namespace Pronome.Mac.Visualizer.Bounce
         #endregion
 
         #region Static protected properties
+        /// <summary>
+        /// Y value of the point where all lane lines converge
+        /// </summary>
         static protected double Apex;
 
+        /// <summary>
+        /// Used by tick easing function.
+        /// </summary>
         static protected double Factor;
 
+        /// <summary>
+        /// used by tick easing function.
+        /// </summary>
         static protected double Denominator;
         #endregion
 
@@ -77,11 +84,12 @@ namespace Pronome.Mac.Visualizer.Bounce
             BallAreaHeight = height - LaneAreaHeight;
             TopLaneWidth = width - (width - height);
             TopLaneSpacing = TopLaneWidth / Metronome.Instance.Layers.Count;
-            BallSize = (int)(TopLaneSpacing - BallPadding * TopLaneSpacing * 2);
+            BallSize = (int)(Height * .8);//(TopLaneSpacing - BallPadding * TopLaneSpacing * 2);
+            BallPadding = TopLaneSpacing / 2 - BallSize / 2;
             LanePadding = (width - TopLaneWidth) / 2;
 
             // used by easing function
-            Apex = LaneHeight / LanePadding * (BottomWidth / 2) / LaneHeight;
+            Apex = LaneAreaHeight / LanePadding * (BottomWidth / 2) / LaneAreaHeight;
             Factor = -Math.Log(1 - (1 / Apex), 2);
             Denominator = -Math.Pow(2, -Factor) + 1;
         }
@@ -93,11 +101,15 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// <param name="index">Index.</param>
         static public (double,double) GetLaneSlope(int index)
         {
+            var lp = LanePadding;
+            var tls = TopLaneSpacing;
+            var bls = BottomLaneSpacing;
+
             double run = LanePadding + TopLaneSpacing * index - BottomLaneSpacing * index;
-            double left = Height / run;
+            double left = LaneAreaHeight / run;
 
             run = LanePadding + TopLaneSpacing * (index + 1) - BottomLaneSpacing * (index + 1);
-            double right = Height / run;
+            double right = LaneAreaHeight / run;
 
             return (left, right);
         }
@@ -108,6 +120,9 @@ namespace Pronome.Mac.Visualizer.Bounce
 			{
 				return input;
 			}
+
+            var f = Factor;
+            var d = Denominator;
 
 			return (-1 / (Math.Pow(2, input * Factor)) + 1) / Denominator;
         }

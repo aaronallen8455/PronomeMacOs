@@ -169,6 +169,7 @@
     <Compile Include="Visualizer\Bounce\Ball.cs" />
     <Compile Include="Visualizer\Bounce\BounceHelper.cs" />
     <Compile Include="Visualizer\Bounce\TickMarksDelegate.cs" />
+    <Compile Include="Visualizer\Bounce\BeatLayerModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

@@ -18,22 +18,16 @@ namespace Pronome.Mac
 
         protected Ball[] Balls;
 
-        protected CALayer BallLayer;
-
         protected CALayer TickLayer;
         #endregion
 
         public BounceView(IntPtr handle) : base(handle)
         {
-            // create the elements
-            Lanes = Metronome.Instance.Layers.Select(x => new Lane(x)).ToArray();
-            Balls = Metronome.Instance.Layers.Select(x => new Ball(x)).ToArray();
-
             AnimationLayer.Delegate = new BounceLayerDelegate();
 
             TickLayer = new CALayer();
             TickLayer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
-            TickLayer.Delegate = new TickMarksDelegate(Lanes);
+
             Layer.AddSublayer(TickLayer);
 
             // draw the framework
@@ -84,8 +78,20 @@ namespace Pronome.Mac
 
             BounceHelper.SetDimensions(width, height);
 
+			// create the elements. We need to initialize them here when all the dimensions are set.
+			Lanes = Metronome.Instance.Layers.Select(x => new Lane(x)).ToArray();
+            Balls = Metronome.Instance.Layers.Select(x => new Ball(x, Layer)).ToArray();
+            TickLayer.Delegate = new TickMarksDelegate(Lanes);
+
             return new CGRect(xPos, yPos, width, height);
         }
         #endregion
+
+        public override void ViewWillMoveToWindow(NSWindow newWindow)
+        {
+            base.ViewWillMoveToWindow(newWindow);
+
+
+        }
     }
 }
