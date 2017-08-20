@@ -74,6 +74,7 @@ namespace Pronome.Mac.Visualizer.Bounce
 			LinkedList<int> indexesToRemove = new LinkedList<int>();
 
             bool isFirst = true;
+            bool needToSubtract = true;
             // draw each tick
             for (int i = 0; i < Ticks.Count; i++)
             {
@@ -82,12 +83,17 @@ namespace Pronome.Mac.Visualizer.Bounce
                 // check if new tick(s) should be added
                 if (i == Ticks.Count - 1)
                 {
-                    CurrentInterval -= elapsedBpm;
+                    if (needToSubtract)
+                    {
+                        // subtract a second time (when a new tick is added and then reiterated on)
+						CurrentInterval -= elapsedBpm;
+                        needToSubtract = false;
+                    }
 
-                    if (CurrentInterval <= 0)
+                    if (CurrentInterval < 0)
                     {
 						// need to queue the next cell
-                        Ticks.Add(-CurrentInterval);
+                        Ticks.Add(-CurrentInterval + elapsedBpm); // add elapsed because it will get subtracted on next iteration
 
                         CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
                         // handle silence
@@ -112,8 +118,8 @@ namespace Pronome.Mac.Visualizer.Bounce
                 double y = yFactor * BounceHelper.LaneAreaHeight;
                 double lx = LeftSlope == double.NaN ? 0 : y / LeftSlope;
                 double rx = RightSlope == double.NaN ? BounceHelper.BottomLaneSpacing : y / RightSlope + BounceHelper.BottomLaneSpacing;
-                ctx.MoveTo((int)lx, (int)y);
-                ctx.AddLineToPoint((int)rx, (int)y);
+                ctx.MoveTo((nfloat)lx, (nfloat)y);
+                ctx.AddLineToPoint((nfloat)rx, (nfloat)y);
 
                 if (isFirst)
                 {
@@ -133,6 +139,13 @@ namespace Pronome.Mac.Visualizer.Bounce
                 Ticks.RemoveAt(i);
             }
         }
+
+        public void Reset()
+        {
+            BeatIndex = 0;
+            CurrentInterval = 0;
+            InitTicks();
+        }
         #endregion
 
         #region protected methods
@@ -146,7 +159,7 @@ namespace Pronome.Mac.Visualizer.Bounce
             if (Layer.Beat.All(x => x.StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])) return;
 
             double qSize = UserSettings.GetSettings().BounceQueueSize - Layer.OffsetBpm;
-            while (qSize >= 0)
+            while (qSize > 0)
             {
                 while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
                 {
@@ -155,7 +168,7 @@ namespace Pronome.Mac.Visualizer.Bounce
                     CurrentInterval += Layer.Beat[BeatIndex].Bpm;
                     BeatIndex++;
 
-                    if (qSize < 0) return;
+                    if (qSize <= 0) return;
                 }
 
                 Ticks.Add(qSize);

@@ -8,6 +8,8 @@ namespace Pronome.Mac.Visualizer.Bounce
 {
     public class Ball
     {
+        const double SecsForMaxHeight = .6;
+
         #region protected fields
         protected Layer Layer;
 
@@ -17,7 +19,7 @@ namespace Pronome.Mac.Visualizer.Bounce
 
         protected double Apex;
 
-        protected double[] CellValues;
+        protected int BounceHeight;
 
         protected double Offset;
         #endregion
@@ -32,7 +34,7 @@ namespace Pronome.Mac.Visualizer.Bounce
 			get => _beatIndex;
 			set
 			{
-                _beatIndex = value % CellValues.Length;
+                _beatIndex = value % Layer.Beat.Count;
 			}
 		}
         #endregion
@@ -46,40 +48,61 @@ namespace Pronome.Mac.Visualizer.Bounce
             BallLayer = new CALayer()
             {
                 ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
-                Delegate = new BallDelegate(ColorHelper.ColorWheel(layerInd))
+                Delegate = new BallDelegate(ColorHelper.ColorWheel(layerInd)),
             };
 
             InitLayer(layerInd);
 
             superLayer.AddSublayer(BallLayer);
 
-            //BallLayer.SetNeedsDisplay();
+            GoInitialPosition();
 
-            // init the cell values
+            //DrawFrame();
+
+            BallLayer.SetNeedsDisplay();
         }
         #endregion
 
         #region Public methods
+        public void GoInitialPosition()
+        {
+            CurrentInterval = Layer.OffsetBpm;
+
+            while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+            {
+                CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
+            }
+
+            Apex = CurrentInterval;
+
+			double secs = Apex * 60 / Metronome.Instance.Tempo;
+			if (secs >= SecsForMaxHeight)
+			{
+				BounceHeight = (int)(BounceHelper.BallAreaHeight - BounceHelper.BallSize);
+			}
+			else
+			{
+				BounceHeight = (int)(secs / SecsForMaxHeight * (BounceHelper.BallAreaHeight - BounceHelper.BallSize));
+			}
+
+            BounceHelper.ElapsedBpm = 0;
+
+            if (Apex > 0)
+            {
+				DrawFrame();
+            }
+        }
+
         public void DrawFrame()
         {
             double elapsedBpm = BounceHelper.ElapsedBpm;
-            double ballAreaH = BounceHelper.BallAreaHeight;
             double horiz = BounceHelper.LaneAreaHeight;
 
             CurrentInterval -= elapsedBpm;
 
             while (CurrentInterval < 0)
             {
-				CurrentInterval += Layer.Beat[BeatIndex].Bpm;
-                double amt = Layer.Beat[BeatIndex++].Bpm;
-
-                while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
-                {
-                    amt += Layer.Beat[BeatIndex].Bpm;
-                    CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
-                }
-
-                Apex = amt;
+                (Apex, BounceHeight, BeatIndex, CurrentInterval) = GetApexAndBounceHeight(BeatIndex, CurrentInterval);
             }
 
             // position the ball layer
@@ -91,7 +114,8 @@ namespace Pronome.Mac.Visualizer.Bounce
             factor = -4 * Math.Pow(factor - .5, 2) + 1;
 
 			var curPos = BallLayer.Position;
-            BallLayer.Position = new CGPoint(curPos.X, factor * ballAreaH + horiz);
+            var y = factor * BounceHeight + horiz + BounceHelper.BallSize / 2;
+            BallLayer.Position = new CGPoint(curPos.X, y);
 
             CATransaction.Commit();
         }
@@ -112,6 +136,51 @@ namespace Pronome.Mac.Visualizer.Bounce
 
             BallLayer.Frame = frame;
         }
+
+        public void Dispose()
+        {
+            BallLayer.Dispose();
+            //Metronome.Instance.Started -= Instance_Started;
+        }
+
+        public void Reset()
+        {
+            BeatIndex = 0;
+            CurrentInterval = 0;
+        }
+        #endregion
+
+        #region Protected Methods
+        public (double Apex, int BounceHeight, int Index, double CurrentInterval) GetApexAndBounceHeight(int beatIndex, double currentInterval)
+        {
+            currentInterval += Layer.Beat[beatIndex].Bpm;
+            double apex = Layer.Beat[beatIndex++].Bpm;
+            beatIndex %= Layer.Beat.Count;
+
+			while (Layer.Beat[beatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+			{
+				apex += Layer.Beat[beatIndex].Bpm;
+				currentInterval += Layer.Beat[beatIndex++].Bpm;
+                beatIndex %= Layer.Beat.Count;
+			}
+
+            int bounceHeight;
+			// calculate bounce height based on duration in sec of current interval
+			// if greater than or equal to .4 secs, use whole area, otherwise
+			// use a fraction of height
+
+			double secs = apex * 60 / Metronome.Instance.Tempo;
+			if (secs >= SecsForMaxHeight)
+			{
+				bounceHeight = (int)(BounceHelper.BallAreaHeight - BounceHelper.BallSize);
+			}
+			else
+			{
+				bounceHeight = (int)(secs / SecsForMaxHeight * (BounceHelper.BallAreaHeight - BounceHelper.BallSize));
+			}
+
+            return (apex, bounceHeight, beatIndex, currentInterval);
+        }
         #endregion
 
         /// <summary>
@@ -130,20 +199,21 @@ namespace Pronome.Mac.Visualizer.Bounce
             public void DrawLayer(CALayer layer, CGContext context)
             {
                 // draw the ball
-                context.AddEllipseInRect(layer.Frame);
+                context.AddEllipseInRect(layer.Bounds);
 
                 context.Clip();
-
+				
                 var gradient = new CGGradient(
                     CGColorSpace.CreateDeviceRGB(),
-                    new CGColor[] { NSColor.White.CGColor, Color }
+                    new CGColor[] { NSColor.White.CGColor, Color },
+                    new nfloat[] { 0, .5f }
                 );
-
+				
                 var specCenter = new CGPoint(
-                    layer.Frame.Width * .4,
-                    layer.Frame.Height * .6
+                    layer.Frame.Width * .3,
+                    layer.Frame.Height * .7
                 );
-
+				
                 context.DrawRadialGradient(
                     gradient,
                     specCenter,

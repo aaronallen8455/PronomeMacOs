@@ -74,6 +74,13 @@ namespace Pronome.Mac.Visualizer.Bounce
         static protected double Denominator;
         #endregion
 
+        #region Static constructor
+        static BounceHelper()
+        {
+            Metronome.Instance.Started += Instance_Started;
+        }
+        #endregion
+
         #region Static public methods
         static public void SetDimensions(nfloat width, nfloat height)
         {
@@ -84,7 +91,7 @@ namespace Pronome.Mac.Visualizer.Bounce
             BallAreaHeight = height - LaneAreaHeight;
             TopLaneWidth = width - (width - height);
             TopLaneSpacing = TopLaneWidth / Metronome.Instance.Layers.Count;
-            BallSize = (int)(Height * .8);//(TopLaneSpacing - BallPadding * TopLaneSpacing * 2);
+            BallSize = (int)(TopLaneSpacing * .5);//(TopLaneSpacing - BallPadding * TopLaneSpacing * 2);
             BallPadding = TopLaneSpacing / 2 - BallSize / 2;
             LanePadding = (width - TopLaneWidth) / 2;
 
@@ -127,5 +134,10 @@ namespace Pronome.Mac.Visualizer.Bounce
 			return (-1 / (Math.Pow(2, input * Factor)) + 1) / Denominator;
         }
         #endregion
+
+        static void Instance_Started(object sender, EventArgs e)
+        {
+            ElapsedBpm = 0;
+        }
     }
 }

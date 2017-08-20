@@ -30,9 +30,7 @@ namespace Pronome.Mac
 
             Layer.AddSublayer(TickLayer);
 
-            // draw the framework
-            //AnimationLayer.SetNeedsDisplay();
-            //TickLayer.SetNeedsDisplay();
+            Metronome.Instance.Started += Instance_Started;
         }
 
         #region public methods
@@ -41,6 +39,10 @@ namespace Pronome.Mac
             BounceHelper.ElapsedBpm = bpm;
 
             // animate the balls
+            foreach (Ball ball in Balls)
+            {
+                ball.DrawFrame();
+            }
 
             // animate the tick marks
             TickLayer.SetNeedsDisplay();
@@ -80,18 +82,23 @@ namespace Pronome.Mac
 
 			// create the elements. We need to initialize them here when all the dimensions are set.
 			Lanes = Metronome.Instance.Layers.Select(x => new Lane(x)).ToArray();
-            Balls = Metronome.Instance.Layers.Select(x => new Ball(x, Layer)).ToArray();
+            Balls = Metronome.Instance.Layers.Select(x => new Ball(x, TickLayer)).ToArray();
             TickLayer.Delegate = new TickMarksDelegate(Lanes);
 
             return new CGRect(xPos, yPos, width, height);
         }
         #endregion
 
-        public override void ViewWillMoveToWindow(NSWindow newWindow)
+        void Instance_Started(object sender, EventArgs e)
         {
-            base.ViewWillMoveToWindow(newWindow);
-
-
+            foreach (Lane lane in Lanes)
+            {
+                lane.Reset();
+            }
+            foreach (Ball ball in Balls)
+            {
+                ball.Reset();
+            }
         }
     }
 }

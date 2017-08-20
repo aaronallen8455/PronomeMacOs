@@ -26,6 +26,8 @@ namespace Pronome.Mac.Visualizer.Bounce
                 context.TranslateCTM((nfloat)BounceHelper.BottomLaneSpacing,0);
             }
 
+            //BounceHelper.ElapsedBpm = 0;
+
             context.RestoreState();
         }
     }
