@@ -169,7 +169,7 @@
     <Compile Include="Visualizer\Bounce\Ball.cs" />
     <Compile Include="Visualizer\Bounce\BounceHelper.cs" />
     <Compile Include="Visualizer\Bounce\TickMarksDelegate.cs" />
-    <Compile Include="Visualizer\Bounce\BeatLayerModel.cs" />
+    <Compile Include="Visualizer\AnimationTimer.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

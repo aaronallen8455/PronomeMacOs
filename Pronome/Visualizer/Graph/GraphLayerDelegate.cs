@@ -31,7 +31,7 @@ namespace Pronome.Mac.Visualizer.Graph
             context.SetStrokeColor(NSColor.Green.CGColor);
 
             // draw the needle
-            nfloat angle = (nfloat)((AnimationHelper.BpmAccumulator % BeatLength) / BeatLength * TWOPI);
+            nfloat angle = (nfloat)((Metronome.Instance.ElapsedBpm % BeatLength) / BeatLength * TWOPI);
 
 			var mid = (int)layer.Frame.Width / 2;
             context.TranslateCTM(mid,mid);

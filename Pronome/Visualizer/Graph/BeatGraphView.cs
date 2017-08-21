@@ -20,6 +20,8 @@ namespace Pronome.Mac
 		/// </summary>
 		protected double BeatLength;
 
+        protected AnimationTimer Timer = new AnimationTimer();
+
         public BeatGraphView (IntPtr handle) : base (handle) 
         {
             // TODO: check that beat is graphable
@@ -37,7 +39,7 @@ namespace Pronome.Mac
             Metronome.Instance.BeatChanged += Instance_BeatChanged;
         }
 
-        public override void DrawFrame(double bpm)
+        public override void DrawFrame()//double bpm)
         {
             // determines duration of the blink effect
 			CATransaction.AnimationDuration = .1;
@@ -49,12 +51,12 @@ namespace Pronome.Mac
 				// progress the rings. Animate any blinking if needed.
 				foreach (Ring ring in Rings)
 				{
-					ring.Progress(bpm);
+                    ring.Progress(Timer.GetElapsedBpm());
 				}
             }
         }
 
-        protected override CGRect GetFrame(nfloat winWidth, nfloat winHeight)
+        protected override CGRect GetRect(nfloat winWidth, nfloat winHeight)
         {
             double size = Math.Min(winWidth, winHeight);
             int posX = (int)(winWidth / 2 - (size / 2));
@@ -76,7 +78,7 @@ namespace Pronome.Mac
             {
 				foreach (Ring ring in newRings)
 				{
-					ring.Progress(AnimationHelper.BpmAccumulator);
+                    ring.Progress(Metronome.Instance.ElapsedBpm);
 				}
             }
 

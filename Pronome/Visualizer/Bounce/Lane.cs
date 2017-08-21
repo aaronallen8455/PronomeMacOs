@@ -65,9 +65,9 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// Requires that the context be translated to the lane base
         /// </summary>
         /// <param name="ctx">Context.</param>
-        public void DrawFrame(CGContext ctx)
+        public void DrawFrame(CGContext ctx, double elapsedBpm)
         {
-            double elapsedBpm = BounceHelper.ElapsedBpm;
+            //double elapsedBpm = BounceHelper.ElapsedBpm;
 
 			ctx.SetStrokeColor(Color);
 
@@ -90,14 +90,14 @@ namespace Pronome.Mac.Visualizer.Bounce
                         needToSubtract = false;
                     }
 
-                    if (CurrentInterval < 0)
+                    while (CurrentInterval < 0)
                     {
 						// need to queue the next cell
-                        Ticks.Add(-CurrentInterval + elapsedBpm); // add elapsed because it will get subtracted on next iteration
+                        Ticks.Add(-CurrentInterval - elapsedBpm); // add elapsed because it will get subtracted on next iteration
 
                         CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
                         // handle silence
-                        while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+                        while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
                         {
                             CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
                         }
@@ -143,7 +143,12 @@ namespace Pronome.Mac.Visualizer.Bounce
         public void Reset()
         {
             BeatIndex = 0;
-            CurrentInterval = 0;
+            CurrentInterval = Layer.OffsetBpm;
+            // handle silence at start of beat
+            while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
+            {
+                CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
+            }
             InitTicks();
         }
         #endregion
@@ -156,12 +161,12 @@ namespace Pronome.Mac.Visualizer.Bounce
         {
             Ticks = new List<double>();
 
-            if (Layer.Beat.All(x => x.StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])) return;
+            if (Layer.Beat.All(x => StreamInfoProvider.IsSilence(x.StreamInfo))) return;
 
             double qSize = UserSettings.GetSettings().BounceQueueSize - Layer.OffsetBpm;
             while (qSize > 0)
             {
-                while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+                while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
                 {
                     //acc += Layer.Beat[BeatIndex].Bpm;
                     qSize -= Layer.Beat[BeatIndex].Bpm;
@@ -180,7 +185,7 @@ namespace Pronome.Mac.Visualizer.Bounce
             }
 
             // if proceeding cells are silent, add to currentInterval
-			while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+            while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
 			{
                 CurrentInterval += Layer.Beat[BeatIndex].Bpm;
 				BeatIndex++;

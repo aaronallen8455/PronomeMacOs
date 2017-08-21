@@ -3,6 +3,7 @@ using AppKit;
 using CoreAnimation;
 using CoreGraphics;
 using Foundation;
+using System.Linq;
 
 namespace Pronome.Mac.Visualizer.Bounce
 {
@@ -37,6 +38,8 @@ namespace Pronome.Mac.Visualizer.Bounce
                 _beatIndex = value % Layer.Beat.Count;
 			}
 		}
+
+        protected bool LayerIsSilent;
         #endregion
 
         #region Constructor
@@ -51,29 +54,36 @@ namespace Pronome.Mac.Visualizer.Bounce
                 Delegate = new BallDelegate(ColorHelper.ColorWheel(layerInd)),
             };
 
+            // check if layer is silent
+            LayerIsSilent = Layer.GetAllStreams().All(x => StreamInfoProvider.IsSilence(x.Info));
+
             InitLayer(layerInd);
 
             superLayer.AddSublayer(BallLayer);
-
-            GoInitialPosition();
-
-            //DrawFrame();
-
+            // position element (with offset)
+            GoToInitialPosition();
+            // draw initial state
             BallLayer.SetNeedsDisplay();
         }
         #endregion
 
         #region Public methods
-        public void GoInitialPosition()
+        /// <summary>
+        /// Place the ball at it's starting position
+        /// </summary>
+        public void GoToInitialPosition()
         {
-            CurrentInterval = Layer.OffsetBpm;
+            if (LayerIsSilent) return;
 
-            while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+            CurrentInterval = Layer.OffsetBpm;
+            BeatIndex = 0;
+
+            while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
             {
                 CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
             }
 
-            Apex = CurrentInterval;
+            Apex = CurrentInterval * 2;
 
 			double secs = Apex * 60 / Metronome.Instance.Tempo;
 			if (secs >= SecsForMaxHeight)
@@ -87,14 +97,16 @@ namespace Pronome.Mac.Visualizer.Bounce
 
             BounceHelper.ElapsedBpm = 0;
 
-            if (Apex > 0)
-            {
-				DrawFrame();
-            }
+			DrawFrame();
         }
 
+        /// <summary>
+        /// Draws a frame.
+        /// </summary>
         public void DrawFrame()
         {
+            if (LayerIsSilent) return;
+
             double elapsedBpm = BounceHelper.ElapsedBpm;
             double horiz = BounceHelper.LaneAreaHeight;
 
@@ -109,12 +121,17 @@ namespace Pronome.Mac.Visualizer.Bounce
             CATransaction.Begin();
             CATransaction.DisableActions = true;
 
-            // func is y=-4(x-.5)^2+1
-            double factor = CurrentInterval / Apex;
-            factor = -4 * Math.Pow(factor - .5, 2) + 1;
+            double y = horiz + BounceHelper.BallSize / 2;
+            if (Apex > 0)
+            {
+				// func is y=-4(x-.5)^2+1
+				double factor = CurrentInterval / Apex;
+				factor = -4 * Math.Pow(factor - .5, 2) + 1;
+				
+                y += factor * BounceHeight;
+            }
 
 			var curPos = BallLayer.Position;
-            var y = factor * BounceHeight + horiz + BounceHelper.BallSize / 2;
             BallLayer.Position = new CGPoint(curPos.X, y);
 
             CATransaction.Commit();
@@ -146,7 +163,13 @@ namespace Pronome.Mac.Visualizer.Bounce
         public void Reset()
         {
             BeatIndex = 0;
-            CurrentInterval = 0;
+            CurrentInterval = Layer.OffsetBpm;
+            // account for silence at start of beat.
+            while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
+            {
+                CurrentInterval += Layer.Beat[BeatIndex].Bpm;
+                BeatIndex++;
+            }
         }
         #endregion
 
@@ -157,7 +180,7 @@ namespace Pronome.Mac.Visualizer.Bounce
             double apex = Layer.Beat[beatIndex++].Bpm;
             beatIndex %= Layer.Beat.Count;
 
-			while (Layer.Beat[beatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+            while (StreamInfoProvider.IsSilence(Layer.Beat[beatIndex].StreamInfo))
 			{
 				apex += Layer.Beat[beatIndex].Bpm;
 				currentInterval += Layer.Beat[beatIndex++].Bpm;

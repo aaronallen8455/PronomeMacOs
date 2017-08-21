@@ -3,6 +3,8 @@ using Foundation;
 using System.Collections.Generic;
 using System.Threading;
 using System.Linq;
+using CoreVideo;
+using Pronome.Mac.Visualizer;
 
 namespace Pronome.Mac
 {
@@ -20,6 +22,12 @@ namespace Pronome.Mac
         private bool _isRandomMuteEngaged;
         private float _randomnessFactor;
         private float _randomMuteCountdown;
+        private CVDisplayLink Animator;
+
+        /// <summary>
+        /// Used to determine the total elapsed BPMs
+        /// </summary>
+        private AnimationTimer _animationTimer;
         #endregion
 
         #region Public variables
@@ -212,6 +220,22 @@ namespace Pronome.Mac
                 DidChangeValue("RandomMuteCountdown");
             }
         }
+
+        private double _elapsedBpm;
+        /// <summary>
+        /// Gets the elapsed bpm since playback started.
+        /// </summary>
+        /// <value>The elapsed bpm.</value>
+        public double ElapsedBpm
+        {
+            get
+            {
+                _elapsedBpm += _animationTimer.GetElapsedBpm();
+                return _elapsedBpm;
+            }
+
+            protected set { _elapsedBpm = value; }
+        }
 		#endregion
 
 		#region Static Properties
@@ -228,6 +252,10 @@ namespace Pronome.Mac
                     _instance = new Metronome();
 
 					_instance.Mixer = new Mixer();
+
+                    _instance.Animator = new CVDisplayLink();
+                    _instance.Animator.SetOutputCallback(AnimationHelper.RequestDraw);
+                    _instance._animationTimer = new AnimationTimer();
 				}
                 return _instance;
             }
@@ -264,11 +292,15 @@ namespace Pronome.Mac
             {
 				Mixer.Start();
 
+                var prevState = PlayState;
+
                 PlayState = PlayStates.Playing;
 
                 IsPlaying = true;
 
-                OnStarted(EventArgs.Empty);
+                Animator.Start();
+
+                OnStarted(new StartedEventArgs(prevState));
 
                 return true;
             }
@@ -289,6 +321,9 @@ namespace Pronome.Mac
 
                 IsPlaying = false;
 
+                Animator.Stop();
+                ElapsedBpm = 0;
+
                 OnStopped(EventArgs.Empty);
 
                 return true;
@@ -306,6 +341,8 @@ namespace Pronome.Mac
 				Mixer.Stop();
 
                 PlayState = PlayStates.Paused;
+
+                Animator.Stop();
 
                 OnPaused(EventArgs.Empty);
 
@@ -529,15 +566,28 @@ namespace Pronome.Mac
 
         protected virtual void OnTempoChanged(TempoChangedEventArgs e)
         {
+            // update the elapsed BPM
+            ElapsedBpm *= e.ChangeRatio;
+
             TempoChanged?.Invoke(this, e);
+        }
+
+        public class StartedEventArgs : EventArgs
+        {
+            public PlayStates PreviousState;
+
+            public StartedEventArgs(PlayStates prevState)
+            {
+                PreviousState = prevState;
+            }
         }
 
         /// <summary>
         /// Occurs when playback started.
         /// </summary>
-        public event EventHandler Started;
+        public event EventHandler<StartedEventArgs> Started;
 
-        protected virtual void OnStarted(EventArgs e)
+        protected virtual void OnStarted(StartedEventArgs e)
         {
             Started?.Invoke(this, e);
         }
@@ -605,34 +655,6 @@ namespace Pronome.Mac
 			return r;
 		}
         #endregion
-
-        //#region Serialization
-        //[OnDeserializing]
-        //void BeforeDeserialization(StreamingContext sc)
-        //{
-        //    Instance.Cleanup();
-        //    PlayState = PlayStates.Paused;
-		//
-        //    _instance = this;
-        //    Mixer = new Mixer();
-        //}
-		//
-        //[OnDeserialized]
-        //void Deserialized(StreamingContext sc)
-        //{
-        //    PlayState = PlayStates.Stopped;
-        //    NeedToChangeLayer = false;
-        //    LayersToChange = new Dictionary<int, Layer>();
-        //    ChangeLayerTurnstyle = new AutoResetEvent(false);
-		//
-        //    foreach (Layer layer in Layers)
-        //    {
-        //        layer.Deserialize();
-        //        AddSourcesFromLayer(layer);
-        //    }
-		//
-        //}
-        //#endregion
 
         /// <summary>
         /// private constructor, singleton class.

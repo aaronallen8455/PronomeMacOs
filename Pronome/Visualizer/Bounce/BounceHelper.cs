@@ -135,9 +135,12 @@ namespace Pronome.Mac.Visualizer.Bounce
         }
         #endregion
 
-        static void Instance_Started(object sender, EventArgs e)
+        static void Instance_Started(object sender, Metronome.StartedEventArgs e)
         {
-            ElapsedBpm = 0;
+            if (e.PreviousState == Metronome.PlayStates.Stopped)
+            {
+				ElapsedBpm = 0;
+            }
         }
     }
 }

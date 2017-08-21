@@ -29,7 +29,7 @@ namespace Pronome.Mac.Visualizer.Graph
         /// <summary>
         /// Index of the current beat cell
         /// </summary>
-        int BeatIndex = -1;
+        int BeatIndex;
 
         double CurrentBpmInterval;
 
@@ -99,19 +99,32 @@ namespace Pronome.Mac.Visualizer.Graph
             // find the tick rotations
             TickRotations = new LinkedList<nfloat>();
 
-            foreach(BeatCell bc in layer.Beat)
+            if (!Layer.GetAllStreams().All(x => StreamInfoProvider.IsSilence(x.Info)))
             {
-                if (bc.StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+                nfloat frontOffset = 0;
+				foreach(BeatCell bc in layer.Beat)
+				{
+					if (StreamInfoProvider.IsSilence(bc.StreamInfo))
+					{
+						// add a silent value to the previous cell value
+						if (TickRotations.Last != null)
+						{
+							TickRotations.Last.Value += (nfloat)(bc.Bpm / beatLength * TWOPI);
+						}
+                        else
+                        {
+                            frontOffset = (nfloat)(bc.Bpm / beatLength * TWOPI);
+                        }
+					}
+					else
+					{
+						TickRotations.AddLast((nfloat)(bc.Bpm / beatLength * TWOPI));
+					}
+				}
+
+                if (frontOffset > 0)
                 {
-                    // add a silent value to the previous cell value
-                    if (TickRotations.Last != null)
-                    {
-                        TickRotations.Last.Value += (nfloat)(bc.Bpm / beatLength * TWOPI);
-                    }
-                }
-                else
-                {
-                    TickRotations.AddLast((nfloat)(bc.Bpm / beatLength * TWOPI));
+                    TickRotations.Last.Value += frontOffset;
                 }
             }
 
@@ -122,6 +135,15 @@ namespace Pronome.Mac.Visualizer.Graph
             EndPoint = endPoint;
 
             //DrawStaticElements();
+
+            // set the offset
+            CurrentBpmInterval = Layer.OffsetBpm;
+            while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
+            {
+                CurrentBpmInterval += Layer.Beat[BeatIndex++].Bpm;
+                BeatIndex %= Layer.Beat.Count;
+            }
+
 
             // do some reseting when playback stops
             Metronome.Instance.Stopped += Instance_Stopped;
@@ -143,21 +165,17 @@ namespace Pronome.Mac.Visualizer.Graph
             // see if a cell played
             while (CurrentBpmInterval <= 0)
             {
-                BeatIndex++;
+                CurrentBpmInterval += Layer.Beat[BeatIndex++].Bpm;
                 BeatIndex %= Layer.Beat.Count;
 
                 // fold in the silent cells
-                int tries = 0;
-                while (Layer.Beat[BeatIndex].StreamInfo == StreamInfoProvider.InternalSourceLibrary[0])
+                while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
                 {
                     CurrentBpmInterval += Layer.Beat[BeatIndex++].Bpm;
                     BeatIndex %= Layer.Beat.Count;
-                    // if layer is completely silent, break out
-                    tries++;
-                    if (tries == Layer.Beat.Count) break;
                 }
 
-                CurrentBpmInterval += Layer.Beat[BeatIndex].Bpm;
+                //CurrentBpmInterval += Layer.Beat[BeatIndex].Bpm;
 
                 // tell the ring to start a blink
                 bgDelegate.BlinkingCountdown = BackgroundLayerDelegate.BlinkCount;
@@ -271,12 +289,13 @@ namespace Pronome.Mac.Visualizer.Graph
                 context.SetLineWidth(2);
 
                 // draw each tickmark
-                nfloat initialRotation = (nfloat)((Layer.OffsetBpm + Layer.Beat.TakeWhile(x => x.StreamInfo == StreamInfoProvider.InternalSourceLibrary[0]).Select(x => x.Bpm).Sum()) / BeatLength * TWOPI);
+				int center = (int)(layer.Frame.Width / 2);
+				context.TranslateCTM(center,center);
+
+                nfloat initialRotation = (nfloat)((Layer.OffsetBpm + Layer.Beat.TakeWhile(x => StreamInfoProvider.IsSilence(x.StreamInfo)).Select(x => x.Bpm).Sum()) / BeatLength * -TWOPI);
                 context.RotateCTM(initialRotation);
 
                 double total = 0;
-                int center = (int)(layer.Frame.Width / 2);
-                context.TranslateCTM(center,center);
                 int start = (int)(Ring.InnerRadiusLocation);
                 int end = (int)(Ring.OuterRadiusLocation);
                 if (Ring.TickRotations.Any())
@@ -327,9 +346,14 @@ namespace Pronome.Mac.Visualizer.Graph
             ((BackgroundLayerDelegate)BackgroundLayer.Delegate).BlinkingCountdown = 0;
             BackgroundLayer.SetNeedsDisplay();
 
-			BeatIndex = -1;
+			BeatIndex = 0;
 
 			CurrentBpmInterval = 0;
+			while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
+			{
+				CurrentBpmInterval += Layer.Beat[BeatIndex++].Bpm;
+				BeatIndex %= Layer.Beat.Count;
+			}
         }
     }
 }

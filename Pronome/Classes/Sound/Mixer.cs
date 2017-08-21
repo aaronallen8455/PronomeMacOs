@@ -523,18 +523,18 @@ namespace Pronome.Mac
             var e = MixerNode.Render(ref actionFlags, timeStamp, busNumber, numberFrames, data);
 
             // call the animation process
-            if (animThrottle == 0)
-            {
-				AppKit.NSApplication.SharedApplication.BeginInvokeOnMainThread(() =>
-				{
-					AnimationHelper.RequestDraw(cycle);
-				});
-                animThrottle = 1;
-            }
-            else 
-            {
-                animThrottle--;
-            }
+            //if (animThrottle == 0)
+            //{
+			//	AppKit.NSApplication.SharedApplication.BeginInvokeOnMainThread(() =>
+			//	{
+			//		AnimationHelper.RequestDraw(cycle);
+			//	});
+            //    animThrottle = 1;
+            //}
+            //else 
+            //{
+            //    animThrottle--;
+            //}
 
             cycle++;
 

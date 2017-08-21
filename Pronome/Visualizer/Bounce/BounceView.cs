@@ -8,6 +8,7 @@ using Pronome.Mac.Visualizer.Bounce;
 using System.Linq;
 using CoreGraphics;
 using CoreAnimation;
+using Pronome.Mac.Visualizer;
 
 namespace Pronome.Mac
 {
@@ -19,6 +20,8 @@ namespace Pronome.Mac
         protected Ball[] Balls;
 
         protected CALayer TickLayer;
+
+        protected AnimationTimer Timer = new AnimationTimer();
         #endregion
 
         public BounceView(IntPtr handle) : base(handle)
@@ -31,26 +34,36 @@ namespace Pronome.Mac
             Layer.AddSublayer(TickLayer);
 
             Metronome.Instance.Started += Instance_Started;
+            Metronome.Instance.Stopped += Instance_Stopped;
+            Metronome.Instance.BeatChanged += Instance_BeatChanged;
         }
 
         #region public methods
-        public override void DrawFrame(double bpm)
+        public override void DrawFrame()
         {
-            BounceHelper.ElapsedBpm = bpm;
-
-            // animate the balls
-            foreach (Ball ball in Balls)
+			if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+			{
+                // sometimes the drawFrame will run after playback is started, so we handle that case
+                ReturnToInitialState();
+			}
+            else
             {
-                ball.DrawFrame();
+                BounceHelper.ElapsedBpm = Timer.GetElapsedBpm();
+				
+				// animate the balls
+				//foreach (Ball ball in Balls)
+				//{
+				//	ball.DrawFrame();
+				//}
             }
-
-            // animate the tick marks
-            TickLayer.SetNeedsDisplay();
+			// animate the tick marks
+			//TickLayer.SetNeedsDisplay();
+            DrawElements();
         }
         #endregion
 
         #region protected methods
-        protected override CGRect GetFrame(nfloat winWidth, nfloat winHeight)
+        protected override CGRect GetRect(nfloat winWidth, nfloat winHeight)
         {
             nfloat min = winWidth < winHeight ? winWidth : winHeight;
 
@@ -80,24 +93,81 @@ namespace Pronome.Mac
 
             BounceHelper.SetDimensions(width, height);
 
-			// create the elements. We need to initialize them here when all the dimensions are set.
+            // create the elements. We need to initialize them here when all the dimensions are set.
+
 			Lanes = Metronome.Instance.Layers.Select(x => new Lane(x)).ToArray();
-            Balls = Metronome.Instance.Layers.Select(x => new Ball(x, TickLayer)).ToArray();
+			Balls = Metronome.Instance.Layers.Select(x => new Ball(x, TickLayer)).ToArray();
+
             TickLayer.Delegate = new TickMarksDelegate(Lanes);
 
             return new CGRect(xPos, yPos, width, height);
         }
+
+        /// <summary>
+        /// Render the ball and tick elements
+        /// </summary>
+        protected void DrawElements()
+        {
+			foreach (Ball ball in Balls)
+			{
+				ball.DrawFrame();
+			}
+
+            TickLayer.SetNeedsDisplay();
+        }
+
+        /// <summary>
+        /// Return to initial state and draw it.
+        /// </summary>
+        protected void ReturnToInitialState()
+        {
+			BounceHelper.ElapsedBpm = 0;
+            Timer.Reset();
+
+			//foreach (Ball ball in Balls)
+			//{
+			//	ball.GoToInitialPosition();
+			//}
+
+            ((TickMarksDelegate)TickLayer.Delegate).Reset();
+
+            //TickLayer.SetNeedsDisplay();
+        }
         #endregion
 
-        void Instance_Started(object sender, EventArgs e)
+        void Instance_Started(object sender, Metronome.StartedEventArgs e)
         {
-            foreach (Lane lane in Lanes)
+            if (e.PreviousState == Metronome.PlayStates.Stopped)
             {
-                lane.Reset();
+				foreach (Lane lane in Lanes)
+				{
+					lane.Reset();
+				}
+				foreach (Ball ball in Balls)
+				{
+					ball.Reset();
+				}
             }
-            foreach (Ball ball in Balls)
+        }
+
+        void Instance_Stopped(object sender, EventArgs e)
+        {
+            ReturnToInitialState();
+            DrawElements();
+        }
+
+        void Instance_BeatChanged(object sender, EventArgs e)
+        {
+            if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
             {
-                ball.Reset();
+                ReturnToInitialState();
+
+				BounceHelper.ElapsedBpm = Metronome.Instance.ElapsedBpm;
+
+                // progress the tick layer
+                ((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
+
+                //DrawElements();
             }
         }
     }

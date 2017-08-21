@@ -263,6 +263,15 @@ namespace Pronome.Mac
             return UserSettings.GetSettings().UserSourceLibrary.Where(x => x.Uri == uri).FirstOrDefault() ?? GetDefault();
         }
 
+        /// <summary>
+        /// Is the source a silent one.
+        /// </summary>
+        /// <returns><c>true</c>, if silence was ised, <c>false</c> otherwise.</returns>
+        /// <param name="src">Source.</param>
+        public static bool IsSilence(StreamInfoProvider src)
+        {
+            return src == InternalSourceLibrary[0];
+        }
 		#endregion
 
 		#region Events

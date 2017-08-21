@@ -23,13 +23,13 @@ namespace Pronome.Mac
             Layer.AddSublayer(AnimationLayer);
         }
 
-        public abstract void DrawFrame(double bpm);
+        public abstract void DrawFrame();//double bpm);
 
         /// <summary>
         /// Sizes and positions used for the frames
         /// </summary>
         /// <returns>The frame.</returns>
-        protected abstract CGRect GetFrame(nfloat winWidth, nfloat winHeight);
+        protected abstract CGRect GetRect(nfloat winWidth, nfloat winHeight);
 
         #region Overriden Methods
         public override bool AcceptsFirstResponder()
@@ -54,7 +54,7 @@ namespace Pronome.Mac
         {
             base.ViewWillMoveToWindow(newWindow);
 
-            Layer.Frame = GetFrame(newWindow.Frame.Width, newWindow.Frame.Height);
+            Layer.Frame = GetRect(newWindow.Frame.Width, newWindow.Frame.Height);
 			var innerFrame = new CGRect(0, 0, Layer.Frame.Width, Layer.Frame.Height);
             			
 			foreach (CALayer layer in Layer.Sublayers)
@@ -82,7 +82,7 @@ namespace Pronome.Mac
         protected virtual void Window_DidResize(object sender, EventArgs e)
         {
             // resize and reposition all layers to match the window
-            var frame = GetFrame(Window.Frame.Width, Window.Frame.Height);
+            var frame = GetRect(Window.Frame.Width, Window.Frame.Height);
 
             CATransaction.Begin();
             CATransaction.DisableActions = true;
