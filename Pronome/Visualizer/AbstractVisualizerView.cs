@@ -23,7 +23,12 @@ namespace Pronome.Mac
             Layer.AddSublayer(AnimationLayer);
         }
 
+        /// <summary>
+        /// Draws a frame.
+        /// </summary>
         public abstract void DrawFrame();//double bpm);
+
+        protected abstract void CreateAssets();
 
         /// <summary>
         /// Sizes and positions used for the frames
@@ -55,6 +60,8 @@ namespace Pronome.Mac
             base.ViewWillMoveToWindow(newWindow);
 
             Layer.Frame = GetRect(newWindow.Frame.Width, newWindow.Frame.Height);
+            CreateAssets();
+
 			var innerFrame = new CGRect(0, 0, Layer.Frame.Width, Layer.Frame.Height);
             			
 			foreach (CALayer layer in Layer.Sublayers)

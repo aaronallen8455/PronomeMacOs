@@ -16,7 +16,7 @@ namespace Pronome.Mac.Visualizer.Bounce
         public void DrawLayer(CALayer layer, CGContext context)
         {
             CATransaction.DisableActions = true;
-
+            CATransaction.AnimationDuration = 0;
             //nfloat width = layer.Frame.Width;
             //nfloat spread = UserSettings.GetSettings().BounceWidthPad;
             //nfloat division = UserSettings.GetSettings().BounceDivision;

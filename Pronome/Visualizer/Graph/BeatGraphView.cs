@@ -27,9 +27,6 @@ namespace Pronome.Mac
             // TODO: check that beat is graphable
             BeatLength = Metronome.Instance.GetQuartersForCompleteCycle();
 
-			// build the graph, get rings
-			Rings = GraphingHelper.BuildGraph(Layer, BeatLength);
-
             // attach the layer delegate
             AnimationLayer.Delegate = new GraphLayerDelegate()
             {
@@ -37,6 +34,12 @@ namespace Pronome.Mac
             };
 
             Metronome.Instance.BeatChanged += Instance_BeatChanged;
+        }
+
+        protected override void CreateAssets()
+        {
+			// build the graph, get rings
+			Rings = GraphingHelper.BuildGraph(Layer, BeatLength);
         }
 
         public override void DrawFrame()//double bpm)
@@ -68,11 +71,11 @@ namespace Pronome.Mac
         {
             // update the beat length
             BeatLength = Metronome.Instance.GetQuartersForCompleteCycle();
-
+			
             ((GraphLayerDelegate)AnimationLayer.Delegate).BeatLength = BeatLength;
-
+			
             var newRings = GraphingHelper.BuildGraph(Layer, BeatLength);
-
+			
             // need to fast forward the new rings
             if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
             {
@@ -81,7 +84,7 @@ namespace Pronome.Mac
                     ring.Progress(Metronome.Instance.ElapsedBpm);
 				}
             }
-
+			
             lock (_ringLock)
             {
 				// replace old rings
@@ -89,9 +92,16 @@ namespace Pronome.Mac
 				{
 					ring.Dispose();
 				}
-				
-				Rings = newRings;
+
+                Rings = newRings;
             }
+
+            // display new rings
+			foreach (Ring ring in Rings)
+			{
+                ring.SizeToSuperLayer();
+                ring.DrawStaticElements();
+			}
         }
 
         protected override void Window_DidResize(object sender, EventArgs e)

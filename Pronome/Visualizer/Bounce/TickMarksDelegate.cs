@@ -24,6 +24,7 @@ namespace Pronome.Mac.Visualizer.Bounce
             BpmToProgress = 0;
 
             CATransaction.DisableActions = true;
+            CATransaction.AnimationDuration = 0;
             context.SaveState();
 
             foreach (Lane lane in Lanes)

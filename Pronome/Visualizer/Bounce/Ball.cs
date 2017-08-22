@@ -14,7 +14,7 @@ namespace Pronome.Mac.Visualizer.Bounce
         #region protected fields
         protected Layer Layer;
 
-        protected CALayer BallLayer;
+        public CALayer BallLayer;
 
         protected double CurrentInterval;
 
@@ -105,7 +105,7 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// </summary>
         public void DrawFrame()
         {
-            if (LayerIsSilent) return;
+            if (LayerIsSilent || Layer.Beat == null) return;
 
             double elapsedBpm = BounceHelper.ElapsedBpm;
             double horiz = BounceHelper.LaneAreaHeight;
@@ -143,7 +143,6 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// <param name="index">Index.</param>
         public void InitLayer(int index)
         {
-
             CGRect frame = new CGRect(
                 BounceHelper.LanePadding + BounceHelper.TopLaneSpacing * index + BounceHelper.BallPadding,
                 BounceHelper.LaneAreaHeight,
@@ -156,6 +155,11 @@ namespace Pronome.Mac.Visualizer.Bounce
 
         public void Dispose()
         {
+            CATransaction.Begin();
+            CATransaction.DisableActions = true;
+            BallLayer.RemoveFromSuperLayer();
+            CATransaction.Commit();
+
             BallLayer.Dispose();
             //Metronome.Instance.Started -= Instance_Started;
         }
@@ -221,6 +225,8 @@ namespace Pronome.Mac.Visualizer.Bounce
             [Export("drawLayer:inContext:")]
             public void DrawLayer(CALayer layer, CGContext context)
             {
+                CATransaction.DisableActions = true;
+                CATransaction.AnimationDuration = 0;
                 // draw the ball
                 context.AddEllipseInRect(layer.Bounds);
 

@@ -63,6 +63,26 @@ namespace Pronome.Mac
         #endregion
 
         #region protected methods
+        protected override void CreateAssets()
+        {
+			// dispose old ones if exist
+			if (Lanes != null)
+			{
+				for (int i = 0; i < Lanes.Length; i++)
+				{
+					Lanes[i].Dispose();
+					Balls[i].Dispose();
+				}
+
+				TickLayer.Delegate.Dispose();
+			}
+
+			Lanes = Metronome.Instance.Layers.Select(x => new Lane(x)).ToArray();
+			Balls = Metronome.Instance.Layers.Select(x => new Ball(x, TickLayer)).ToArray();
+
+			TickLayer.Delegate = new TickMarksDelegate(Lanes);
+        }
+
         protected override CGRect GetRect(nfloat winWidth, nfloat winHeight)
         {
             nfloat min = winWidth < winHeight ? winWidth : winHeight;
@@ -94,11 +114,7 @@ namespace Pronome.Mac
             BounceHelper.SetDimensions(width, height);
 
             // create the elements. We need to initialize them here when all the dimensions are set.
-
-			Lanes = Metronome.Instance.Layers.Select(x => new Lane(x)).ToArray();
-			Balls = Metronome.Instance.Layers.Select(x => new Ball(x, TickLayer)).ToArray();
-
-            TickLayer.Delegate = new TickMarksDelegate(Lanes);
+            //CreateAssets();
 
             return new CGRect(xPos, yPos, width, height);
         }
@@ -124,14 +140,12 @@ namespace Pronome.Mac
 			BounceHelper.ElapsedBpm = 0;
             Timer.Reset();
 
-			//foreach (Ball ball in Balls)
-			//{
-			//	ball.GoToInitialPosition();
-			//}
+			foreach (Ball ball in Balls)
+			{
+				ball.GoToInitialPosition();
+			}
 
             ((TickMarksDelegate)TickLayer.Delegate).Reset();
-
-            //TickLayer.SetNeedsDisplay();
         }
         #endregion
 
@@ -158,17 +172,48 @@ namespace Pronome.Mac
 
         void Instance_BeatChanged(object sender, EventArgs e)
         {
-            if (Metronome.Instance.PlayState != Metronome.PlayStates.Stopped)
+            // need to create all new elements; recreate everything
+            BounceHelper.SetDimensions(Layer.Frame.Width, Layer.Frame.Height);
+            AnimationLayer.SetNeedsDisplay();
+            CreateAssets();
+
+            ReturnToInitialState();
+
+			//Timer.Reset();
+            BounceHelper.ElapsedBpm = Metronome.Instance.ElapsedBpm;
+
+            // progress the tick layer
+            ((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
+
+            //if (Metronome.Instance.PlayState != Metronome.PlayStates.Playing)
+            //{
+            DrawElements();
+            //}
+        }
+
+        protected override void Window_DidResize(object sender, EventArgs e)
+        {
+            // get relative y-position of balls to use after superLayer frame is resized
+            double[] yPos = new double[Balls.Length];
+            for (int i = 0; i < Balls.Length; i++)
             {
-                ReturnToInitialState();
-
-				BounceHelper.ElapsedBpm = Metronome.Instance.ElapsedBpm;
-
-                // progress the tick layer
-                ((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
-
-                //DrawElements();
+                yPos[i] = Balls[i].BallLayer.Frame.Y / BounceHelper.Height;
             }
+
+            base.Window_DidResize(sender, e);
+
+            CATransaction.Begin();
+            CATransaction.DisableActions = true;
+            for (int i = 0; i < Balls.Length; i++)
+            {
+                Balls[i].InitLayer(i);
+                // need to preserve the y-position
+                var frame = Balls[i].BallLayer.Frame;
+                frame.Y = (nfloat)(BounceHelper.Height * yPos[i]);
+                Balls[i].BallLayer.Frame = frame;
+                Balls[i].BallLayer.SetNeedsDisplay();
+            }
+            CATransaction.Commit();
         }
     }
 }

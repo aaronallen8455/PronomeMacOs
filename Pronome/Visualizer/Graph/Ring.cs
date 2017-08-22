@@ -26,6 +26,8 @@ namespace Pronome.Mac.Visualizer.Graph
         /// </summary>
         CALayer TickMarksLayer;
 
+        CALayer _superLayer;
+
         /// <summary>
         /// Index of the current beat cell
         /// </summary>
@@ -76,6 +78,7 @@ namespace Pronome.Mac.Visualizer.Graph
         public Ring(Layer layer, CALayer superLayer, double startPoint, double endPoint, double beatLength)
         {
             Layer = layer;
+            _superLayer = superLayer;
 
             // init the CALayers
             BackgroundLayer = new CALayer()
@@ -144,7 +147,6 @@ namespace Pronome.Mac.Visualizer.Graph
                 BeatIndex %= Layer.Beat.Count;
             }
 
-
             // do some reseting when playback stops
             Metronome.Instance.Stopped += Instance_Stopped;
         }
@@ -197,6 +199,14 @@ namespace Pronome.Mac.Visualizer.Graph
             BackgroundLayer.SetNeedsDisplay();
             // draw tick marks
             TickMarksLayer.SetNeedsDisplay();
+        }
+
+        public void SizeToSuperLayer()
+        {
+            var rect = _superLayer.Bounds;
+
+            BackgroundLayer.Frame = rect;
+            TickMarksLayer.Frame = rect;
         }
 
         public void Dispose()

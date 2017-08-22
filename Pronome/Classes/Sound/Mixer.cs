@@ -500,7 +500,6 @@ namespace Pronome.Mac
             return AudioUnitStatus.OK;
 		}
 
-        int animThrottle = 0;
         /// <summary>
         /// Render callback for the output node. Can simulataneously write to a file.
         /// </summary>

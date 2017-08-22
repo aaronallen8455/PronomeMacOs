@@ -411,6 +411,11 @@ namespace Pronome.Mac
 
             // if no layers, clear the currently opened file field
             SavedFileManager.CurrentlyOpenFile = null;
+
+			//if (PlayState == PlayStates.Stopped)
+			//{
+				OnBeatChanged(new EventArgs());
+			//}
         }
 
         /// <summary>

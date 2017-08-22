@@ -5,7 +5,7 @@ using CoreGraphics;
 
 namespace Pronome.Mac.Visualizer.Bounce
 {
-    public class Lane
+    public class Lane : IDisposable
     {
         #region Public fields
         public CGColor Color;
@@ -68,6 +68,7 @@ namespace Pronome.Mac.Visualizer.Bounce
         public void DrawFrame(CGContext ctx, double elapsedBpm)
         {
             //double elapsedBpm = BounceHelper.ElapsedBpm;
+            if (Layer.Beat == null) return;
 
 			ctx.SetStrokeColor(Color);
 
@@ -150,6 +151,11 @@ namespace Pronome.Mac.Visualizer.Bounce
                 CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
             }
             InitTicks();
+        }
+
+        public void Dispose()
+        {
+            Color.Dispose();
         }
         #endregion
 
