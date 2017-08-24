@@ -174,6 +174,7 @@ namespace Pronome.Mac
         {
             // need to create all new elements; recreate everything
             BounceHelper.SetDimensions(Layer.Frame.Width, Layer.Frame.Height);
+            // redraw lanes
             AnimationLayer.SetNeedsDisplay();
             CreateAssets();
 

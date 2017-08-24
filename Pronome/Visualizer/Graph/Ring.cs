@@ -358,7 +358,8 @@ namespace Pronome.Mac.Visualizer.Graph
 
 			BeatIndex = 0;
 
-			CurrentBpmInterval = 0;
+            CurrentBpmInterval = Layer.OffsetBpm;
+
 			while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
 			{
 				CurrentBpmInterval += Layer.Beat[BeatIndex++].Bpm;

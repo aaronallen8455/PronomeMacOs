@@ -234,7 +234,12 @@ namespace Pronome.Mac
                 return _elapsedBpm;
             }
 
-            protected set { _elapsedBpm = value; }
+            protected set 
+            {
+                _animationTimer.Reset();
+                //_animationTimer.GetElapsedTime();
+                _elapsedBpm = value;
+            }
         }
 		#endregion
 
@@ -298,9 +303,15 @@ namespace Pronome.Mac
 
                 IsPlaying = true;
 
-                Animator.Start();
+                //if (prevState == PlayStates.Stopped)
+                //{
+                //    _animationTimer.Reset();
+                //    ElapsedBpm = 0;
+                //}
 
                 OnStarted(new StartedEventArgs(prevState));
+
+				Animator.Start();
 
                 return true;
             }
@@ -322,9 +333,10 @@ namespace Pronome.Mac
                 IsPlaying = false;
 
                 Animator.Stop();
-                ElapsedBpm = 0;
 
                 OnStopped(EventArgs.Empty);
+
+				ElapsedBpm = 0;
 
                 return true;
             }

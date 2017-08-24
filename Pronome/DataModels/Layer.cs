@@ -137,6 +137,8 @@ namespace Pronome.Mac
                         {
                             stream.Offset = stream.Offset + offsetSamples;
                         }
+                        // trigger beat change event
+                        Metronome.Instance.OnBeatChanged(new EventArgs());
                     }
                     else
                     {

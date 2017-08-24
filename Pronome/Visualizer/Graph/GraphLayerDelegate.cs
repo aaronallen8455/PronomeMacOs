@@ -30,6 +30,7 @@ namespace Pronome.Mac.Visualizer.Graph
             context.SetLineWidth(2);
             context.SetStrokeColor(NSColor.Green.CGColor);
 
+            var nn = Metronome.Instance.ElapsedBpm;
             // draw the needle
             nfloat angle = (nfloat)((Metronome.Instance.ElapsedBpm % BeatLength) / BeatLength * TWOPI);
 

@@ -47,16 +47,17 @@ namespace Pronome.Mac
             // determines duration of the blink effect
 			CATransaction.AnimationDuration = .1;
 
-			AnimationLayer.SetNeedsDisplay();
+            double elapsedBpm = Timer.GetElapsedBpm();
+            //lock (_ringLock)
+            //{
+                // progress the rings. Animate any blinking if needed.
+                foreach (Ring ring in Rings)
+                {
+                    ring.Progress(elapsedBpm);
+                }
+            //}
 
-            lock (_ringLock)
-            {
-				// progress the rings. Animate any blinking if needed.
-				foreach (Ring ring in Rings)
-				{
-                    ring.Progress(Timer.GetElapsedBpm());
-				}
-            }
+			AnimationLayer.SetNeedsDisplay();
         }
 
         protected override CGRect GetRect(nfloat winWidth, nfloat winHeight)
