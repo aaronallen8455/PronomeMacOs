@@ -19,6 +19,9 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// </summary>
         static public double BallPadding;
 
+        /// <summary>
+        /// The diameter of the ball elements.
+        /// </summary>
         static public int BallSize;
 
 		/// <summary>
@@ -26,6 +29,9 @@ namespace Pronome.Mac.Visualizer.Bounce
 		/// </summary>
 		static public double LaneAreaHeight;
 
+        /// <summary>
+        /// Distance from horizon to top of window
+        /// </summary>
         static public double BallAreaHeight;
 
         /// <summary>

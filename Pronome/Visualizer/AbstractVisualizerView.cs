@@ -36,6 +36,32 @@ namespace Pronome.Mac
         /// <returns>The frame.</returns>
         protected abstract CGRect GetRect(nfloat winWidth, nfloat winHeight);
 
+        #region Protected Methods
+        /// <summary>
+        /// Size the main layer and child layers while initiating all measurments
+        /// </summary>
+        /// <param name="width">Width.</param>
+        /// <param name="height">Height.</param>
+        protected void SetLayerDimensions(nfloat width, nfloat height, bool createElements = true)
+        {
+			Layer.Frame = GetRect(width, height);
+
+            if (createElements)
+            {
+				CreateAssets();
+            }
+
+			var innerFrame = new CGRect(0, 0, Layer.Frame.Width, Layer.Frame.Height);
+
+			foreach (CALayer layer in Layer.Sublayers)
+			{
+				layer.Frame = innerFrame;
+				// draw initial state
+				layer.SetNeedsDisplay();
+			}
+        }
+        #endregion
+
         #region Overriden Methods
         public override bool AcceptsFirstResponder()
 		{
@@ -59,31 +85,19 @@ namespace Pronome.Mac
         {
             base.ViewWillMoveToWindow(newWindow);
 
-            Layer.Frame = GetRect(newWindow.Frame.Width, newWindow.Frame.Height);
-            CreateAssets();
-
-			var innerFrame = new CGRect(0, 0, Layer.Frame.Width, Layer.Frame.Height);
-            			
-			foreach (CALayer layer in Layer.Sublayers)
-			{
-                layer.Frame = innerFrame;
-                // draw initial state
-                layer.SetNeedsDisplay();
-			}
-        }
-
-        public override void AwakeFromNib()
-        {
-            base.AwakeFromNib();
-
-            var x = Window;
-            var y = Layer.Frame;
+            SetLayerDimensions(newWindow.Frame.Width, newWindow.Frame.Height);
         }
         #endregion
 
         void Window_WillClose(object sender, EventArgs e)
 		{
 			AnimationHelper.AnimationViews.Remove(this);
+
+            if (AnimationHelper.AnimationViews.Count == 0)
+            {
+                // get new colors if all visualizers are closed
+                ColorHelper.ResetRgbSeed();
+            }
 		}
 
         protected virtual void Window_DidResize(object sender, EventArgs e)

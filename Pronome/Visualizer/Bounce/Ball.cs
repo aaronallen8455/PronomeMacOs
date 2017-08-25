@@ -39,6 +39,8 @@ namespace Pronome.Mac.Visualizer.Bounce
 			}
 		}
 
+        public int Index;
+
         protected bool LayerIsSilent;
         #endregion
 
@@ -46,18 +48,18 @@ namespace Pronome.Mac.Visualizer.Bounce
         public Ball(Layer layer, CALayer superLayer)
         {
             Layer = layer;
-            int layerInd = Metronome.Instance.Layers.IndexOf(layer);
+            Index = Metronome.Instance.Layers.IndexOf(layer);
 
             BallLayer = new CALayer()
             {
                 ContentsScale = NSScreen.MainScreen.BackingScaleFactor,
-                Delegate = new BallDelegate(ColorHelper.ColorWheel(layerInd)),
+                Delegate = new BallDelegate(ColorHelper.ColorWheel(Index)),
             };
 
             // check if layer is silent
             LayerIsSilent = Layer.GetAllStreams().All(x => StreamInfoProvider.IsSilence(x.Info));
 
-            InitLayer(layerInd);
+            InitLayer();
 
             superLayer.AddSublayer(BallLayer);
             // position element (with offset)
@@ -68,6 +70,16 @@ namespace Pronome.Mac.Visualizer.Bounce
         #endregion
 
         #region Public methods
+
+        //public void SetXPosition()
+        //{
+        //    var frame = BallLayer.Frame;
+		//
+        //    frame.X = (nfloat)(BounceHelper.LanePadding + BounceHelper.TopLaneSpacing * Index + BounceHelper.BallPadding);
+		//
+        //    BallLayer.Frame = frame;
+        //}
+
         /// <summary>
         /// Place the ball at it's starting position
         /// </summary>
@@ -141,10 +153,10 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// Sets the rect size of the ball layer
         /// </summary>
         /// <param name="index">Index.</param>
-        public void InitLayer(int index)
+        public void InitLayer()
         {
             CGRect frame = new CGRect(
-                BounceHelper.LanePadding + BounceHelper.TopLaneSpacing * index + BounceHelper.BallPadding,
+                BounceHelper.LanePadding + BounceHelper.TopLaneSpacing * Index + BounceHelper.BallPadding,
                 BounceHelper.LaneAreaHeight,
                 BounceHelper.BallSize,
                 BounceHelper.BallSize

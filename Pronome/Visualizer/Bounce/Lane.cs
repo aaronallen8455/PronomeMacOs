@@ -9,6 +9,11 @@ namespace Pronome.Mac.Visualizer.Bounce
     {
         #region Public fields
         public CGColor Color;
+
+		/// <summary>
+		/// Holds the remaining BPM of all ticks currently in the queue
+		/// </summary>
+		public List<double> Ticks;
         #endregion
 
         #region protected fields
@@ -16,11 +21,6 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// The layer represented by this lane.
         /// </summary>
         protected Layer Layer;
-
-        /// <summary>
-        /// Holds the remaining BPM of all ticks currently in the queue
-        /// </summary>
-        protected List<double> Ticks;
 
         private int _beatIndex;
         /// <summary>
@@ -38,11 +38,13 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// <summary>
         /// number of bpms before a new tick needs to be queued.
         /// </summary>
-        protected double CurrentInterval;
+        public double CurrentInterval;
 
         protected double LeftSlope;
 
         protected double RightSlope;
+
+        public int Index;
         #endregion
 
         #region constructors
@@ -50,16 +52,22 @@ namespace Pronome.Mac.Visualizer.Bounce
         {
             Layer = layer;
 
-            int layerIndex = Metronome.Instance.Layers.IndexOf(layer);
+            Index = Metronome.Instance.Layers.IndexOf(layer);
 
-            Color = ColorHelper.ColorWheel(layerIndex);
-            (LeftSlope, RightSlope) = BounceHelper.GetLaneSlope(layerIndex);
+            Color = ColorHelper.ColorWheel(Index);
+            (LeftSlope, RightSlope) = BounceHelper.GetLaneSlope(Index);
 
             InitTicks();
         }
         #endregion
 
         #region public methods
+
+        public void SetSlope()
+        {
+            (LeftSlope, RightSlope) = BounceHelper.GetLaneSlope(Index);
+        }
+
         /// <summary>
         /// Draw this layers ticks into the given context with the given lane height
         /// Requires that the context be translated to the lane base
@@ -86,7 +94,7 @@ namespace Pronome.Mac.Visualizer.Bounce
                 {
                     if (needToSubtract)
                     {
-                        // subtract a second time (when a new tick is added and then reiterated on)
+                        // don't subtract a second time (when a new tick is added and then reiterated on)
 						CurrentInterval -= elapsedBpm;
                         needToSubtract = false;
                     }

@@ -14,6 +14,7 @@ namespace Pronome.Mac
     [DataContract]
     public class UserSettings : NSObject
     {
+        #region Properties
         /// <summary>
         /// Beat graph blinking toggle
         /// </summary>
@@ -38,8 +39,10 @@ namespace Pronome.Mac
             get => (nfloat)LoadDouble("BounceQueueSize", 6);
             set
             {
+                double prev = BounceQueueSize;
                 WillChangeValue("BounceQueueSize");
                 SaveDouble("BounceQueueSize", value, true);
+                OnBounceSettingsChanged(new BounceSettingsChangedArgs(prev));
                 DidChangeValue("BounceQueueSize");
             }
         }
@@ -55,7 +58,8 @@ namespace Pronome.Mac
             {
                 WillChangeValue("BounceDivision");
                 SaveDouble("BounceDivision", value, true);
-                DidChangeValue("BounceDivision");
+                OnBounceSettingsChanged(new BounceSettingsChangedArgs());
+				DidChangeValue("BounceDivision");
             }
         }
 
@@ -70,7 +74,8 @@ namespace Pronome.Mac
             {
                 WillChangeValue("BounceWidthPad");
                 SaveDouble("BounceWidthPad", value, true);
-                DidChangeValue("BounceWidthPad");
+                OnBounceSettingsChanged(new BounceSettingsChangedArgs());
+				DidChangeValue("BounceWidthPad");
             }
         }
 
@@ -93,43 +98,47 @@ namespace Pronome.Mac
                 DidChangeValue("PitchDecayLength");
             }
         }
+		
+		/// <summary>
+		/// Whether to load the previous session on startup
+		/// </summary>
+		[Export("PersistSession")]
+		public bool PersistSession
+		{
+			get => LoadBool("PersistSession", true);
+			set
+			{
+				WillChangeValue("PersistSession");
+				SaveBool("PersistSession", value, true);
+				DidChangeValue("PersistSession");
+			}
+		}
+		
+		/// <summary>
+		/// The serialized beat from the previous session.
+		/// </summary>
+		[Export("PersistedSession")]
+		public string PersistedSession
+		{
+			get => LoadString("PersistedSession", "");
+			set
+			{
+				WillChangeValue("PersistedSession");
+				SaveString("PersistedSession", value, true);
+				DidChangeValue("PersistedSession");
+			}
+		}
 
+        #endregion
+
+        #region Public fields
         /// <summary>
         /// User's custom sources
         /// </summary>
         public NSMutableArray<StreamInfoProvider> UserSourceLibrary = new NSMutableArray<StreamInfoProvider>();
+        #endregion
 
-
-        /// <summary>
-        /// Whether to load the previous session on startup
-        /// </summary>
-        [Export("PersistSession")]
-        public bool PersistSession
-        {
-            get => LoadBool("PersistSession", true);
-            set
-            {
-                WillChangeValue("PersistSession");
-                SaveBool("PersistSession", value, true);
-                DidChangeValue("PersistSession");
-            }
-        }
-
-        /// <summary>
-        /// The serialized beat from the previous session.
-        /// </summary>
-        [Export("PersistedSession")]
-        public string PersistedSession
-        {
-            get => LoadString("PersistedSession", "");
-            set
-            {
-                WillChangeValue("PersistedSession");
-                SaveString("PersistedSession", value, true);
-                DidChangeValue("PersistedSession");
-            }
-        }
-
+        #region Public methods
         /// <summary>
         /// Store the settings
         /// </summary>
@@ -215,6 +224,26 @@ namespace Pronome.Mac
                 StreamInfoProvider.OnUserSourcesChanged(null);
             }
         }
+        #endregion
+
+        #region Events
+        public class BounceSettingsChangedArgs : EventArgs
+        {
+            public double PreviousQueueSize;
+
+            public BounceSettingsChangedArgs(double prevQueue = 0)
+            {
+                PreviousQueueSize = prevQueue;
+            }
+        }
+
+        static public event EventHandler<BounceSettingsChangedArgs> BounceSettingsChanged;
+
+        protected virtual void OnBounceSettingsChanged(BounceSettingsChangedArgs e)
+        {
+            BounceSettingsChanged?.Invoke(this, e);
+        }
+        #endregion
 
         static UserSettings _settings;
 

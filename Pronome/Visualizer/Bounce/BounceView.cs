@@ -36,6 +36,7 @@ namespace Pronome.Mac
             Metronome.Instance.Started += Instance_Started;
             Metronome.Instance.Stopped += Instance_Stopped;
             Metronome.Instance.BeatChanged += Instance_BeatChanged;
+            UserSettings.BounceSettingsChanged += UserSettings_BounceSettingsChanged;
         }
 
         #region public methods
@@ -49,15 +50,8 @@ namespace Pronome.Mac
             else
             {
                 BounceHelper.ElapsedBpm = Timer.GetElapsedBpm();
-				
-				// animate the balls
-				//foreach (Ball ball in Balls)
-				//{
-				//	ball.DrawFrame();
-				//}
             }
-			// animate the tick marks
-			//TickLayer.SetNeedsDisplay();
+
             DrawElements();
         }
         #endregion
@@ -186,10 +180,7 @@ namespace Pronome.Mac
             // progress the tick layer
             ((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
 
-            //if (Metronome.Instance.PlayState != Metronome.PlayStates.Playing)
-            //{
             DrawElements();
-            //}
         }
 
         protected override void Window_DidResize(object sender, EventArgs e)
@@ -207,7 +198,7 @@ namespace Pronome.Mac
             CATransaction.DisableActions = true;
             for (int i = 0; i < Balls.Length; i++)
             {
-                Balls[i].InitLayer(i);
+                Balls[i].InitLayer();
                 // need to preserve the y-position
                 var frame = Balls[i].BallLayer.Frame;
                 frame.Y = (nfloat)(BounceHelper.Height * yPos[i]);
@@ -215,6 +206,52 @@ namespace Pronome.Mac
                 Balls[i].BallLayer.SetNeedsDisplay();
             }
             CATransaction.Commit();
+        }
+
+        void UserSettings_BounceSettingsChanged(object sender, UserSettings.BounceSettingsChangedArgs e)
+        {
+            if (Window != null)
+            {
+                // get current y position of balls
+                double[] ballYFactors = Balls.Select(x => (x.BallLayer.Frame.Y - BounceHelper.LaneAreaHeight) / (BounceHelper.BallAreaHeight - BounceHelper.BallSize)).ToArray();
+
+                CATransaction.Begin();
+                CATransaction.AnimationDuration = 0;
+                CATransaction.DisableActions = true;
+                SetLayerDimensions(Window.Frame.Width, Window.Frame.Height, false);
+                // need to correct slope of lanes
+                foreach (Lane lane in Lanes)
+                {
+                    lane.SetSlope();
+                    // need to account for changed queue size
+                    if (e.PreviousQueueSize > 0) // it's zero if it wasn't changed.
+                    {
+                        double diff = UserSettings.GetSettings().BounceQueueSize - e.PreviousQueueSize;
+
+                        lane.Ticks = lane.Ticks.Select(x => x + diff).ToList();
+
+                        lane.CurrentInterval -= diff;
+                    }
+                }
+
+                int i = 0;
+                foreach (Ball ball in Balls)
+                {
+					// need to correct location of balls
+					// need to correct ball size
+                    ball.InitLayer();
+
+                    // set new Y position
+                    var frame = ball.BallLayer.Frame;
+                    frame.Y = (nfloat)(ballYFactors[i++] * (BounceHelper.BallAreaHeight - BounceHelper.BallSize) + BounceHelper.LaneAreaHeight);
+
+                    ball.BallLayer.Frame = frame;
+                }
+
+                DrawElements();
+
+                CATransaction.Commit();
+            }
         }
     }
 }
