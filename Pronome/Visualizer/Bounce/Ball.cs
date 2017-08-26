@@ -9,7 +9,7 @@ namespace Pronome.Mac.Visualizer.Bounce
 {
     public class Ball
     {
-        const double SecsForMaxHeight = .6;
+        const double SecsForMaxHeight = 1;
 
         #region protected fields
         protected Layer Layer;
@@ -97,6 +97,15 @@ namespace Pronome.Mac.Visualizer.Bounce
 
             Apex = CurrentInterval * 2;
 
+            SetBounceHeight();
+
+            BounceHelper.ElapsedBpm = 0;
+
+			DrawFrame();
+        }
+
+        public void SetBounceHeight()
+        {
 			double secs = Apex * 60 / Metronome.Instance.Tempo;
 			if (secs >= SecsForMaxHeight)
 			{
@@ -106,10 +115,6 @@ namespace Pronome.Mac.Visualizer.Bounce
 			{
 				BounceHeight = (int)(secs / SecsForMaxHeight * (BounceHelper.BallAreaHeight - BounceHelper.BallSize));
 			}
-
-            BounceHelper.ElapsedBpm = 0;
-
-			DrawFrame();
         }
 
         /// <summary>
@@ -119,10 +124,9 @@ namespace Pronome.Mac.Visualizer.Bounce
         {
             if (LayerIsSilent || Layer.Beat == null) return;
 
-            double elapsedBpm = BounceHelper.ElapsedBpm;
             double horiz = BounceHelper.LaneAreaHeight;
 
-            CurrentInterval -= elapsedBpm;
+            CurrentInterval -= BounceHelper.ElapsedBpm;
 
             while (CurrentInterval < 0)
             {
@@ -152,7 +156,6 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// <summary>
         /// Sets the rect size of the ball layer
         /// </summary>
-        /// <param name="index">Index.</param>
         public void InitLayer()
         {
             CGRect frame = new CGRect(

@@ -892,7 +892,7 @@
                                         <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="25i-sg-I16">
                                             <rect key="frame" x="18" y="96" width="376" height="19"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                            <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="0.80000000000000004" doubleValue="0.40000000000000002" tickMarkPosition="above" sliderType="linear" id="VEc-m3-Sz9"/>
+                                            <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="0.65000000000000002" doubleValue="0.40000000000000002" tickMarkPosition="above" sliderType="linear" id="VEc-m3-Sz9"/>
                                             <connections>
                                                 <binding destination="Ju7-H7-3ec" name="value" keyPath="self.Settings.BounceDivision" id="pu2-WS-UtZ"/>
                                             </connections>

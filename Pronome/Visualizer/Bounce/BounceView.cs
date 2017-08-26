@@ -213,7 +213,7 @@ namespace Pronome.Mac
             if (Window != null)
             {
                 // get current y position of balls
-                double[] ballYFactors = Balls.Select(x => (x.BallLayer.Frame.Y - BounceHelper.LaneAreaHeight) / (BounceHelper.BallAreaHeight - BounceHelper.BallSize)).ToArray();
+                double[] ballYFactors = Balls.Select(x => (x.BallLayer.Position.Y - BounceHelper.LaneAreaHeight - BounceHelper.BallSize / 2) / (BounceHelper.BallAreaHeight - BounceHelper.BallSize)).ToArray();
 
                 CATransaction.Begin();
                 CATransaction.AnimationDuration = 0;
@@ -242,13 +242,17 @@ namespace Pronome.Mac
                     ball.InitLayer();
 
                     // set new Y position
-                    var frame = ball.BallLayer.Frame;
-                    frame.Y = (nfloat)(ballYFactors[i++] * (BounceHelper.BallAreaHeight - BounceHelper.BallSize) + BounceHelper.LaneAreaHeight);
+                    //var frame = ball.BallLayer.Frame;
+                    //frame.Y = (nfloat)(ballYFactors[i++] * (BounceHelper.BallAreaHeight - BounceHelper.BallSize) + BounceHelper.LaneAreaHeight);
 
-                    ball.BallLayer.Frame = frame;
+                    var pos = ball.BallLayer.Position;
+                    pos.Y = (nfloat)(ballYFactors[i++] * (BounceHelper.BallAreaHeight - BounceHelper.BallSize) + BounceHelper.LaneAreaHeight + BounceHelper.BallSize / 2);
+                    ball.BallLayer.Position = pos;
+                    //ball.BallLayer.Frame = frame;
+
+                    // need to reset the bounce height value
+                    ball.SetBounceHeight();
                 }
-
-                DrawElements();
 
                 CATransaction.Commit();
             }
