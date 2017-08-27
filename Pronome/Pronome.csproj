@@ -69,7 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
-    <Folder Include="DataModels\" />
     <Folder Include="LayerView\" />
     <Folder Include="Classes\" />
     <Folder Include="Classes\Sound\" />
@@ -78,6 +77,7 @@
     <Folder Include="Visualizer\" />
     <Folder Include="Visualizer\Graph\" />
     <Folder Include="Visualizer\Bounce\" />
+    <Folder Include="Editor\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -109,7 +109,6 @@
     <Compile Include="Classes\Sound\PitchStream.cs" />
     <Compile Include="Classes\BeatCell.cs" />
     <Compile Include="Classes\SampleIntervalLoop.cs" />
-    <Compile Include="DataModels\Layer.cs" />
     <Compile Include="Classes\Sound\Mixer.cs" />
     <Compile Include="LayerView\SourceSelectorDataSource.cs" />
     <Compile Include="Classes\Sound\WavFileStream.cs" />
@@ -170,6 +169,17 @@
     <Compile Include="Visualizer\Bounce\BounceHelper.cs" />
     <Compile Include="Visualizer\Bounce\TickMarksDelegate.cs" />
     <Compile Include="Visualizer\AnimationTimer.cs" />
+    <Compile Include="Classes\Layer.cs" />
+    <Compile Include="Editor\EditorViewController.cs" />
+    <Compile Include="Editor\EditorViewController.designer.cs">
+      <DependentUpon>EditorViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Editor\CellTree.cs" />
+    <Compile Include="Editor\DrawingDelegate.cs" />
+    <Compile Include="Editor\DrawingView.cs" />
+    <Compile Include="Editor\DrawingView.designer.cs">
+      <DependentUpon>DrawingView.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

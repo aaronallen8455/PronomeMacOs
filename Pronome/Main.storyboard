@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
+        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -72,6 +73,80 @@
                 <customObject id="U6P-6H-cPL" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1416" y="-1371"/>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="rQI-B8-LCD">
+            <objects>
+                <windowController id="81i-5i-YTw" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="L8r-4r-R2l">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="163" y="199" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+                    </window>
+                    <connections>
+                        <segue destination="Dnq-3n-e4D" kind="relationship" relationship="window.shadowedContentViewController" id="Bd4-DU-whO"/>
+                    </connections>
+                </windowController>
+                <customObject id="b5M-iz-PwU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-549" y="-749"/>
+        </scene>
+        <!--Editor View Controller-->
+        <scene sceneID="dYi-37-caz">
+            <objects>
+                <viewController id="Dnq-3n-e4D" customClass="EditorViewController" sceneMemberID="viewController">
+                    <view key="view" id="nP9-1I-8J7">
+                        <rect key="frame" x="0.0" y="0.0" width="704" height="436"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GVG-gb-2sm">
+                                <rect key="frame" x="0.0" y="70" width="704" height="277"/>
+                                <clipView key="contentView" id="0fA-wJ-JJk">
+                                    <rect key="frame" x="1" y="1" width="702" height="275"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uxV-Hh-Q4s" customClass="DrawingView">
+                                            <rect key="frame" x="0.0" y="0.0" width="687" height="260"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        </view>
+                                    </subviews>
+                                </clipView>
+                                <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="jff-jK-xee">
+                                    <rect key="frame" x="1" y="260" width="702" height="16"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="eB1-qS-K4j">
+                                    <rect key="frame" x="687" y="1" width="16" height="275"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                            </scrollView>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dOs-pU-Tbl">
+                                <rect key="frame" x="558" y="13" width="132" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Apply Changes" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="SOe-th-EAl">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="ApplyChangesAction:" target="Dnq-3n-e4D" id="fiz-u3-FCe"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="GVG-gb-2sm" secondAttribute="trailing" id="EYE-1B-8CE"/>
+                            <constraint firstItem="GVG-gb-2sm" firstAttribute="leading" secondItem="nP9-1I-8J7" secondAttribute="leading" id="Hdj-pC-LhB"/>
+                            <constraint firstAttribute="bottom" secondItem="GVG-gb-2sm" secondAttribute="bottom" constant="70" id="RYc-9E-Xmw"/>
+                            <constraint firstItem="GVG-gb-2sm" firstAttribute="top" secondItem="nP9-1I-8J7" secondAttribute="top" constant="89" id="W56-lB-aaD"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="DrawingView" destination="uxV-Hh-Q4s" id="37Z-lG-VAp"/>
+                    </connections>
+                </viewController>
+                <customObject id="gMV-MS-acH" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-811" y="-337"/>
         </scene>
         <!--Application-->
         <scene sceneID="JPo-4y-FX3">
@@ -173,6 +248,12 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Edit" id="W48-6f-4Dl">
                                     <items>
+                                        <menuItem title="Beat Editor" keyEquivalent="e" id="JJt-DR-Mmd">
+                                            <connections>
+                                                <segue destination="81i-5i-YTw" kind="show" id="sOy-h0-kMb"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="cO4-fK-sK5"/>
                                         <menuItem title="Undo" keyEquivalent="z" id="dRJ-4n-Yzg">
                                             <connections>
                                                 <action selector="undo:" target="Ady-hI-5gd" id="M6e-cu-g7V"/>
@@ -223,14 +304,12 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Visualizer" id="SNA-wT-s8t">
                                     <items>
-                                        <menuItem title="Graph" id="VtA-jm-VeE">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Graph" keyEquivalent="g" id="VtA-jm-VeE">
                                             <connections>
                                                 <segue destination="oIG-63-EOu" kind="show" id="jOa-Gy-UPQ"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Bounce" id="6el-8H-r6e">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Bounce" keyEquivalent="b" id="6el-8H-r6e">
                                             <connections>
                                                 <segue destination="bBJ-Qu-422" kind="show" id="XoE-0y-rZ7"/>
                                             </connections>
