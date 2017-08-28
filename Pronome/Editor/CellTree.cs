@@ -46,6 +46,8 @@ namespace Pronome.Mac.Editor
                         parent = parent.Right;
                     }
                 }
+
+                node.Parent = parent;
             }
 
             // operate on tree to assert red-black properties
@@ -85,17 +87,6 @@ namespace Pronome.Mac.Editor
                     // rotate
                     RotateLeft(parent);
 
-                    //gp.Left = node;
-                    //node.Parent = gp;
-                    //var nodeLeft = node.Left;
-                    //node.Left = parent;
-                    //parent.Parent = node;
-                    //parent.Right = nodeLeft;
-                    //if (nodeLeft != null)
-                    //{
-                    //    nodeLeft.Parent = parent;
-                    //}
-
                     // parent is new node, will be target of step 5
                     node = parent;
                     parent = node.Parent;
@@ -104,16 +95,6 @@ namespace Pronome.Mac.Editor
                 {
                     // mirror of above
                     RotateRight(parent);
-                    //gp.Right = node;
-                    //node.Parent = gp;
-                    //var nodeRight = node.Right;
-                    //node.Right = parent;
-                    //parent.Parent = node;
-                    //parent.Right = nodeRight;
-                    //if (nodeRight != null)
-                    //{
-                    //    nodeRight.Parent = parent;
-                    //}
 
                     node = parent;
                     parent = node.Parent;
@@ -124,26 +105,6 @@ namespace Pronome.Mac.Editor
                 if (gp.Left.Left == node)
                 {
                     RotateRight(gp);
-                    //var parentRight = parent.Right;
-					//
-                    //parent.Right = gp;
-					//
-                    //if (ggp.Left == gp)
-                    //{
-                    //    ggp.Left = parent;
-                    //}
-                    //else
-                    //{
-                    //    ggp.Right = parent;
-                    //}
-                    //parent.Parent = ggp;
-					//
-                    //gp.Parent = parent;
-                    //gp.Left = parentRight;
-                    //if (parentRight != null)
-                    //{
-                    //    parentRight.Parent = gp;
-                    //}
 
                     parent.IsRed = false;
                     gp.IsRed = true;
@@ -152,26 +113,6 @@ namespace Pronome.Mac.Editor
                 {
                     // mirror of above
                     RotateLeft(gp);
-                    //var parentLeft = parent.Left;
-					//
-                    //parent.Left = gp;
-					//
-                    //if (ggp.Left == gp)
-                    //{
-                    //    ggp.Left = parent;
-                    //}
-                    //else
-                    //{
-                    //    ggp.Right = parent;
-                    //}
-                    //parent.Parent = ggp;
-					//
-                    //gp.Parent = parent;
-                    //gp.Right = parentLeft;
-                    //if (parentLeft != null)
-                    //{
-                    //    parentLeft.Parent = gp;
-                    //}
 
                     parent.IsRed = false;
                     gp.IsRed = true;
@@ -185,149 +126,178 @@ namespace Pronome.Mac.Editor
 
         public CellTree Remove(CellTreeNode node)
         {
-            while (node != null)
+            //while (node != null)
+            //{
+            // if no children, we can simply delete
+
+            CellTreeNode nodeToDeleteAfterwards = null;
+
+            if (node.Left == null && node.Right == null)
             {
-				// if no children, we can simply delete
-				if (node.Left == null && node.Right == null)
-				{
-					if (Root == node)
-					{
-						Root = null;
-					}
-                    else if (node.IsRed)
-					{
-                        Replace(node, null);
-					}
-                    else
-                    {
-                        // black node with no children, not root
-                        Replace(node, null);
-                        // do stuff...
-                    }
-
-                    break;
-				}
-                else if (node.Left != null && node.Right != null)
-				{
-                    // we find the left-most child of right side and copy it's value to the node being deleted
-                    // The node that we copied from (left-most) can then by deleted because it
-                    // has at most 1 non-leaf child.
-
-                    var succesor = node.Right;
-                    while (succesor.Left != null)
-                    {
-                        succesor = succesor.Left;
-                    }
-
-                    node.Value = succesor.Value;
-
-                    node = succesor;
-				}
+                if (Root == node)
+                {
+                    Root = null;
+                    return this;
+                }
+                else if (node.IsRed)
+                {
+                    Replace(node, null);
+                    return this;
+                }
                 else
                 {
-                    var child = node.Left ?? node.Right;
+                    // black node with no children, not root
+                    //Replace(node, null);
+                    // do stuff...
+                    //node = node.Parent;
 
-                    if (!node.IsRed && child.IsRed)
-                    {
-						// black node, red child
-                        Replace(node, child);
+                    // we will delete the node afterwards. it's a 'phantom' leaf.
+                    nodeToDeleteAfterwards = node;
+                    // do we need to track the actual node, as it may be changed by a rule?
+                }
 
-                        child.IsRed = false;
-                    }
-                    else if (node.IsRed && !child.IsRed)
-                    {
-                        // red node, black child
-                        Replace(node, child);
+                //break;
+            }
+            else if (node.Left != null && node.Right != null)
+            {
+                // we find the left-most child of right side and copy it's value to the node being deleted
+                // The node that we copied from (left-most) can then by deleted because it
+                // has at most 1 non-leaf child.
+
+                var succesor = node.Right;
+                while (succesor.Left != null)
+                {
+                    succesor = succesor.Left;
+                }
+
+                node.Value = succesor.Value;
+                node.Cell = succesor.Cell;
+
+                node = succesor;
+            }
+
+            if (node.Left != null || node.Right != null)
+            {
+                // one child is a non-leaf
+
+                var child = node.Left ?? node.Right;
+
+                if (!node.IsRed && child.IsRed)
+                {
+                    // black node, red child
+                    Replace(node, child);
+
+                    child.IsRed = false;
+                    return this;
+                }
+
+                if (node.IsRed && !child.IsRed)
+                {
+                    // red node, black child
+                    Replace(node, child);
+                    return this;
+                }
+
+
+                // black node with black child
+                Replace(node, child);
+                node = child;
+            }
+
+            while (true)
+            {
+                // node is now a "double black" node
+
+				if (node == Root) 
+				{
+                    break; // case 1. terminal case
+				}
+
+                var sibling = node.GetSibling();
+
+				if (sibling.IsRed)
+				{
+					// case 2
+					// node is black, has black parent, and a red sibling
+					// make sibling take the place of the parent.
+					if (node.Parent.Left == node)
+					{
+						RotateLeft(node.Parent);
 					}
+					else
+					{
+						RotateRight(node.Parent);
+					}
+					
+					node.Parent.IsRed = true;
+					sibling.IsRed = false;
+				}
+
+                else if (!node.Parent.IsRed && !sibling.IsRed && (sibling.Left == null || !sibling.Left.IsRed) && (sibling.Right == null || !sibling.Right.IsRed))
+                {
+                    // case 3
+                    // node is black, black parent, black sibling with black children
+
+                    sibling.IsRed = true;
+
+                    node = node.Parent;
+                    // go to start with parent as new node. (we pushed the double black status up to the parent)
+                    continue;
+                }
+
+                else if (node.Parent.IsRed && (sibling.Left == null || !sibling.Left.IsRed) && (sibling.Right == null || !sibling.Right.IsRed))
+                {
+                    // case 4, terminal case
+                    node.Parent.IsRed = false;
+                    sibling.IsRed = true;
+                    break;
+                }
+
+                else if (!sibling.IsRed && node.HasSiblingWithInnerRedChild())
+                {
+                    // case 5
+                    // black node, black parent, black sibling with inner red child
+                    if (node.Parent.Left == node)
+                    {
+                        RotateRight(sibling);
+                        sibling.Left.IsRed = false;
+                    }
                     else
                     {
-                        // black node with black child
-                        if (node == Root) 
-                        {
-                            Replace(node, child); // case 1
-						}
-                        else
-                        {
-                            Replace(node, child);
-                            node = child;
-                            // node is now a "double black" node
-
-                            var sibling = node.GetSibling();
-
-                            if (sibling != null)
-                            {
-								if (sibling.IsRed && !node.Parent.IsRed)
-								{
-									// case 2
-									// node is black, has black parent, and a red sibling
-									// make sibling take the place of the parent.
-									if (node.Parent.Left == node)
-									{
-										RotateLeft(node.Parent);
-									}
-									else
-									{
-										RotateRight(node.Parent);
-									}
-									
-									node.Parent.IsRed = true;
-									sibling.IsRed = false;
-								}
-                                else if (!node.Parent.IsRed && !sibling.IsRed && (sibling.Left == null || !sibling.Left.IsRed) && (sibling.Right == null || !sibling.Right.IsRed))
-                                {
-                                    // case 3
-                                    // node is black, black parent, black sibling with black children
-
-                                    sibling.IsRed = true;
-                                }
-                                else if (node.Parent.IsRed)
-                                {
-                                    // case 4
-                                    node.Parent.IsRed = false;
-                                    sibling.IsRed = true;
-                                }
-                                else if (!node.Parent.IsRed && !sibling.IsRed && node.HasSiblingWithInnerRedChild())
-                                {
-                                    // case 5
-                                    // black node, black parent, black sibling with inner red child
-                                    if (node.Parent.Left == node)
-                                    {
-                                        RotateRight(sibling);
-
-                                        sibling.Left.IsRed = false;
-                                        sibling.IsRed = true;
-                                    }
-                                    else
-                                    {
-                                        RotateLeft(sibling);
-                                        sibling.Right.IsRed = false;
-                                        sibling.IsRed = true;
-                                    }
-                                }
-                                else if (!sibling.IsRed && node.HasSiblingWithOuterRedChild())
-                                {
-                                    // case 6
-                                    // black node, don't care parent's color, black sibling with outer red child and inner child with either color.
-                                    if (node.Parent.Left == node)
-                                    {
-                                        RotateLeft(node.Parent);
-                                        sibling.Right.IsRed = false;
-                                    }
-                                    else
-                                    {
-                                        RotateRight(node.Parent);
-                                        sibling.Left.IsRed = false;
-                                    }
-
-                                    node.Parent.IsRed = false;
-                                    cont
-                                }
-                            }
-                        }
+                        RotateLeft(sibling);
+                        sibling.Right.IsRed = false;
                     }
+
+					sibling.IsRed = true;
+                }
+
+                if (!sibling.IsRed && node.HasSiblingWithOuterRedChild())
+                {
+                    // case 6, terminal case
+                    // black node, don't care parent's color, black sibling with outer red child and inner child with either color.
+                    if (node.Parent.Left == node)
+                    {
+                        RotateLeft(node.Parent);
+                        sibling.Right.IsRed = false;
+                    }
+                    else
+                    {
+                        RotateRight(node.Parent);
+                        sibling.Left.IsRed = false;
+                    }
+
+                    sibling.IsRed = node.Parent.IsRed;
+                    node.Parent.IsRed = false;
+
+                    // node is no longer a bouble black.
+                    break;
                 }
             }
 
+            if (nodeToDeleteAfterwards != null)
+            {
+                Replace(nodeToDeleteAfterwards,null);
+            }
 
             return this;
         }
@@ -437,6 +407,8 @@ namespace Pronome.Mac.Editor
     public class CellTreeNode
     {
         #region Public fields
+        public BeatCell Cell;
+
         public CellTreeNode Left;
 
         public CellTreeNode Right;
@@ -445,6 +417,9 @@ namespace Pronome.Mac.Editor
 
         public bool IsRed;
 
+        /// <summary>
+        /// Positional value
+        /// </summary>
         public double Value;
         #endregion
 
