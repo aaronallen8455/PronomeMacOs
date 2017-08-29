@@ -78,6 +78,7 @@
     <Folder Include="Visualizer\Graph\" />
     <Folder Include="Visualizer\Bounce\" />
     <Folder Include="Editor\" />
+    <Folder Include="Editor\Groups\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -180,6 +181,13 @@
     <Compile Include="Editor\DrawingView.designer.cs">
       <DependentUpon>DrawingView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Editor\CellTreeNode.cs" />
+    <Compile Include="Editor\Groups\AbstractGroup.cs" />
+    <Compile Include="Editor\Groups\Repeat.cs" />
+    <Compile Include="Editor\Groups\Multiply.cs" />
+    <Compile Include="Editor\Groups\Reference.cs" />
+    <Compile Include="Editor\Row.cs" />
+    <Compile Include="Editor\Cell.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
