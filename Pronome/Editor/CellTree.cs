@@ -1,7 +1,9 @@
 ﻿
+using System.Collections;
+
 namespace Pronome.Mac.Editor
 {
-    public class CellTree
+    public class CellTree : IEnumerable
 	{
         /// <summary>
         /// Thichness of cell ticks. Clicking within this range selects the cell.
@@ -335,6 +337,40 @@ namespace Pronome.Mac.Editor
 
 			return null;
 		}
+
+        public IEnumerator GetEnumerator()
+        {
+            CellTreeNode node = Root;
+
+            // find least value
+            while (node.Left != null)
+            {
+                node = node.Left;
+            }
+
+            // in order traversal
+            while (node != null)
+            {
+                yield return node.Cell;
+
+                while (node != null && node.Right == null)
+                {
+                    node = node.Parent;
+
+                    yield return node?.Cell;
+                }
+
+                if (node != null)
+                {
+                    node = node.Right;
+
+                    while (node.Left != null)
+                    {
+                        node = node.Left;
+                    }
+                }
+            }
+        }
 		#endregion
 
 		#region Protected Methods

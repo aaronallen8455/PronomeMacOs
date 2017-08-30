@@ -32,11 +32,11 @@ namespace Pronome.Mac.Editor
 		/// <summary>
 		/// All the cells in this row, including referenced cells
 		/// </summary>
-		public CellList Cells; //= new CellList();
+        public CellTree Cells; //= new CellList();
 
 		protected double _offset;
 		/// <summary>
-		/// Amount of offset in BPM. Setting will effect change in UI
+		/// Amount of offset in BPM.
 		/// </summary>
 		public double Offset
 		{
@@ -45,15 +45,15 @@ namespace Pronome.Mac.Editor
 			{
 				if (value >= 0)
 				{
-					double off = value * EditorWindow.Scale * EditorWindow.BaseFactor;
-					Canvas.Margin = new System.Windows.Thickness(off, 0, 0, 0);
+					//double off = value * EditorWindow.Scale * EditorWindow.BaseFactor;
+					//Canvas.Margin = new System.Windows.Thickness(off, 0, 0, 0);
 					// reposition background
 					_offset = value;
-					if (Background != null)
-					{
-						// repostion the background
-						SetBackground(Duration);
-					}
+					//if (Background != null)
+					//{
+					//	// repostion the background
+					//	SetBackground(Duration);
+					//}
 				}
 			}
 		}

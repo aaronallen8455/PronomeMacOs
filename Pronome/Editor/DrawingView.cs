@@ -4,11 +4,40 @@ using System;
 
 using Foundation;
 using AppKit;
+using Pronome.Mac.Editor;
+using System.Collections.Generic;
+using CoreGraphics;
+using Pronome.Mac.Editor.Groups;
 
 namespace Pronome.Mac
 {
     public partial class DrawingView : NSView
     {
+        const int RowHeight = 50;
+        const int RowSpacing = 20;
+        const int CellThickness = 5;
+
+        /// <summary>
+        /// Space between the bottom of top of cells and the row bounds.
+        /// </summary>
+        const int CellHeightPad = 10;
+
+        static CGColor CellColor = NSColor.Black.CGColor;
+        static CGColor SelectedCellColor = NSColor.Purple.CGColor;
+
+        #region Public fields
+        public Row[] Rows;
+        #endregion
+
+        #region Protected fields
+        protected LinkedList<Row> RowsToDraw;
+
+        /// <summary>
+        /// Used to convert BPM to pixels
+        /// </summary>
+        protected double ScalingFactor = 20;
+        #endregion
+
         public DrawingView(IntPtr handle) : base(handle)
         {
         }
@@ -18,9 +47,148 @@ namespace Pronome.Mac
         {
             base.MouseDown(theEvent);
 
-
+            //SetNeedsDisplayInRect();
         }
 
+        public override void DrawRect(CoreGraphics.CGRect dirtyRect)
+        {
+            base.DrawRect(dirtyRect);
+
+            using (CGContext ctx = NSGraphicsContext.CurrentContext.CGContext)
+            {
+                foreach (Row row in RowsToDraw)
+                {
+                    
+                }
+            }
+        }
+        #endregion
+
+        #region Protected Methods
+        protected void QueueAllRowsToDraw()
+        {
+            
+        }
+
+        protected void QueueRowToDraw(Row row)
+        {
+            RowsToDraw.Clear();
+
+            // see if there are any layers referencing this one.
+
+            RowsToDraw.AddLast(row);
+
+            foreach (Row r in RowsToDraw)
+            {
+                int ind = r.Index;
+                int y = GetYPositionOfRow(row);
+                CGRect dirty = new CGRect(0, y, Frame.Width, RowHeight);
+                SetNeedsDisplayInRect(dirty);
+            }
+        }
+
+        protected void DrawRow(Row row, CGContext baseCtx)
+        {
+            // get rect for the CGLayer to use
+            int y = GetYPositionOfRow(row);
+            int x = (int)(row.Offset * ScalingFactor);
+            int width = (int)(row.Duration * ScalingFactor);
+
+            using (CGLayer layer = CGLayer.Create(baseCtx, new CGSize(width, RowHeight)))
+            {
+                CGContext layerCtx = layer.Context;
+
+                // draw each cell / group / reference
+
+                // these stacks facilitate the drawing of repeat groups.
+                Stack<Repeat> ActiveRepeats = new Stack<Repeat>();
+                Stack<CGLayer> RepeatLayers = new Stack<CGLayer>();
+
+                Stack<Multiply> ActiveMults = new Stack<Multiply>();
+
+                // TODO: make the tree iterable
+                foreach (Cell cell in row.Cells)
+                {
+                    // check if a repeat group is ended
+                    Repeat repGroup = ActiveRepeats.Peek();
+                    // TODO: show cell's only track their top level group?
+                    if (repGroup != null && !cell.RepeatGroups.Contains(repGroup))
+                    {
+                        ActiveRepeats.Pop();
+                        var replyer = RepeatLayers.Pop();
+                        // get the context to draw on
+                        var c = RepeatLayers.Peek()?.Context ?? layerCtx;
+                        // draw originals
+                        int length = (int)(repGroup.Length * ScalingFactor);
+                        int xp = (int)(repGroup.Position * ScalingFactor);
+                        c.DrawLayer(replyer, new CGPoint(xp, 0));
+                        // draw copies
+                        c.SetAlpha(.7f); // repeats are faded
+                        for (int i = 1; i < repGroup.Times; i++)
+                        {
+                            c.DrawLayer(replyer, new CGPoint(xp + length * i, 0));
+                        }
+                        c.SetAlpha(1f);
+
+                        replyer.Dispose();
+                    }
+
+					// draw onto top rep group if there is one
+                    CGContext ctx = RepeatLayers.Peek()?.Context ?? layerCtx;
+
+                    // check if a repeat group is opened
+                    if (ActiveRepeats.Peek() != cell.RepeatGroups.Last.Value)
+                    {
+                        var gp = cell.RepeatGroups.Last.Value;
+                        ActiveRepeats.Push(gp);
+                        int w = (int)(gp.Length * ScalingFactor);
+                        RepeatLayers.Push(CGLayer.Create(ctx, new CGSize(w, RowHeight)));
+
+                        ctx = RepeatLayers.Peek().Context;
+                    }
+
+                    // check if a mult group is opened
+
+
+                    if (cell.IsReference)
+                    {
+                        DrawReference(cell.Reference, ctx);
+
+                        continue;
+                    }
+
+                    int xPos = (int)(cell.Position * ScalingFactor);
+                    ctx.MoveTo(xPos,CellHeightPad);
+
+                    if (cell.IsSelected) ctx.SetFillColor(SelectedCellColor);
+                    else ctx.SetFillColor(CellColor);
+
+                    ctx.FillRect(new CGRect(xPos, CellHeightPad, CellThickness, RowHeight - CellHeightPad));
+                }
+
+                int pos = (int)(row.Offset * ScalingFactor);
+                int length = (int)(row.Duration * ScalingFactor);
+                int ypos = GetYPositionOfRow(row);
+
+                // draw actual elements
+                baseCtx.DrawLayer(layer, new CGPoint(pos, ypos));
+                pos += length;
+
+                // draw ghosts
+                baseCtx.SetAlpha(.5f);
+                while (pos < Frame.Width)
+                {
+                    baseCtx.DrawLayer(layer, new CGPoint(pos, ypos));
+                    pos += length;
+                }
+                baseCtx.SetAlpha(1);
+            }
+        }
+
+        protected int GetYPositionOfRow(Row row)
+        {
+            return (int)(Frame.Height - RowHeight - RowSpacing + (RowHeight + RowSpacing) * row.Index);
+		}
         #endregion
     }
 }
