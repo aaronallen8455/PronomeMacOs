@@ -24,9 +24,9 @@ namespace Pronome.Mac.Editor
 
         #region Public Methods
 
-        public CellTree Insert (double position, Cell cell)
+        public CellTree Insert (Cell cell)
         {
-            return Insert(new CellTreeNode(position, cell));
+            return Insert(new CellTreeNode(cell));
         }
 
 		public CellTree Insert(CellTreeNode node)
@@ -370,6 +370,14 @@ namespace Pronome.Mac.Editor
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Clear this instance.
+        /// </summary>
+        public void Clear()
+        {
+            Root = null;
         }
 		#endregion
 

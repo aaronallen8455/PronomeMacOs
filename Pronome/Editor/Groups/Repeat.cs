@@ -9,7 +9,7 @@ namespace Pronome.Mac.Editor.Groups
         /// </summary>
         public int Times;
 
-        public double LastTimeModifier;
+        public string LastTermModifier;
         #endregion
 
         public Repeat()

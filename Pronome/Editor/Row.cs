@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Linq;
+using Pronome.Mac.Editor.Groups;
+using System.Text;
 
 namespace Pronome.Mac.Editor
 {
@@ -71,33 +75,12 @@ namespace Pronome.Mac.Editor
 		/// <summary>
 		/// All the mult groups in this row
 		/// </summary>
-		public LinkedList<MultGroup> MultGroups = new LinkedList<MultGroup>();
+        public LinkedList<Multiply> MultGroups = new LinkedList<Multiply>();
 
 		/// <summary>
 		/// All Repeat groups in this layer
 		/// </summary>
-		public LinkedList<RepeatGroup> RepeatGroups = new LinkedList<RepeatGroup>();
-
-		/// <summary>
-		/// The canvas on which all visuals are drawn, except for the 'background'
-		/// </summary>
-		public Canvas Canvas;
-
-		/// <summary>
-		/// The element added to the layerPanel stackpanel. Contains everything from this row.
-		/// </summary>
-		public Grid BaseElement;
-
-		/// <summary>
-		/// Sets the size of the row and supplies background color
-		/// </summary>
-		protected Rectangle Sizer = EditorWindow.Instance.Resources["rowSizer"] as Rectangle;
-
-		/// <summary>
-		/// Shows the cell pattern repeating after the row ends
-		/// </summary>
-		public Rectangle Background;
-		protected VisualBrush BackgroundBrush;
+		public LinkedList<Repeat> RepeatGroups = new LinkedList<Repeat>();
 
 		/// <summary>
 		/// Layers indexes that are referenced in this row. 0 based.
@@ -114,42 +97,18 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		public int Index;
 
-		public Canvas SelectionCanvas = new Canvas();
-
 		public Row(Layer layer)
 		{
 			Layer = layer;
-			Index = Metronome.GetInstance().Layers.IndexOf(Layer);
+            Index = Metronome.Instance.Layers.IndexOf(Layer);
 			touchedRefs.Add(Index); // current layer ref should recurse only once
 
-			Canvas = EditorWindow.Instance.Resources["rowCanvas"] as Canvas;
-			Offset = layer.Offset;
-			OffsetValue = layer.GetOffsetValue();
-
-			Background = EditorWindow.Instance.Resources["rowBackgroundRectangle"] as Rectangle;
-			BackgroundBrush = new VisualBrush(Canvas);
-			BackgroundBrush.TileMode = TileMode.Tile;
-			Background.Fill = BackgroundBrush;
-			Canvas.Children.Add(Sizer);
+            Offset = layer.OffsetBpm;
+            OffsetValue = layer.ParsedOffset;
 
 			ReferenceMap = new Dictionary<int, HashSet<int>>();
 
 			FillFromBeatCode(layer.ParsedString);
-
-			BaseElement = EditorWindow.Instance.Resources["rowBaseElement"] as Grid;
-
-			// handler for creating new cells on the grid
-			BaseElement.MouseLeftButtonDown += BaseElement_MouseLeftButtonDown;
-			BaseElement.MouseRightButtonDown += Grid_MouseDownSelectBox;
-
-			BaseElement.Background = Brushes.Transparent;
-			BaseElement.Children.Add(Canvas);
-			BaseElement.Children.Add(Background);
-
-			BaseElement.Children.Add(SelectionCanvas);
-			// Add the handlers for the drag select box
-			BaseElement.MouseUp += Grid_MouseUpSelectBox;
-			BaseElement.MouseMove += Grid_MouseMoveSelectBox;
 		}
 
 		/// <summary>
@@ -160,7 +119,6 @@ namespace Pronome.Mac.Editor
 		{
 			ParsedBeatResult result = ParseBeat(beatCode);
 			Cells = result.Cells;
-			SetBackground(result.Duration);
 			// set the new beatcode string
 			BeatCode = beatCode;
 			BeatCodeIsCurrent = true;
@@ -169,18 +127,20 @@ namespace Pronome.Mac.Editor
 		/// <summary>
 		/// Used in the ParseBeat method to track the currently open, nested repeat groups
 		/// </summary>
-		Stack<RepeatGroup> OpenRepeatGroups = new Stack<RepeatGroup>();
+        Stack<Repeat> OpenRepeatGroups = new Stack<Repeat>();
+
 		/// <summary>
-		/// Build the cell and group objects based on layer. Also adds all visuals to the canvas.
+		/// Build the cell and group objects based on layer.
 		/// </summary>
 		/// <param name="beat"></param>
 		/// <returns></returns>
 		protected ParsedBeatResult ParseBeat(string beat)
 		{
-			CellList cells = new CellList();
+            // cells are stored in red black tree
+            CellTree cells = new CellTree();
 
 			string[] chunks = beat.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
-			Stack<MultGroup> OpenMultGroups = new Stack<MultGroup>();
+            Stack<Multiply> OpenMultGroups = new Stack<Multiply>();
 
 			// BPM value
 			double position = 0;// Offset;
@@ -196,7 +156,7 @@ namespace Pronome.Mac.Editor
 			foreach (Match match in Regex.Matches(beat, @".+?([,|]|$)"))
 			{
 				Cell cell = new Cell(this) { Position = position };
-				cells.Add(cell);
+                cells.Insert(cell);
 
 				string chunk = match.Value;
 
@@ -206,8 +166,8 @@ namespace Pronome.Mac.Editor
 				{
 					while (chunk.Contains('{'))
 					{
-						OpenMultGroups.Push(new MultGroup() { Row = this });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
-						cell.MultGroups = new LinkedList<MultGroup>(OpenMultGroups);
+                        OpenMultGroups.Push(new Multiply() { Row = this });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
+                        cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
 						OpenMultGroups.Peek().Cells.AddLast(cell);
 						OpenMultGroups.Peek().Position = cell.Position;
 
@@ -216,7 +176,7 @@ namespace Pronome.Mac.Editor
 				}
 				else if (OpenMultGroups.Any())
 				{
-					cell.MultGroups = new LinkedList<MultGroup>(OpenMultGroups);
+                    cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
 					OpenMultGroups.Peek().Cells.AddLast(cell);
 				}
 
@@ -225,8 +185,8 @@ namespace Pronome.Mac.Editor
 				{
 					while (chunk.Contains('['))
 					{
-						OpenRepeatGroups.Push(new RepeatGroup() { Row = this });
-						cell.RepeatGroups = new LinkedList<RepeatGroup>(OpenRepeatGroups);
+                        OpenRepeatGroups.Push(new Repeat() { Row = this });
+                        cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
 						OpenRepeatGroups.Peek().Cells.AddLast(cell);
 						OpenRepeatGroups.Peek().Position = cell.Position;
 
@@ -235,7 +195,7 @@ namespace Pronome.Mac.Editor
 				}
 				else if (OpenRepeatGroups.Any())
 				{
-					cell.RepeatGroups = new LinkedList<RepeatGroup>(OpenRepeatGroups);
+                    cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
 					OpenRepeatGroups.Peek().Cells.AddLast(cell);
 				}
 
@@ -247,7 +207,7 @@ namespace Pronome.Mac.Editor
 					// validate the ref index
 					if (char.IsNumber(r, 0))
 					{
-						if (Metronome.GetInstance().Layers.Count < int.Parse(r))
+                        if (Metronome.Instance.Layers.Count < int.Parse(r))
 						{
 							r = "1";
 						}
@@ -258,7 +218,7 @@ namespace Pronome.Mac.Editor
 					if (cell.Reference == "s")
 					{
 						// self reference
-						refIndex = Metronome.GetInstance().Layers.IndexOf(Layer);
+                        refIndex = Metronome.Instance.Layers.IndexOf(Layer);
 					}
 					else
 					{
@@ -274,22 +234,7 @@ namespace Pronome.Mac.Editor
 
 					foreach (Cell c in pbr.Cells)
 					{
-						cells.Add(c);
-					}
-
-					// draw reference rect
-					//cell.ReferenceRectangle = EditorWindow.Instance.Resources["referenceRectangle"] as Rectangle;
-					Canvas.SetLeft(cell.ReferenceRectangle, cell.Position * EditorWindow.Scale * EditorWindow.BaseFactor);
-					cell.ReferenceRectangle.Width = pbr.Duration * EditorWindow.Scale * EditorWindow.BaseFactor;
-					Panel.SetZIndex(cell.ReferenceRectangle, 30);
-					// add to main canvas or repeat group canvas
-					if (OpenRepeatGroups.Any())
-					{
-						OpenRepeatGroups.Peek().Canvas.Children.Add(cell.ReferenceRectangle);
-					}
-					else
-					{
-						Canvas.Children.Add(cell.ReferenceRectangle);
+                        cells.Insert(c);
 					}
 				}
 				else
@@ -310,7 +255,7 @@ namespace Pronome.Mac.Editor
 				{
 					string sourceCode = Regex.Match(chunk, @"(?<=@)([pP]\d*\.?\d*|u?\d+|[a-gA-G][b#]?\d+)").Value;
 
-					ISoundSource source = InternalSource.GetFromModifier(sourceCode);
+                    StreamInfoProvider source = StreamInfoProvider.GetFromModifier(sourceCode);
 
 					cell.Source = source;
 				}
@@ -326,20 +271,12 @@ namespace Pronome.Mac.Editor
 					{
 						// add mult group
 
-						MultGroup mg = OpenMultGroups.Pop();
+                        Multiply mg = OpenMultGroups.Pop();
 						mg.FactorValue = Regex.Match(chunk, @"(?<=})[\d.+\-/*]+").Value;
 						mg.Factor = BeatCell.Parse(mg.FactorValue);
 						// set duration
-						mg.Duration = cell.Position + cell.ActualDuration - mg.Position;
-						// render
-						if (OpenRepeatGroups.Any())
-						{
-							OpenRepeatGroups.Peek().Canvas.Children.Add(mg.Rectangle);
-						}
-						else
-						{
-							Canvas.Children.Add(mg.Rectangle);
-						}
+                        mg.Length = cell.Position + cell.ActualDuration - mg.Position;
+						
 						var m = Regex.Match(chunk, @"\}[\d.+\-/*]+");
 
 						chunk = chunk.Remove(m.Index, m.Length);
@@ -350,8 +287,8 @@ namespace Pronome.Mac.Editor
 					{
 						// add rep group
 
-						RepeatGroup rg = OpenRepeatGroups.Pop();
-						rg.Duration = cell.Position + cell.ActualDuration - rg.Position;
+                        Repeat rg = OpenRepeatGroups.Pop();
+                        rg.Length = cell.Position + cell.ActualDuration - rg.Position;
 						Match mtch = Regex.Match(chunk, @"](\d+)");
 						if (mtch.Length == 0)
 						{
@@ -359,7 +296,7 @@ namespace Pronome.Mac.Editor
 							rg.Times = int.Parse(mtch.Groups[1].Value);
 							if (mtch.Groups[2].Length != 0)
 							{
-								rg.LastTermModifier = mtch.Groups[2].Value;//.Length != 0 ? BeatCell.Parse(mtch.Groups[2].Value) : 0;
+								rg.LastTermModifier = mtch.Groups[2].Value;
 							}
 						}
 						else
@@ -376,19 +313,6 @@ namespace Pronome.Mac.Editor
 					}
 				}
 
-				if (!addedToRepCanvas)
-				{
-					// add cell rect to canvas or repeat group sub-canvas
-					if (OpenRepeatGroups.Any())
-					{
-						OpenRepeatGroups.Peek().Canvas.Children.Add(cell.Rectangle);
-					}
-					else if (string.IsNullOrEmpty(cell.Reference)) // cell's rect is not used if it's a reference
-					{
-						Canvas.Children.Add(cell.Rectangle);
-					}
-				}
-
 				// check if its a break, |
 				if (chunk.Last() == '|')
 				{
@@ -401,9 +325,9 @@ namespace Pronome.Mac.Editor
 
 		protected struct ParsedBeatResult
 		{
-			public CellList Cells;
+			public CellTree Cells;
 			public double Duration;
-			public ParsedBeatResult(CellList cells, double duration)
+			public ParsedBeatResult(CellTree cells, double duration)
 			{
 				Cells = cells;
 				Duration = duration;
@@ -416,13 +340,13 @@ namespace Pronome.Mac.Editor
 		{
 			// get beat code from the layer, or from the row if available
 			string beat;
-			if (EditorWindow.Instance.Rows.Count > refIndex)
+            if (DrawingView.Instance.Rows.Length > refIndex)
 			{
-				beat = EditorWindow.Instance.Rows[refIndex].BeatCode;
+                beat = DrawingView.Instance.Rows[refIndex].BeatCode;
 			}
 			else
 			{
-				beat = Metronome.GetInstance().Layers[refIndex].ParsedString;
+                beat = Metronome.Instance.Layers[refIndex].ParsedString;
 			}
 			// remove comments
 			beat = Regex.Replace(beat, @"!.*?!", "");
@@ -434,10 +358,7 @@ namespace Pronome.Mac.Editor
 			foreach (Match match in matches)
 			{
 				int ind;
-				//if (!int.TryParse(match.Value, out ind))
-				//{
-				//    ind = refIndex + 1;
-				//}
+				
 				int.TryParse(match.Value, out ind);
 				if (touchedRefs.Contains(refIndex))
 				{
@@ -457,7 +378,7 @@ namespace Pronome.Mac.Editor
 					beat = Regex.Replace(beat, @"(?<!\]|\d)\(\d+\)[\d.+\-/*]*", "");
 					// clean out empty cells
 					beat = Regex.Replace(beat, @",,", ",");
-					//refBeat = Regex.Replace(refBeat, @",$", "");
+
 					beat = beat.Trim(',');
 				}
 			}
@@ -467,20 +388,15 @@ namespace Pronome.Mac.Editor
 			// recurse
 			var pbr = ParseBeat(beat);
 
-			HashSet<Group> touchedGroups = new HashSet<Group>();
+            HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
 			// mark the cells as refs
 			foreach (Cell c in pbr.Cells)
 			{
 				c.IsReference = true;
 				c.Position += position;
-				// repostion reference indicator rect
-				if (!string.IsNullOrEmpty(c.Reference))
-				{
-					double l = Canvas.GetLeft(c.ReferenceRectangle);
-					Canvas.SetLeft(c.ReferenceRectangle, l + (position * EditorWindow.Scale * EditorWindow.BaseFactor));
-				}
+				
 				// reposition groups
-				foreach (RepeatGroup rg in c.RepeatGroups)
+                foreach (Repeat rg in c.RepeatGroups)
 				{
 					// only reposition groups that were created within the reference
 					if (OpenRepeatGroups.Count > 0 && OpenRepeatGroups.Peek() == rg) break;
@@ -489,7 +405,7 @@ namespace Pronome.Mac.Editor
 					touchedGroups.Add(rg);
 					rg.Position += position;
 				}
-				foreach (MultGroup mg in c.MultGroups)
+                foreach (Multiply mg in c.MultGroups)
 				{
 					if (touchedGroups.Contains(mg)) continue;
 					touchedGroups.Add(mg);
@@ -522,8 +438,6 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		public void Reset()
 		{
-			Canvas.Children.Clear();
-			Canvas.Children.Add(Sizer);
 			RepeatGroups.Clear();
 			MultGroups.Clear();
 			ReferencedLayers.Clear();
@@ -559,10 +473,12 @@ namespace Pronome.Mac.Editor
 		{
 			StringBuilder result = new StringBuilder();
 
-			foreach (Cell cell in Cells.Where(x => !x.IsReference))
+			foreach (Cell cell in Cells)
 			{
+                if (cell.IsReference) continue;
+
 				// check for open mult group
-				foreach (MultGroup mg in cell.MultGroups)
+                foreach (Multiply mg in cell.MultGroups)
 				{
 					if (mg.Cells.First.Value == cell)
 					{
@@ -571,7 +487,7 @@ namespace Pronome.Mac.Editor
 					}
 				}
 				// check for open repeat group
-				foreach (RepeatGroup rg in cell.RepeatGroups)
+                foreach (Repeat rg in cell.RepeatGroups)
 				{
 					if (rg.Cells.First.Value == cell && rg.Cells.Where(x => !x.IsReference).Count() > 1)
 					{
@@ -599,25 +515,19 @@ namespace Pronome.Mac.Editor
 					}
 					else
 					{
-						if (cell.Source.Uri.IndexOf("Pronome") != 0)
+                        if (!cell.Source.IsInternal)
 						{
-							// check user sources
-							//var src = UserSource.Library.Where(x => x.Uri == cell.Source).FirstOrDefault();
-							//if (src != default(UserSource))
-							//{
-							//    source = 'u' + src.Index.ToString();
-							//}
-							source = (cell.Source as UserSource).Index.ToString();
+							source = cell.Source.Index.ToString();
 						}
 						else
 						{
-							source = (cell.Source as InternalSource).Index.ToString();
+							source = cell.Source.Index.ToString();
 						}
 					}
 					result.Append($"@{source}");
 				}
 				// check for close repeat group
-				foreach (RepeatGroup rg in cell.RepeatGroups)
+                foreach (Repeat rg in cell.RepeatGroups)
 				{
 					Cell[] cells = rg.Cells.Where(x => !x.IsReference).ToArray();
 					if (cells.Last() == cell)
@@ -646,7 +556,7 @@ namespace Pronome.Mac.Editor
 					}
 				}
 				// check for close mult group
-				foreach (MultGroup mg in cell.MultGroups)
+                foreach (Multiply mg in cell.MultGroups)
 				{
 					if (mg.Cells.Last.Value == cell)
 					{
@@ -674,60 +584,15 @@ namespace Pronome.Mac.Editor
 		/// <param name="rg"></param>
 		/// <param name="openRepeatGroups"></param>
 		/// <returns></returns>
-		protected double BuildRepeatGroup(Cell cell, RepeatGroup rg, Stack<RepeatGroup> openRepeatGroups, double position, bool addToCanvas = true)
+        protected double BuildRepeatGroup(Cell cell, Repeat rg, Stack<Repeat> openRepeatGroups, double position, bool addToCanvas = true)
 		{
 			//double position = 0;
 			RepeatGroups.AddLast(rg);
-			// render
-			Canvas.Children.Add(rg.Rectangle);
-			// add the child canvas
-			if (openRepeatGroups.Any())
-			{
-				// nested repeats
-				openRepeatGroups.Peek().Canvas.Children.Add(rg.Canvas);
-				rg.HostCanvas = openRepeatGroups.Peek().Canvas;
-			}
-			else
-			{
-				// added to row canvas
-				Canvas.Children.Add(rg.Canvas);
-				rg.HostCanvas = Canvas;
-			}
 
-			// add cell rect if not a reference
-			if (string.IsNullOrEmpty(cell.Reference) && addToCanvas)
-			{
-				rg.Canvas.Children.Add(cell.Rectangle);
-			}
-			// get size of the host rects
-			double hostWidth = (rg.Duration - (string.IsNullOrEmpty(cell.Reference) ? cell.ActualDuration : 0)) * EditorWindow.Scale * EditorWindow.BaseFactor;
-			if (string.IsNullOrEmpty(cell.Reference))
-			{
-				hostWidth += (double)EditorWindow.Instance.Resources["cellWidth"];
-			}
-			// append duplicates of sub-canvas
 			for (int i = 0; i < rg.Times - 1; i++)
 			{
-				VisualBrush duplicate = new VisualBrush(rg.Canvas);
-				var dupHost = EditorWindow.Instance.Resources["repeatRectangle"] as Rectangle;
-				dupHost.Width = hostWidth;
-				// fill with dupe content
-				dupHost.Fill = duplicate;
-				// do offsets
-				Canvas.SetLeft(dupHost, position * EditorWindow.Scale * EditorWindow.BaseFactor);
-				Canvas.SetTop(dupHost, (double)EditorWindow.Instance.Resources["rowHeight"] / 2 - (double)EditorWindow.Instance.Resources["cellHeight"] / 2);
-				rg.HostRects.AddLast(dupHost);
-				// render it
-				if (openRepeatGroups.Any())
-				{
-					openRepeatGroups.Peek().Canvas.Children.Add(dupHost);
-				}
-				else
-				{
-					Canvas.Children.Add(dupHost);
-				}
 				// move position forward
-				position += rg.Duration;
+                position += rg.Length;
 			}
 
 			position += BeatCell.Parse(rg.LastTermModifier); //* EditorWindow.Scale * EditorWindow.BaseFactor;
@@ -742,31 +607,7 @@ namespace Pronome.Mac.Editor
 		protected void SetBackground(double widthBpm)
 		{
 			Duration = widthBpm;
-			// set background tile size
-			double rowHeight = (double)EditorWindow.Instance.Resources["rowHeight"];
-			double width = widthBpm * EditorWindow.Scale * EditorWindow.BaseFactor;
-			double offset = Offset * EditorWindow.Scale * EditorWindow.BaseFactor;
-			BackgroundBrush.Viewport = new System.Windows.Rect(0, rowHeight, width, rowHeight);
-			BackgroundBrush.ViewportUnits = BrushMappingMode.Absolute;
-			Background.Margin = new System.Windows.Thickness(width + offset, 0, 0, 0);
-			Sizer.Width = width;
-			// offset the sizer
-			//Canvas.SetLeft(Sizer, offset);
-		}
-
-		/// <summary>
-		/// Change the sizer width and reposition background by an amount in BPM
-		/// </summary>
-		/// <param name="diff"></param>
-		public void ChangeSizerWidthByAmount(double diff)
-		{
-			double change = diff * EditorWindow.Scale * EditorWindow.BaseFactor;
-			double offset = Offset * EditorWindow.Scale * EditorWindow.BaseFactor;
-			double rowHeight = (double)EditorWindow.Instance.Resources["rowHeight"];
-			Sizer.Width += change;
-			// reposition background
-			BackgroundBrush.Viewport = new System.Windows.Rect(0, rowHeight, Sizer.Width, rowHeight);
-			Background.Margin = new System.Windows.Thickness(Background.Margin.Left + change, 0, 0, 0);
+			
 		}
 
 		/// <summary>
@@ -808,22 +649,6 @@ namespace Pronome.Mac.Editor
 					duration -= Cell.SelectedCells.LastCell.ActualDuration;
 				}
 
-				Rectangle sizer = EditorWindow.Instance.GridSizer;
-				// set grid cell size
-				sizer.Width = gridCellSize;
-				Rectangle tick = EditorWindow.Instance.GridTick;
-				Rectangle leftGrid = EditorWindow.Instance.GridLeft;
-				// set left grid width
-				leftGrid.Width = (positionBpm + Offset) * EditorWindow.Scale * EditorWindow.BaseFactor + tick.Width;
-				Rectangle rightGrid = EditorWindow.Instance.GridRight;
-				// position right grid
-				rightGrid.Margin = new System.Windows.Thickness(leftGrid.Width + duration * EditorWindow.Scale * EditorWindow.BaseFactor - tick.Width, 0, 0, 0);
-				VisualBrush gridBrush = EditorWindow.Instance.GridBrush;
-				// set viewport size
-				gridBrush.Viewport = new System.Windows.Rect(0, sizer.Height, gridCellSize, sizer.Height);
-
-				BaseElement.Children.Add(leftGrid);
-				BaseElement.Children.Add(rightGrid);
 			}
 		}
 
@@ -944,7 +769,6 @@ namespace Pronome.Mac.Editor
 			}
 		}
 
-		Point selectorOrigin = new Point();
 		/// <summary>
 		/// Start drawing the selection box
 		/// </summary>
@@ -980,13 +804,6 @@ namespace Pronome.Mac.Editor
 				Canvas.SetZIndex(selector, 500);
 				SelectionCanvas.Children.Add(selector);
 			}
-		}
-
-
-		private void BaseElement_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-		{
-			// unfocus
-			Keyboard.ClearFocus();
 		}
 	}
 }

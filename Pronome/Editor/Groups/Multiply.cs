@@ -7,7 +7,9 @@ namespace Pronome.Mac.Editor.Groups
         /// <summary>
         /// Beat code representation of the mult factor
         /// </summary>
-        public string Factor;
+        public string FactorValue;
+
+        public double Factor;
         #endregion
 
         public Multiply()

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace Pronome.Mac.Editor.Groups
 {
     public abstract class AbstractGroup
@@ -7,6 +9,10 @@ namespace Pronome.Mac.Editor.Groups
         public double Position;
 
         public double Length;
+
+        public Row Row;
+
+        public LinkedList<Cell> Cells;
         #endregion
 
         public AbstractGroup()

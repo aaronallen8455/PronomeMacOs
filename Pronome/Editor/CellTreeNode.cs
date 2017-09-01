@@ -21,7 +21,7 @@ namespace Pronome.Mac.Editor
         #endregion
 
         #region Constructor
-        public CellTreeNode(double position, Cell cell)
+        public CellTreeNode(Cell cell)
         {
             Cell = cell;
         }

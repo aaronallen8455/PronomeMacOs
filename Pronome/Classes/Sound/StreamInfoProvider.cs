@@ -45,6 +45,10 @@ namespace Pronome.Mac
         /// <value><c>true</c> if is pitch; otherwise, <c>false</c>.</value>
         public bool IsPitch { get => _isPitch; }
 
+        /// <summary>
+        /// Gets or sets the index.
+        /// </summary>
+        /// <value>The index.</value>
         [Export("Index")]
         public nint Index 
         { 
