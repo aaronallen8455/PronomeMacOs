@@ -117,8 +117,9 @@ namespace Pronome.Mac.Editor
 		/// <param name="beatCode"></param>
 		public void FillFromBeatCode(string beatCode)
 		{
-			ParsedBeatResult result = ParseBeat(beatCode);
-			Cells = result.Cells;
+            //double pos;
+			(Cells, Duration) = ParseBeat(beatCode);
+			//Cells = result.Cells;
 			// set the new beatcode string
 			BeatCode = beatCode;
 			BeatCodeIsCurrent = true;
@@ -134,7 +135,7 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		/// <param name="beat"></param>
 		/// <returns></returns>
-		protected ParsedBeatResult ParseBeat(string beat)
+        protected (CellTree cells, double position) ParseBeat(string beat)
 		{
             // cells are stored in red black tree
             CellTree cells = new CellTree();
@@ -225,14 +226,14 @@ namespace Pronome.Mac.Editor
 						refIndex = int.Parse(cell.Reference) - 1;
 					}
 
-					ParsedBeatResult pbr = ResolveReference(refIndex, position);
+                    (CellTree pbCells, double duration) = ResolveReference(refIndex, position);
 					// add the ref cells in
 					//cells = new LinkedList<Cell>(cells.Concat(pbr.Cells));
 					// progress position
-					position += pbr.Duration;
-					cell.SetDurationDirectly(pbr.Duration);
+                    position += duration;
+					cell.SetDurationDirectly(duration);
 
-					foreach (Cell c in pbr.Cells)
+					foreach (Cell c in pbCells)
 					{
                         cells.Insert(c);
 					}
@@ -320,7 +321,7 @@ namespace Pronome.Mac.Editor
 				}
 			}
 
-			return new ParsedBeatResult(cells, position);
+            return (cells, position);
 		}
 
 		protected struct ParsedBeatResult
@@ -336,7 +337,7 @@ namespace Pronome.Mac.Editor
 
 		private HashSet<int> touchedRefs = new HashSet<int>();
 
-		protected ParsedBeatResult ResolveReference(int refIndex, double position)
+        protected (CellTree cells, double position) ResolveReference(int refIndex, double position)
 		{
 			// get beat code from the layer, or from the row if available
 			string beat;
@@ -386,11 +387,11 @@ namespace Pronome.Mac.Editor
 			touchedRefs.Add(refIndex);
 
 			// recurse
-			var pbr = ParseBeat(beat);
+            (CellTree cells, double pbPosition) = ParseBeat(beat);
 
             HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
 			// mark the cells as refs
-			foreach (Cell c in pbr.Cells)
+			foreach (Cell c in cells)
 			{
 				c.IsReference = true;
 				c.Position += position;
@@ -430,7 +431,7 @@ namespace Pronome.Mac.Editor
 				ReferenceMap.Add(refIndex, new HashSet<int>(new int[] { Index }));
 			}
 
-			return pbr;
+            return (cells, pbPosition);
 		}
 
 		/// <summary>
@@ -608,202 +609,6 @@ namespace Pronome.Mac.Editor
 		{
 			Duration = widthBpm;
 			
-		}
-
-		/// <summary>
-		/// Draw the grid lines for selected cells in this row. Also sets the FirstCell and LastCell of selection object.
-		/// </summary>
-		/// <param name="intervalCode"></param>
-		public void DrawGridLines(string intervalCode)
-		{
-			double gridCellSize;
-			if (BeatCell.TryParse(intervalCode, out gridCellSize))
-			{
-				gridCellSize *= EditorWindow.BaseFactor * EditorWindow.Scale;
-				// get duration of selection and leftmost position
-				double duration = 0; // BPM
-				double positionBpm = double.MaxValue;
-				double maxPostion = -1;
-				foreach (Cell cell in Cell.SelectedCells.Cells.Where(x => !x.IsReference))
-				{
-					//else
-					//{
-					duration += cell.ActualDuration;
-					//}
-					// find first cell
-					if (cell.Position < positionBpm)
-					{
-						positionBpm = cell.Position;
-						Cell.SelectedCells.FirstCell = cell;
-					}
-					// find last cell
-					if (cell.Position > maxPostion)
-					{
-						maxPostion = cell.Position;
-						Cell.SelectedCells.LastCell = cell;
-					}
-				}
-				if (string.IsNullOrEmpty(Cell.SelectedCells.LastCell.Reference))
-				{
-					// leave the duration in for references, otherwise it's zero width
-					duration -= Cell.SelectedCells.LastCell.ActualDuration;
-				}
-
-			}
-		}
-
-		/// <summary>
-		/// Create a new cell at the position on grid if within a certain range of a grid line
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void BaseElement_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-		{
-			if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
-			{
-				// pass to the select box handler
-				Grid_MouseDownSelectBox(sender, e);
-			}
-			else
-			{
-				if (Cell.SelectedCells.Cells.Any())
-				{
-					AddCell action = new AddCell(e.GetPosition((Grid)sender).X, this);
-
-					action.Redo();
-
-					if (action.IsValid)
-					{
-						EditorWindow.Instance.AddUndoAction(action);
-						return;
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Move mouse handler while selection box is being drawn
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void Grid_MouseMoveSelectBox(object sender, System.Windows.Input.MouseEventArgs e)
-		{
-			if (SelectionCanvas.IsMouseCaptured)
-			{
-				double x = e.GetPosition(BaseElement).X;
-				double y = Math.Max(
-					Math.Min(e.GetPosition(BaseElement).Y, (double)EditorWindow.Instance.Resources["rowHeight"]),
-					0);
-
-				Rectangle selector = EditorWindow.Instance.Resources["boxSelect"] as Rectangle;
-
-				// change the size and/or position of the selector based on new mouse position
-				if (x < selectorOrigin.X)
-				{
-					Canvas.SetLeft(selector, x);
-					selector.Width = selectorOrigin.X - x;
-				}
-				else if (x >= selectorOrigin.X)
-				{
-					Canvas.SetLeft(selector, selectorOrigin.X);
-					selector.Width = x - selectorOrigin.X;
-				}
-
-				if (y < selectorOrigin.Y)
-				{
-					Canvas.SetTop(selector, y);
-					selector.Height = selectorOrigin.Y - y;
-				}
-				else if (y >= selectorOrigin.Y)
-				{
-					Canvas.SetTop(selector, selectorOrigin.Y);
-					selector.Height = y - selectorOrigin.Y;
-				}
-
-				// scroll the window if necessary
-
-				double windowWidth = EditorWindow.Instance.Width - 20;
-				double scrollAmount = EditorWindow.Instance.layerPanelScrollViewer.HorizontalOffset;
-				// scroll right
-				if (windowWidth < x - scrollAmount)
-				{
-					EditorWindow.Instance.layerPanelScrollViewer.ScrollToHorizontalOffset(scrollAmount + .1);
-				}
-				else if (x - scrollAmount < -20) // scroll left
-				{
-					EditorWindow.Instance.layerPanelScrollViewer.ScrollToHorizontalOffset(scrollAmount - .1);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Remove the selection box and select cells within it's range. Deselect all if no cells selected
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void Grid_MouseUpSelectBox(object sender, System.Windows.Input.MouseButtonEventArgs e)
-		{
-			if (SelectionCanvas.IsMouseCaptured)
-			{
-				SelectionCanvas.ReleaseMouseCapture();
-				Rectangle selector = EditorWindow.Instance.Resources["boxSelect"] as Rectangle;
-
-				// select all cells within the range
-				double start = Math.Min(selectorOrigin.X, Canvas.GetLeft(selector)) / EditorWindow.Scale / EditorWindow.BaseFactor - Offset;
-				double end = start + selector.Width / EditorWindow.Scale / EditorWindow.BaseFactor;
-				IEnumerable<Cell> cells = Cells.Where(x => !x.IsReference).SkipWhile(x => x.Position < start).TakeWhile(x => x.Position < end);
-
-				SelectionCanvas.Children.Remove(selector);
-
-				Cell.SelectedCells.DeselectAll(false);
-
-				if (cells.Any())
-				{
-					foreach (Cell cell in cells)
-					{
-						cell.ToggleSelect(false);
-					}
-				}
-
-				EditorWindow.Instance.UpdateUiForSelectedCell();
-			}
-		}
-
-		/// <summary>
-		/// Start drawing the selection box
-		/// </summary>
-		/// <param name="sender"></param>
-		/// <param name="e"></param>
-		private void Grid_MouseDownSelectBox(object sender, System.Windows.Input.MouseButtonEventArgs e)
-		{
-			// unfocus any ui elements (prevents a value holding over to a group selection)
-			//Keyboard.ClearFocus();
-			//Keyboard.Focus(EditorWindow.Instance);
-			var focused = Keyboard.FocusedElement;
-			if (focused.GetType() == typeof(TextBox))
-			{
-				focused.RaiseEvent(new RoutedEventArgs(TextBox.LostFocusEvent));
-			}
-
-			Rectangle selector = EditorWindow.Instance.Resources["boxSelect"] as Rectangle;
-
-			if (selector.Parent == null)
-			{
-				// get selection origin
-				double x = e.GetPosition(BaseElement).X;
-				double y = e.GetPosition(BaseElement).Y;
-				selectorOrigin.X = x;
-				selectorOrigin.Y = y;
-
-				// attach the selection box to the canvas
-				SelectionCanvas.CaptureMouse();
-				selector.Width = 0;
-				selector.Height = 0;
-				Canvas.SetTop(selector, y);
-				Canvas.SetLeft(selector, x);
-				Canvas.SetZIndex(selector, 500);
-				SelectionCanvas.Children.Add(selector);
-			}
 		}
 	}
 }

@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using CoreGraphics;
 using Pronome.Mac.Editor.Groups;
+using System.Linq;
+using AppKit;
+using Foundation;
 
 namespace Pronome.Mac.Editor
 {
@@ -25,42 +28,44 @@ namespace Pronome.Mac.Editor
 			{
 				//HashSet<RepeatGroup> touchedRepGroups = new HashSet<RepeatGroup>();
 				//HashSet<MultGroup> touchedMultGroups = new HashSet<MultGroup>();
-				HashSet<Group> touchedGroups = new HashSet<Group>();
+                HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
 				double diff = value - _duration;
 				_duration = value;
 				// resize groups of which this cell is a part
-				foreach (RepeatGroup rg in RepeatGroups)
+                foreach (Repeat rg in RepeatGroups)
 				{
 					touchedGroups.Add(rg);
-					rg.Duration += diff;
+                    rg.Length += diff;
 				}
-				foreach (MultGroup mg in MultGroups)
+                foreach (Multiply mg in MultGroups)
 				{
 					touchedGroups.Add(mg);
-					mg.Duration += diff;
+                    mg.Length += diff;
 				}
-				// reposition all subsequent cells and groups and references
-				foreach (Cell cell in Row.Cells.SkipWhile(x => x != this).Skip(1))
-				{
-					cell.Position += diff;
-					// reposition reference rect
-					if (cell.ReferenceRectangle != null)
-					{
-						double cur = Canvas.GetLeft(cell.ReferenceRectangle);
-						Canvas.SetLeft(cell.ReferenceRectangle, cur + diff);
-					}
-				}
+
+                //// reposition all subsequent cells and groups and references
+				//foreach (Cell cell in Row.Cells.SkipWhile(x => x != this).Skip(1))
+				//{
+				//
+				//	cell.Position += diff;
+				//	// reposition reference rect
+				//	if (cell.ReferenceRectangle != null)
+				//	{
+				//		double cur = Canvas.GetLeft(cell.ReferenceRectangle);
+				//		Canvas.SetLeft(cell.ReferenceRectangle, cur + diff);
+				//	}
+				//}
 				// reposition groups
-				foreach (RepeatGroup rg in Row.RepeatGroups.Where(x => !touchedGroups.Contains(x) && x.Position > Position))
-				{
-					rg.Position += diff;
-				}
-				foreach (MultGroup mg in Row.MultGroups.Where(x => !touchedGroups.Contains(x) && x.Position > Position))
-				{
-					mg.Position += diff;
-				}
+				//foreach (RepeatGroup rg in Row.RepeatGroups.Where(x => !touchedGroups.Contains(x) && x.Position > Position))
+				//{
+				//	rg.Position += diff;
+				//}
+				//foreach (MultGroup mg in Row.MultGroups.Where(x => !touchedGroups.Contains(x) && x.Position > Position))
+				//{
+				//	mg.Position += diff;
+				//}
 				// resize sizer
-				Row.ChangeSizerWidthByAmount(diff);
+				//Row.ChangeSizerWidthByAmount(diff);
 			}
 		}
 
@@ -194,41 +199,43 @@ namespace Pronome.Mac.Editor
 			{
 				if (Clicked)
 				{
+                    //var e = NSApplication.SharedApplication.CurrentEvent;
+                    //e.ModifierFlags
 					// multiSelect
-					if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-					{
-						int start = -1;
-						int end = -1;
-						for (int i = 0; i < Row.Cells.Count; i++)
-						{
-							if (start == -1 && Row.Cells[i].IsSelected)
-							{
-								start = i;
-								end = i;
-							}
-							else if (Row.Cells[i].IsSelected || Row.Cells[i] == this)
-							{
-								end = i;
-							}
-						}
-						// have to set this otherwise it will get flipped by SelectRange.
-						IsSelected = false;
-
-						SelectedCells.SelectRange(start, end, Row, false);
-
-						return;
-					}
-					else
-					{ // single select : deselect others
-						foreach (Cell c in SelectedCells.Cells.ToArray())
-						{
-							c.ToggleSelect(false);
-						}
-					}
+					//if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+					//{
+					//	int start = -1;
+					//	int end = -1;
+					//	for (int i = 0; i < Row.Cells.Count; i++)
+					//	{
+					//		if (start == -1 && Row.Cells[i].IsSelected)
+					//		{
+					//			start = i;
+					//			end = i;
+					//		}
+					//		else if (Row.Cells[i].IsSelected || Row.Cells[i] == this)
+					//		{
+					//			end = i;
+					//		}
+					//	}
+					//	// have to set this otherwise it will get flipped by SelectRange.
+					//	IsSelected = false;
+					//
+					//	SelectedCells.SelectRange(start, end, Row, false);
+                    //
+					//	return;
+					//}
+					//else
+					//{ // single select : deselect others
+					//	foreach (Cell c in SelectedCells.Cells.ToArray())
+					//	{
+					//		c.ToggleSelect(false);
+					//	}
+					//}
 				}
 
 				SelectedCells.Cells.Add(this);
-				EditorWindow.Instance.SetCellSelected(true);
+				//EditorWindow.Instance.SetCellSelected(true);
 			}
 			else if (!IsSelected)
 			{ // deselect if not a cell in a multi-select being clicked
@@ -245,7 +252,7 @@ namespace Pronome.Mac.Editor
 				if (!SelectedCells.Cells.Any())
 				{
 					// no cells selected
-					EditorWindow.Instance.SetCellSelected(false);
+					//EditorWindow.Instance.SetCellSelected(false);
 				}
 			}
 		}
@@ -320,22 +327,21 @@ namespace Pronome.Mac.Editor
 			/// <param name="start"></param>
 			/// <param name="end"></param>
 			/// <param name="row"></param>
-			public void SelectRange(int start, int end, Row row, bool updateUi = true)
+			public void SelectRange(double start, double end, Row row, bool updateUi = true)
 			{
 				DeselectAll(false);
 
-				if (row.Cells.Count > start && row.Cells.Count > end && start <= end)
-				{
-					for (int i = start; i <= end; i++)
-					{
-						row.Cells[i].ToggleSelect(false);
-					}
-				}
+                CellTreeNode[] nodes = row.Cells.GetRange(start, end);
 
-				if (updateUi)
-				{
-					EditorWindow.Instance.UpdateUiForSelectedCell();
-				}
+                if (nodes.Length > 0)
+                {
+                    
+					if (updateUi)
+					{
+						//EditorWindow.Instance.UpdateUiForSelectedCell();
+					}
+                }
+
 			}
 		}
 	}

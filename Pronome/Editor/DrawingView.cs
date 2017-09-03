@@ -8,6 +8,7 @@ using Pronome.Mac.Editor;
 using System.Collections.Generic;
 using CoreGraphics;
 using Pronome.Mac.Editor.Groups;
+using System.Linq;
 
 namespace Pronome.Mac
 {
@@ -32,7 +33,7 @@ namespace Pronome.Mac
         #endregion
 
         #region Protected fields
-        protected LinkedList<Row> RowsToDraw;
+        protected Queue<Row> RowsToDraw = new Queue<Row>();
 
         /// <summary>
         /// Used to convert BPM to pixels
@@ -43,6 +44,8 @@ namespace Pronome.Mac
         public DrawingView(IntPtr handle) : base(handle)
         {
             Instance = this;
+            // instantiate the rows
+            Rows = Metronome.Instance.Layers.Select(x => new Row(x)).ToArray();
         }
 
         #region Overrides
@@ -50,36 +53,54 @@ namespace Pronome.Mac
         {
             base.MouseDown(theEvent);
 
+            QueueAllRowsToDraw();
             //SetNeedsDisplayInRect();
         }
 
-        public override void DrawRect(CoreGraphics.CGRect dirtyRect)
+        public override void DrawRect(CGRect dirtyRect)
         {
             base.DrawRect(dirtyRect);
 
-            using (CGContext ctx = NSGraphicsContext.CurrentContext.CGContext)
-            {
-                foreach (Row row in RowsToDraw)
+			using (CGContext ctx = NSGraphicsContext.CurrentContext.CGContext)
+			{                   
+                while (RowsToDraw.TryDequeue(out Row row))
                 {
-                    
+    					DrawRow(row, ctx);
                 }
-            }
+			}
+        }
+
+        public override void ViewDidMoveToWindow()
+        {
+            base.ViewDidMoveToWindow();
+
+            //QueueAllRowsToDraw();
         }
         #endregion
 
         #region Protected Methods
+        /// <summary>
+        /// Queues all rows to draw.
+        /// </summary>
         protected void QueueAllRowsToDraw()
         {
-            
+            foreach(Row row in Rows)
+            {
+                QueueRowToDraw(row);
+            }
         }
 
+        /// <summary>
+        /// Queues the row to draw.
+        /// </summary>
+        /// <param name="row">Row.</param>
         protected void QueueRowToDraw(Row row)
         {
-            RowsToDraw.Clear();
+            //RowsToDraw.Clear();
 
             // see if there are any layers referencing this one.
 
-            RowsToDraw.AddLast(row);
+            RowsToDraw.Enqueue(row);
 
             foreach (Row r in RowsToDraw)
             {
@@ -97,8 +118,8 @@ namespace Pronome.Mac
         /// <param name="baseCtx">Base context.</param>
         protected void DrawRow(Row row, CGContext baseCtx)
         {
-            // get rect for the CGLayer to use
-            int y = GetYPositionOfRow(row);
+			// get rect for the CGLayer to use
+			int y = GetYPositionOfRow(row);
             int x = (int)(row.Offset * ScalingFactor);
             int width = (int)(row.Duration * ScalingFactor);
 
@@ -132,7 +153,7 @@ namespace Pronome.Mac
                     else ctx.SetFillColor(CellColor);
 
                     ctx.FillRect(new CGRect(xPos, CellHeightPad, CellThickness, RowHeight - CellHeightPad));
-                }
+				}
 
                 int pos = (int)(row.Offset * ScalingFactor);
                 int length = (int)(row.Duration * ScalingFactor);
@@ -157,6 +178,7 @@ namespace Pronome.Mac
 
         protected CGContext HandleRepeatGroups(CGContext layerCtx, Stack<Repeat> ActiveRepeats, Stack<CGLayer> RepeatLayers, Cell cell)
         {
+            if (!ActiveRepeats.Any()) return layerCtx;
             // check if repeat groups are ended
             Repeat repGroup = ActiveRepeats.Peek();
 
@@ -223,6 +245,8 @@ namespace Pronome.Mac
         /// <param name="ctx">Context.</param>
         protected void HandleMultGroups(Stack<Multiply> ActiveMults, Cell cell, CGContext ctx)
         {
+            if (!ActiveMults.Any()) return;
+
             Multiply multGroup = ActiveMults.Peek();
             // check if a mult groups are closed
             while (multGroup != null && !cell.MultGroups.Contains(multGroup))
@@ -312,7 +336,7 @@ namespace Pronome.Mac
         /// <param name="row">Row.</param>
         protected int GetYPositionOfRow(Row row)
         {
-            return (int)(Frame.Height - RowHeight - RowSpacing + (RowHeight + RowSpacing) * row.Index);
+            return (int)(Frame.Height - RowHeight - RowSpacing - (RowHeight + RowSpacing) * row.Index);
 		}
         #endregion
     }

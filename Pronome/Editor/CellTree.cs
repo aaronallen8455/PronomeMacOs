@@ -1,5 +1,6 @@
 ﻿
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Pronome.Mac.Editor
 {
@@ -12,15 +13,14 @@ namespace Pronome.Mac.Editor
 
 		#region Public Fields
 		public CellTreeNode Root;
+
+        public int Count;
 		#endregion
 
 		public CellTree()
 		{
 		}
 
-        #region Static Public methods
-
-        #endregion
 
         #region Public Methods
 
@@ -98,7 +98,7 @@ namespace Pronome.Mac.Editor
 				}
 
 				// step 4
-				if (gp.Left.Right == node)
+                if (gp.Left != null && gp.Left.Right == node)
 				{
 					// rotate
 					RotateLeft(parent);
@@ -136,6 +136,8 @@ namespace Pronome.Mac.Editor
 
 				break;
 			}
+
+            Count++;
 
 			return this;
 		}
@@ -317,9 +319,17 @@ namespace Pronome.Mac.Editor
 				Replace(nodeToDeleteAfterwards, null);
 			}
 
+            Count--;
+
 			return this;
 		}
 
+        /// <summary>
+        /// Look up the cell at the specified position.
+        /// </summary>
+        /// <returns>The up.</returns>
+        /// <param name="value">Value.</param>
+        /// <param name="useThickness">If set to <c>true</c> use thickness.</param>
 		public CellTreeNode LookUp(double value, bool useThickness = true)
 		{
 			CellTreeNode node = Root;
@@ -331,15 +341,65 @@ namespace Pronome.Mac.Editor
 					return node;
 				}
 
-                if (node.Cell.Position > value) node = node.Left;
-				else node = node.Right;
+                if (node.Cell.Position < value) node = node.Right;
+                else node = node.Left;
 			}
 
 			return null;
 		}
 
+        public CellTreeNode FindAboveOrEqualTo (double value)
+        {
+            CellTreeNode node = Root;
+
+            while (node != null)
+            {
+                if (node.Cell.Position < value)
+                {
+                    node = node.Right;
+                }
+                else
+                {
+                    if (node.Left != null && node.Left.Cell.Position >= value)
+                    {
+                        node = node.Left;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// Find all cells inside the given range.
+        /// </summary>
+        /// <returns>The range.</returns>
+        /// <param name="start">Start.</param>
+        /// <param name="end">End.</param>
+        public CellTreeNode[] GetRange(double start, double end)
+        {
+            List<CellTreeNode> cells = new List<CellTreeNode>();
+
+            CellTreeNode cell = FindAboveOrEqualTo(start);
+
+            while (cell.Cell.Position <= end)
+            {
+                cells.Add(cell);
+
+                cell = cell.Next();
+            }
+
+            return cells.ToArray();
+        }
+
         public IEnumerator GetEnumerator()
         {
+            HashSet<CellTreeNode> touched = new HashSet<CellTreeNode>();
+
             CellTreeNode node = Root;
 
             // find least value
@@ -351,25 +411,59 @@ namespace Pronome.Mac.Editor
             // in order traversal
             while (node != null)
             {
-                yield return node.Cell;
+                if (!touched.Contains(node))
+                {
+					yield return node.Cell;
+					touched.Add(node);
+                }
+                else
+                {
+                    node = node.Parent;
+
+                    if (node == null)
+                    {
+                        yield break;
+                    }
+
+                    if (touched.Contains(node))
+                    {
+                        node = node.Parent;
+                    }
+                    else
+                    {
+						yield return node.Cell;
+						touched.Add(node);
+                    }
+                }
 
                 while (node != null && node.Right == null)
                 {
                     node = node.Parent;
 
-                    yield return node?.Cell;
+                    if (node == null) 
+                        yield break;
+
+                    if (!touched.Contains(node))
+                    {
+                        yield return node?.Cell;
+                        touched.Add(node);
+                    }
+                    else break;
                 }
 
                 if (node != null)
                 {
-                    node = node.Right;
+                    if (!touched.Contains(node.Right))
+                        node = node.Right;
 
-                    while (node.Left != null)
+                    while (node.Left != null && !touched.Contains(node.Left))
                     {
                         node = node.Left;
                     }
                 }
             }
+
+            yield break;
         }
 
         /// <summary>

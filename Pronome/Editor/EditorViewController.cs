@@ -19,8 +19,8 @@ namespace Pronome.Mac
             base.ViewDidLoad();
 
             // initialize the drawing view
-            DrawingView.WantsLayer = true;
-            DrawingView.Layer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
+            //DrawingView.WantsLayer = true;
+            //DrawingView.Layer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
         }
 	}
 }
