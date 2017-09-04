@@ -109,25 +109,24 @@ namespace Pronome.Mac.Editor
             if (Right != null)
             {
                 node = Right;
+
+                while (node.Left != null)
+                {
+                    node = node.Left;
+                }
             }
             else
             {
 				node = Parent;
-				
-                
-                while (node != null && (node.Right == null || node.Right == this))
+
+                HashSet<CellTreeNode> touched = new HashSet<CellTreeNode>();
+
+                while (node != null && (node.Right == null || node.Right == this || touched.Contains(node.Right)))
                 {
+                    touched.Add(node);
+
                     node = node.Parent;
                 }
-                
-				if (node == null) return null;
-
-				node = node.Right;
-            }
-
-            while (node.Left != null)
-            {
-                node = node.Left;
             }
 
             return node;
@@ -140,24 +139,23 @@ namespace Pronome.Mac.Editor
             if (Left != null) 
             {
                 node = Left;
+
+                while (node.Right != null)
+                {
+                    node = node.Right;
+                }
             }
             else
             {
 				node = Parent;
-				
-                while (node != null && (node.Left == null || node.Left == this))
+
+                HashSet<CellTreeNode> touched = new HashSet<CellTreeNode>();
+
+                while (node != null && (node.Left == null || node.Left == this || touched.Contains(node.Left)))
                 {
+                    touched.Add(node);
                     node = node.Parent;
                 }
-
-				if (node == null) return null;
-
-                node = node.Left;
-            }
-
-            while (node.Right != null)
-            {
-                node = node.Right;
             }
 
             return node;

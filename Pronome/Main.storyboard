@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16G29" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <deployment identifier="macosx"/>
         <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12121"/>
         <capability name="box content view" minToolsVersion="7.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -100,30 +99,29 @@
                         <rect key="frame" x="0.0" y="0.0" width="704" height="436"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GVG-gb-2sm">
-                                <rect key="frame" x="0.0" y="70" width="704" height="277"/>
+                            <scrollView horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" usesPredominantAxisScrolling="NO" horizontalScrollElasticity="none" verticalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="GVG-gb-2sm">
+                                <rect key="frame" x="10" y="70" width="684" height="277"/>
                                 <clipView key="contentView" id="0fA-wJ-JJk">
-                                    <rect key="frame" x="1" y="1" width="702" height="275"/>
+                                    <rect key="frame" x="1" y="1" width="682" height="275"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uxV-Hh-Q4s" customClass="DrawingView">
-                                            <rect key="frame" x="0.0" y="0.0" width="687" height="260"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="800" height="276"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         </view>
                                     </subviews>
                                 </clipView>
                                 <scroller key="horizontalScroller" verticalHuggingPriority="750" horizontal="YES" id="jff-jK-xee">
-                                    <rect key="frame" x="1" y="260" width="702" height="16"/>
+                                    <rect key="frame" x="1" y="260" width="682" height="16"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                                 <scroller key="verticalScroller" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="eB1-qS-K4j">
-                                    <rect key="frame" x="687" y="1" width="16" height="275"/>
+                                    <rect key="frame" x="667" y="1" width="16" height="275"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
                             </scrollView>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dOs-pU-Tbl">
+                            <button verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="dOs-pU-Tbl">
                                 <rect key="frame" x="558" y="13" width="132" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <buttonCell key="cell" type="push" title="Apply Changes" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="SOe-th-EAl">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -134,8 +132,9 @@
                             </button>
                         </subviews>
                         <constraints>
-                            <constraint firstAttribute="trailing" secondItem="GVG-gb-2sm" secondAttribute="trailing" id="EYE-1B-8CE"/>
-                            <constraint firstItem="GVG-gb-2sm" firstAttribute="leading" secondItem="nP9-1I-8J7" secondAttribute="leading" id="Hdj-pC-LhB"/>
+                            <constraint firstAttribute="trailing" secondItem="GVG-gb-2sm" secondAttribute="trailing" constant="10" id="EYE-1B-8CE"/>
+                            <constraint firstItem="GVG-gb-2sm" firstAttribute="leading" secondItem="nP9-1I-8J7" secondAttribute="leading" constant="10" id="Hdj-pC-LhB"/>
+                            <constraint firstAttribute="trailing" secondItem="dOs-pU-Tbl" secondAttribute="trailing" constant="20" id="NK1-6B-2Zz"/>
                             <constraint firstAttribute="bottom" secondItem="GVG-gb-2sm" secondAttribute="bottom" constant="70" id="RYc-9E-Xmw"/>
                             <constraint firstItem="GVG-gb-2sm" firstAttribute="top" secondItem="nP9-1I-8J7" secondAttribute="top" constant="89" id="W56-lB-aaD"/>
                         </constraints>

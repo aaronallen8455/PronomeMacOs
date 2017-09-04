@@ -111,6 +111,7 @@ namespace Pronome.Mac.Editor
 
 			}
 		}
+
 		public bool IsSelected = false;
 
 		/// <summary>

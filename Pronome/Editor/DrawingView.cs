@@ -9,36 +9,59 @@ using System.Collections.Generic;
 using CoreGraphics;
 using Pronome.Mac.Editor.Groups;
 using System.Linq;
+using CoreAnimation;
 
 namespace Pronome.Mac
 {
     public partial class DrawingView : NSView
     {
+        #region Static fields
         static public DrawingView Instance;
 
+		/// <summary>
+		/// Used to convert BPM to pixels
+		/// </summary>
+		static public double ScalingFactor = 20;
+        #endregion
+
+        #region Constants
         const int RowHeight = 50;
         const int RowSpacing = 20;
-        const int CellThickness = 5;
+        public const int CellWidth = 4; // pixel width of cell elements
+        public const int PaddingLeft = 5; // distance from left of frame to the start of rows
 
         /// <summary>
         /// Space between the bottom of top of cells and the row bounds.
         /// </summary>
         const int CellHeightPad = 10;
+        #endregion
 
+        #region Colors
         static CGColor CellColor = NSColor.Black.CGColor;
         static CGColor SelectedCellColor = NSColor.Purple.CGColor;
+        static CGColor RowBackgroundColor = NSColor.LightGray.CGColor;
+        static CGColor SelectBoxColor = NSColor.DarkGray.CGColor;
+        #endregion
 
         #region Public fields
         public Row[] Rows;
+
+        public CellTree SelectedCells = new CellTree();
         #endregion
 
         #region Protected fields
         protected Queue<Row> RowsToDraw = new Queue<Row>();
 
         /// <summary>
-        /// Used to convert BPM to pixels
+        /// Used to determine which direction to collapse a selection (using shift key)
         /// </summary>
-        protected double ScalingFactor = 20;
+        protected CellTreeNode SelectionAnchor;
+
+        private CGPoint SelectBoxOrigin = CGPoint.Empty;
+        private CAShapeLayer SelectBox;
+        private int SelectBoxUpperBound;
+        private int SelectBoxLowerBound;
+        private int _selectRowIndex;
         #endregion
 
         public DrawingView(IntPtr handle) : base(handle)
@@ -49,12 +72,127 @@ namespace Pronome.Mac
         }
 
         #region Overrides
+
+        /// <summary>
+        /// Handles all mouse1 operations: selecting cells, creating new cells
+        /// </summary>
+        /// <param name="theEvent">The event.</param>
         public override void MouseDown(NSEvent theEvent)
         {
             base.MouseDown(theEvent);
 
-            QueueAllRowsToDraw();
-            //SetNeedsDisplayInRect();
+            // get coordinates of mouse
+            var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+
+            // determine which row was clicked in
+            int offset = (int)(Frame.Height - loc.Y - RowSpacing);
+            int rowIndex = offset / (RowSpacing + RowHeight);
+
+            // see if it's inside the row (not in spacing)
+            if (rowIndex < Rows.Length)
+            {
+                var ypos = GetYPositionOfRow(Rows[rowIndex]);
+
+				// check if a selection is being drawn
+				if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask))
+				{
+                    if (loc.Y >= ypos && loc.Y <= ypos + RowHeight)
+                    {
+                        _selectRowIndex = rowIndex;
+                        InitSelectBox(loc, ypos + RowHeight, ypos);
+						return;
+                    }
+				}
+
+                // see if click is in y range
+                if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
+                {
+					// check if a cell was clicked
+                    if (Rows[rowIndex].Cells.TryFind(ConvertPosition(loc.X, Rows[rowIndex]), out Cell cell))
+					{
+                        // perform selection actions
+                        SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+
+						QueueRowToDraw(Rows[rowIndex]);
+					}
+                }
+            }
+        }
+
+        public override void MouseDragged(NSEvent theEvent)
+        {
+            base.MouseDragged(theEvent);
+
+            if (!SelectBoxOrigin.IsEmpty)
+            {
+                var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+
+                using (CGPath path = new CGPath())
+                {
+                    nfloat y = loc.Y;
+                    if (y > SelectBoxUpperBound)
+                    {
+                        y = SelectBoxUpperBound;
+                    }
+                    else if (y < SelectBoxLowerBound)
+                    {
+                        y = SelectBoxLowerBound;
+                    }
+
+                    loc.Y = y;
+
+                    path.MoveToPoint(SelectBoxOrigin);
+                    path.AddLineToPoint(SelectBoxOrigin.X, y);
+                    path.AddLineToPoint(loc);
+                    path.AddLineToPoint(loc.X, SelectBoxOrigin.Y);
+                    path.CloseSubpath();
+
+                    SelectBox.Path = path;
+                }
+            }
+        }
+
+        public override void MouseUp(NSEvent theEvent)
+        {
+            base.MouseUp(theEvent);
+
+            if (!SelectBoxOrigin.IsEmpty)
+            {
+				// handle selection
+                var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+                double start = ConvertPosition(Math.Min(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+                double end = ConvertPosition(Math.Max(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+
+                // check if extending current selection
+                bool shift = theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask);
+
+                var startNode = Rows[_selectRowIndex].Cells.FindAboveOrEqualTo(start, true);
+                var endNode = Rows[_selectRowIndex].Cells.FindBelowOrEqualTo(end);
+
+                if (startNode != null && startNode.Cell.Position <= endNode.Cell.Position)
+                {
+                    // perform selection
+					SelectCell(startNode.Cell, shift);
+
+                    if (startNode != endNode)
+                    {
+                        SelectCell(endNode.Cell, true);
+                    }
+
+					QueueRowToDraw(Rows[_selectRowIndex]);
+				}
+                else if (!shift)
+                {
+                    DeselectCells();
+
+					QueueRowToDraw(Rows[_selectRowIndex]);
+                }
+
+
+                SelectBox.RemoveFromSuperLayer();
+                SelectBox.Dispose();
+                SelectBoxOrigin = CGPoint.Empty;
+            }
         }
 
         public override void DrawRect(CGRect dirtyRect)
@@ -62,10 +200,24 @@ namespace Pronome.Mac
             base.DrawRect(dirtyRect);
 
 			using (CGContext ctx = NSGraphicsContext.CurrentContext.CGContext)
-			{                   
-                while (RowsToDraw.TryDequeue(out Row row))
+			{
+
+                if (!RowsToDraw.Any())
                 {
-    					DrawRow(row, ctx);
+                    // draw all rows if initializing or changing window size.
+                    foreach (Row row in Rows)
+                    {
+                        DrawRow(row, ctx);
+                    }
+                }
+                else
+                {
+                    // draw just the rows in the queue
+					while (RowsToDraw.TryDequeue(out Row row))
+					{
+						DrawRow(row, ctx);
+					}
+                    
                 }
 			}
         }
@@ -79,6 +231,11 @@ namespace Pronome.Mac
         #endregion
 
         #region Protected Methods
+        protected double ConvertPosition(double value, Row row)
+        {
+            return (value - PaddingLeft) / ScalingFactor - row.Offset;
+        }
+
         /// <summary>
         /// Queues all rows to draw.
         /// </summary>
@@ -127,6 +284,10 @@ namespace Pronome.Mac
             {
                 CGContext layerCtx = layer.Context;
 
+                // draw the background
+                layerCtx.SetFillColor(RowBackgroundColor);
+                layerCtx.FillRect(new CGRect(0, 0, width, RowHeight));
+
                 // these stacks facilitate the drawing of repeat groups.
                 Stack<Repeat> ActiveRepeats = new Stack<Repeat>();
                 Stack<CGLayer> RepeatLayers = new Stack<CGLayer>();
@@ -152,10 +313,10 @@ namespace Pronome.Mac
                     if (cell.IsSelected) ctx.SetFillColor(SelectedCellColor);
                     else ctx.SetFillColor(CellColor);
 
-                    ctx.FillRect(new CGRect(xPos, CellHeightPad, CellThickness, RowHeight - CellHeightPad));
+                    ctx.FillRect(new CGRect(xPos, CellHeightPad, CellWidth, RowHeight - 2 * CellHeightPad));
 				}
 
-                int pos = (int)(row.Offset * ScalingFactor);
+                int pos = (int)(row.Offset * ScalingFactor) + PaddingLeft;
                 int length = (int)(row.Duration * ScalingFactor);
                 //int ypos = GetYPositionOfRow(row);
 
@@ -327,6 +488,160 @@ namespace Pronome.Mac
             ctx.StrokePath();
 
             ctx.RestoreState();
+        }
+
+        protected void InitSelectBox(CGPoint origin, int upperBound, int lowerBound)
+        {
+			SelectBoxOrigin = origin;
+			SelectBox = new CAShapeLayer();
+			SelectBox.LineWidth = 1;
+            SelectBox.StrokeColor = SelectBoxColor;
+            var fillColor = new CGColor(SelectBoxColor, .2f);
+			SelectBox.FillColor = fillColor;
+            SelectBoxUpperBound = upperBound;
+            SelectBoxLowerBound = lowerBound;
+
+			Layer?.AddSublayer(SelectBox);
+        }
+
+        /// <summary>
+        /// Performs actions on cell selection based on a targeted cell.
+        /// </summary>
+        /// <param name="cell">Cell.</param>
+        /// <param name="extendSelection">If set to <c>true</c> extend selection.</param>
+        protected void SelectCell(Cell cell, bool extendSelection = false)
+        {
+            // is there an existing selection?
+            if (SelectedCells.Root != null)
+            {
+                // is current selection in same row?
+                if (extendSelection && SelectedCells.Root.Cell.Row == cell.Row)
+                {
+                    // extend or collapse the selection
+                    CellTreeNode min = SelectedCells.GetMin();
+                    CellTreeNode max = SelectedCells.GetMax();
+
+                    if (min.Cell == cell)
+                    {
+						// clicked on a boundary cell
+                        if (SelectedCells.Count == 1)
+                        {
+                            DeselectCells();
+                        }
+                        else
+                        {
+                            SelectedCells.Remove(min);
+                            cell.IsSelected = false;
+
+                            if (SelectionAnchor == min)
+                            {
+                                SelectionAnchor = max;
+                            }
+                        }
+                    }
+                    else if (max.Cell == cell)
+                    {
+                        if (SelectedCells.Count == 1)
+                        {
+                            DeselectCells();
+                        }
+                        else
+                        {
+                            SelectedCells.Remove(max);
+                            cell.IsSelected = false;
+
+                            if (SelectionAnchor == max)
+                            {
+                                SelectionAnchor = min;
+                            }
+                        }
+                    }
+                    else if (cell.Position < min.Cell.Position)
+                    {
+                        SelectionAnchor = max;
+
+                        CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false);
+                        // select cells down to the target
+						while (node.Cell != cell)
+                        {
+                            node = node.Prev();
+                            node.Cell.IsSelected = true;
+                            SelectedCells.Insert(node.Cell);
+                        }
+                    }
+                    else if (cell.Position > max.Cell.Position)
+                    {
+                        SelectionAnchor = min;
+
+                        CellTreeNode node = cell.Row.Cells.Lookup(max.Cell.Position, false);
+                        // select cells up to the target
+                        while (node.Cell != cell)
+                        {
+                            node = node.Next();
+                            node.Cell.IsSelected = true;
+                            SelectedCells.Insert(node.Cell);
+                        }
+                    }
+                    else
+                    {
+                        // collapsing selection
+                        if (SelectionAnchor == min)
+                        {
+                            CellTreeNode node = cell.Row.Cells.Lookup(max.Cell.Position, false);
+
+                            while (node.Cell != cell)
+                            {
+                                node.Cell.IsSelected = false;
+                                SelectedCells.Remove(node.Cell);
+                                node = node.Prev();
+                            }
+                        }
+                        else
+                        {
+                            CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false);
+
+                            while (node.Cell != cell)
+                            {
+                                node.Cell.IsSelected = false;
+                                SelectedCells.Remove(node.Cell);
+                                node = node.Next();
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // clear and select target cell only
+                    if (SelectedCells.Root.Cell.Row != cell.Row)
+                    {
+                        QueueRowToDraw(SelectedCells.Root.Cell.Row);
+                    }
+
+                    DeselectCells();
+                    SelectCell(cell);
+                }
+            }
+            else
+            {
+                // select a single cell
+                cell.IsSelected = true;
+                SelectionAnchor = new CellTreeNode(cell);
+                SelectedCells.Insert(SelectionAnchor);
+            }
+        }
+
+        /// <summary>
+        /// Clears the current selection. Does not redraw rows.
+        /// </summary>
+        protected void DeselectCells()
+        {
+            foreach (Cell c in SelectedCells)
+            {
+                c.IsSelected = false;
+            }
+
+            SelectedCells.Clear();
+            SelectionAnchor = null;
         }
 
         /// <summary>
