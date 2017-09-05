@@ -43,6 +43,25 @@ namespace Pronome.Mac
         static CGColor SelectBoxColor = NSColor.DarkGray.CGColor;
         #endregion
 
+        #region Computed Properties
+        private string _cursorPostion;
+        /// <summary>
+        /// Used to display the mouse location in BPM
+        /// </summary>
+        /// <value>The cursor position.</value>
+        [Export("CursorPosition")]
+        public string CursorPosition
+        {
+            get => _cursorPostion;
+            set
+            {
+                WillChangeValue("CursorPosition");
+                _cursorPostion = value;
+                DidChangeValue("CursorPosition");
+            }
+        }
+        #endregion
+
         #region Public fields
         public Row[] Rows;
 
@@ -67,6 +86,7 @@ namespace Pronome.Mac
         public DrawingView(IntPtr handle) : base(handle)
         {
             Instance = this;
+
             // instantiate the rows
             Rows = Metronome.Instance.Layers.Select(x => new Row(x)).ToArray();
         }
@@ -81,120 +101,80 @@ namespace Pronome.Mac
         {
             base.MouseDown(theEvent);
 
-            // get coordinates of mouse
-            var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+            ClickHandler(theEvent);
+        }
 
-            // determine which row was clicked in
-            int offset = (int)(Frame.Height - loc.Y - RowSpacing);
-            int rowIndex = offset / (RowSpacing + RowHeight);
+        public override void RightMouseDown(NSEvent theEvent)
+        {
+            base.RightMouseDown(theEvent);
 
-            // see if it's inside the row (not in spacing)
-            if (rowIndex < Rows.Length)
-            {
-                var ypos = GetYPositionOfRow(Rows[rowIndex]);
-
-				// check if a selection is being drawn
-				if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask))
-				{
-                    if (loc.Y >= ypos && loc.Y <= ypos + RowHeight)
-                    {
-                        _selectRowIndex = rowIndex;
-                        InitSelectBox(loc, ypos + RowHeight, ypos);
-						return;
-                    }
-				}
-
-                // see if click is in y range
-                if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
-                {
-					// check if a cell was clicked
-                    if (Rows[rowIndex].Cells.TryFind(ConvertPosition(loc.X, Rows[rowIndex]), out Cell cell))
-					{
-                        // perform selection actions
-                        SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
-
-						QueueRowToDraw(Rows[rowIndex]);
-					}
-                }
-            }
+            ClickHandler(theEvent, true);
         }
 
         public override void MouseDragged(NSEvent theEvent)
         {
             base.MouseDragged(theEvent);
 
-            if (!SelectBoxOrigin.IsEmpty)
-            {
-                var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+            DragHandler(theEvent);
+        }
 
-                using (CGPath path = new CGPath())
-                {
-                    nfloat y = loc.Y;
-                    if (y > SelectBoxUpperBound)
-                    {
-                        y = SelectBoxUpperBound;
-                    }
-                    else if (y < SelectBoxLowerBound)
-                    {
-                        y = SelectBoxLowerBound;
-                    }
+        public override void RightMouseDragged(NSEvent theEvent)
+        {
+            base.RightMouseDragged(theEvent);
 
-                    loc.Y = y;
-
-                    path.MoveToPoint(SelectBoxOrigin);
-                    path.AddLineToPoint(SelectBoxOrigin.X, y);
-                    path.AddLineToPoint(loc);
-                    path.AddLineToPoint(loc.X, SelectBoxOrigin.Y);
-                    path.CloseSubpath();
-
-                    SelectBox.Path = path;
-                }
-            }
+            DragHandler(theEvent);
         }
 
         public override void MouseUp(NSEvent theEvent)
         {
             base.MouseUp(theEvent);
 
-            if (!SelectBoxOrigin.IsEmpty)
+            MouseUpHandler(theEvent);
+        }
+
+        public override void RightMouseUp(NSEvent theEvent)
+        {
+            base.RightMouseUp(theEvent);
+
+            MouseUpHandler(theEvent);
+        }
+
+        public override void MouseMoved(NSEvent theEvent)
+        {
+            base.MouseMoved(theEvent);
+            // display the current position in BPM
+            double pos = (ConvertPointFromView(theEvent.LocationInWindow, null).X - PaddingLeft) / ScalingFactor;
+
+            if (pos >= 0)
             {
-				// handle selection
-                var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
-                double start = ConvertPosition(Math.Min(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
-                double end = ConvertPosition(Math.Max(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
-
-                // check if extending current selection
-                bool shift = theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask);
-
-                var startNode = Rows[_selectRowIndex].Cells.FindAboveOrEqualTo(start, true);
-                var endNode = Rows[_selectRowIndex].Cells.FindBelowOrEqualTo(end);
-
-                if (startNode != null && startNode.Cell.Position <= endNode.Cell.Position)
-                {
-                    // perform selection
-					SelectCell(startNode.Cell, shift);
-
-                    if (startNode != endNode)
-                    {
-                        SelectCell(endNode.Cell, true);
-                    }
-
-					QueueRowToDraw(Rows[_selectRowIndex]);
-				}
-                else if (!shift)
-                {
-                    DeselectCells();
-
-					QueueRowToDraw(Rows[_selectRowIndex]);
-                }
-
-
-                SelectBox.RemoveFromSuperLayer();
-                SelectBox.Dispose();
-                SelectBoxOrigin = CGPoint.Empty;
+                CursorPosition = pos.ToString("F2");
+            }
+            else
+            {
+                CursorPosition = string.Empty;
             }
         }
 
+        public override void MouseEntered(NSEvent theEvent)
+        {
+            base.MouseEntered(theEvent);
+
+            Window.AcceptsMouseMovedEvents = true;
+            Window.MakeFirstResponder(this);
+        }
+
+        public override void MouseExited(NSEvent theEvent)
+        {
+            base.MouseExited(theEvent);
+
+            Window.AcceptsMouseMovedEvents = false;
+            CursorPosition = string.Empty;
+        }
+
+        /// <summary>
+        /// Render the rows in the queue.
+        /// </summary>
+        /// <param name="dirtyRect">Dirty rect.</param>
         public override void DrawRect(CGRect dirtyRect)
         {
             base.DrawRect(dirtyRect);
@@ -226,11 +206,139 @@ namespace Pronome.Mac
         {
             base.ViewDidMoveToWindow();
 
-            //QueueAllRowsToDraw();
+            // add the tracking area, for mouse move events
+            AddTrackingRect(Frame, this, IntPtr.Zero, false);
         }
-        #endregion
 
-        #region Protected Methods
+		#endregion
+
+		#region Protected Methods
+
+        /// <summary>
+        /// Check what elements are under the select box and perform necessary actions.
+        /// </summary>
+        /// <param name="theEvent">The event.</param>
+		private void MouseUpHandler(NSEvent theEvent)
+		{
+			if (!SelectBoxOrigin.IsEmpty)
+			{
+				// handle selection
+				var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+				double start = ConvertPosition(Math.Min(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+				double end = ConvertPosition(Math.Max(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+
+				// check if extending current selection
+				bool shift = theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask);
+
+				var startNode = Rows[_selectRowIndex].Cells.FindAboveOrEqualTo(start, true);
+				var endNode = Rows[_selectRowIndex].Cells.FindBelowOrEqualTo(end);
+
+				if (startNode != null && startNode.Cell.Position <= endNode.Cell.Position)
+				{
+					// perform selection
+					SelectCell(startNode.Cell, shift);
+
+					if (startNode != endNode)
+					{
+						SelectCell(endNode.Cell, true);
+					}
+
+					QueueRowToDraw(Rows[_selectRowIndex]);
+				}
+				else if (!shift)
+				{
+					DeselectCells();
+
+					QueueRowToDraw(Rows[_selectRowIndex]);
+				}
+
+
+				SelectBox.RemoveFromSuperLayer();
+				SelectBox.Dispose();
+				SelectBoxOrigin = CGPoint.Empty;
+			}
+		}
+
+        /// <summary>
+        /// Resize the select box
+        /// </summary>
+        /// <param name="theEvent">The event.</param>
+		private void DragHandler(NSEvent theEvent)
+		{
+			if (!SelectBoxOrigin.IsEmpty)
+			{
+				var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+
+				using (CGPath path = new CGPath())
+				{
+					nfloat y = loc.Y;
+					if (y > SelectBoxUpperBound)
+					{
+						y = SelectBoxUpperBound;
+					}
+					else if (y < SelectBoxLowerBound)
+					{
+						y = SelectBoxLowerBound;
+					}
+
+					loc.Y = y;
+
+					path.MoveToPoint(SelectBoxOrigin);
+					path.AddLineToPoint(SelectBoxOrigin.X, y);
+					path.AddLineToPoint(loc);
+					path.AddLineToPoint(loc.X, SelectBoxOrigin.Y);
+					path.CloseSubpath();
+
+					SelectBox.Path = path;
+				}
+			}
+		}
+
+        /// <summary>
+        /// Check if an element was clicked or select box drawn and do selection action
+        /// </summary>
+        /// <param name="theEvent">The event.</param>
+        /// <param name="isRightButton">If set to <c>true</c> is right button.</param>
+		private void ClickHandler(NSEvent theEvent, bool isRightButton = false)
+		{
+			// get coordinates of mouse
+			var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+
+			// determine which row was clicked in
+			int offset = (int)(Frame.Height - loc.Y - RowSpacing);
+			int rowIndex = offset / (RowSpacing + RowHeight);
+
+			// see if it's inside the row (not in spacing)
+			if (rowIndex < Rows.Length)
+			{
+				var ypos = GetYPositionOfRow(Rows[rowIndex]);
+
+				// check if a selection is being drawn
+				if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask) || isRightButton)
+				{
+					if (loc.Y >= ypos && loc.Y <= ypos + RowHeight)
+					{
+						_selectRowIndex = rowIndex;
+						InitSelectBox(loc, ypos + RowHeight, ypos);
+						return;
+					}
+				}
+
+				// see if click is in y range
+				if (!isRightButton && loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
+				{
+					// check if a cell was clicked
+					if (Rows[rowIndex].Cells.TryFind(ConvertPosition(loc.X, Rows[rowIndex]), out Cell cell))
+					{
+						// perform selection actions
+						SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+
+						QueueRowToDraw(Rows[rowIndex]);
+					}
+				}
+			}
+		}
+
         protected double ConvertPosition(double value, Row row)
         {
             return (value - PaddingLeft) / ScalingFactor - row.Offset;

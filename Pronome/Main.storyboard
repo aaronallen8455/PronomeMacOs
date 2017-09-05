@@ -130,6 +130,18 @@
                                     <action selector="ApplyChangesAction:" target="Dnq-3n-e4D" id="fiz-u3-FCe"/>
                                 </connections>
                             </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n8m-do-2Sy">
+                                <rect key="frame" x="10" y="45" width="72" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Cursor Position" id="Lof-xs-6Wf">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="Dnq-3n-e4D" name="value" keyPath="self.DView.CursorPosition" id="b4Y-T2-uhf"/>
+                                </connections>
+                            </textField>
                         </subviews>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="GVG-gb-2sm" secondAttribute="trailing" constant="10" id="EYE-1B-8CE"/>

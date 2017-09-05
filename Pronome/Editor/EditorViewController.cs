@@ -9,6 +9,12 @@ namespace Pronome.Mac
 {
 	public partial class EditorViewController : NSViewController
 	{
+        [Export("DView")]
+        public DrawingView DView
+        {
+            get => DrawingView;
+        }
+
 		public EditorViewController (IntPtr handle) : base (handle)
 		{
             

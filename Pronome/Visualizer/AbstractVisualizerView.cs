@@ -85,7 +85,9 @@ namespace Pronome.Mac
         {
             base.ViewWillMoveToWindow(newWindow);
 
-            SetLayerDimensions(newWindow.Frame.Width, newWindow.Frame.Height);
+            var rect = VisibleRect();
+
+            SetLayerDimensions(rect.Width, rect.Height);
         }
         #endregion
 
@@ -102,8 +104,9 @@ namespace Pronome.Mac
 
         protected virtual void Window_DidResize(object sender, EventArgs e)
         {
+            var rect = VisibleRect();
             // resize and reposition all layers to match the window
-            var frame = GetRect(Window.Frame.Width, Window.Frame.Height);
+            var frame = GetRect(rect.Width, rect.Height);
 
             CATransaction.Begin();
             CATransaction.DisableActions = true;

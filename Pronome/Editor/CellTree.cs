@@ -380,56 +380,66 @@ namespace Pronome.Mac.Editor
         public CellTreeNode FindAboveOrEqualTo (double value, bool useThickness = false)
         {
             CellTreeNode node = Root;
+            CellTreeNode result = null;
 
             if (node == null) return null;
 
-            double thickness = DrawingView.CellWidth / DrawingView.ScalingFactor;
+            double thickness = useThickness ? DrawingView.CellWidth / DrawingView.ScalingFactor : 0;
 
             while (node != null)
             {
-                if (node.Cell.Position + (useThickness ? thickness : 0) < value)
+				if (node.Cell.Position + thickness >= value)
+				{
+					result = node;
+
+                    if (node.Cell.Position + thickness == value) break;
+				}
+
+                if (node.Cell.Position + thickness < value)
                 {
                     node = node.Right;
                 }
                 else
                 {
-                    if (node.Left != null && node.Left.Cell.Position + (useThickness ? thickness : 0) >= value)
-                    {
-                        node = node.Left;
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    node = node.Left;
                 }
             }
 
-            return node;
+            return result;
         }
 
+        /// <summary>
+        /// Finds the node at bpm position below or equal to value.
+        /// </summary>
+        /// <returns>The below or equal to.</returns>
+        /// <param name="value">Value.</param>
         public CellTreeNode FindBelowOrEqualTo (double value)
         {
             CellTreeNode node = Root;
+            CellTreeNode result = null;
 
             if (node == null) return null;
 
             while (node != null)
             {
+                if (node.Cell.Position <= value)
+                {
+                    result = node;
+
+                    if (node.Cell.Position == value) break;
+                }
+
                 if (node.Cell.Position > value)
                 {
                     node = node.Left;
                 }
                 else
                 {
-                    if (node.Right != null && node.Right.Cell.Position <= value)
-                    {
-                        node = node.Right;
-                    }
-                    else break;
+                    node = node.Right;
                 }
             }
 
-            return node;
+            return result;
         }
 
         /// <summary>
