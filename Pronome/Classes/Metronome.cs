@@ -498,22 +498,24 @@ namespace Pronome.Mac
         public unsafe void FastForwardChangedLayers(double cycles)
         {
             int floatsPerCycle = Mixer.BufferSize;
-            long totalFloats = (long)(cycles * floatsPerCycle);
+			long totalFloats = (long)(cycles * floatsPerCycle);
 
             foreach (KeyValuePair<int, Layer> pair in LayersToChange)
             {
+                long floats = totalFloats;
+
                 Layer l = pair.Value;
                 foreach (IStreamProvider src in l.GetAllStreams())
                 {
                     //long floats = totalFloats;
 
-                    while (totalFloats > 0)
+                    while (floats > 0)
                     {
-                        uint intsToCopy = (uint)Math.Min(uint.MaxValue, totalFloats);
+                        uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);
 
                         src.Read(null, null, intsToCopy, false);
 
-                        totalFloats -= uint.MaxValue;
+                        floats -= uint.MaxValue;
                     }
                 }
             }

@@ -104,7 +104,6 @@ namespace Pronome.Mac
 						// change the layer while playing
 						Metronome.Instance.ExecuteLayerChange(this);
 					}
-                    
                 }
                 DidChangeValue("BeatCode");
             }
@@ -493,6 +492,12 @@ namespace Pronome.Mac
             return null;
         }
 
+        public void SetBeatCode(string beatCode)
+        {
+            //TODO validate string
+            BeatCode = GetAttributedString(beatCode);
+        }
+
         /**<summary>Get a random pitch based on existing pitch layers</summary>*/
         public string GetAutoPitch()
         {
@@ -637,7 +642,17 @@ namespace Pronome.Mac
 
             if (reference >= met.Layers.Count || reference < 0) reference = 0;
 
-            string refString = met.Layers[reference].ParsedString;
+            string refString;
+            if (!met.IsPlaying)
+            {
+                refString = met.Layers[reference].ParsedString;
+            }
+            else
+            {
+                // get the ref string from the layer being changed instead of static version.
+                refString = (met.LayersToChange.ContainsKey(reference) ? met.LayersToChange[reference] : met.Layers[reference]).ParsedString;
+            }
+
             // remove comments
             refString = Regex.Replace(refString, @"!.*?!", "");
             // remove whitespace
@@ -1128,17 +1143,31 @@ namespace Pronome.Mac
 
             // reparse any layers that reference this one
             Metronome met = Metronome.Instance;
-            int index = met.Layers.IndexOf(this);
+            int index;
+
+            if (!met.IsPlaying)
+            {
+                index = met.Layers.IndexOf(this);
+            }
+            else
+            {
+                var search = met.LayersToChange.SkipWhile(x => x.Value != this).Select(x => x.Key);
+                index = search.Any() ? search.First() : met.Layers.IndexOf(this);
+            }
+
             if (parsedReferencers == null)
             {
                 parsedReferencers = new HashSet<int>();
             }
+
             parsedReferencers.Add(index);
+
             var layers = met.Layers.Where(
                 x => x != this
                 && x.ParsedString.Contains($"${index + 1}")
                 && !parsedReferencers.Contains(met.Layers.IndexOf(x)));
-            foreach (Layer layer in layers)
+            
+            foreach (Layer layer in layers.ToArray())
             {
                 // account for deserializing a beat
                 if (layer.Beat != null && layer.Beat.Count > 0)
@@ -1150,12 +1179,12 @@ namespace Pronome.Mac
                     else
                     {
                         // create dummy layers for refs
-                        Layer copy = new Layer(layer.ParsedString, layer.BaseStreamInfo, layer.ParsedOffset, (float)layer.Pan, (float)layer.Volume);
-
-                        met.LayersToChange.Add(
-                            met.Layers.IndexOf(layer),
-                            copy
-                        );
+                        Layer copy = new Layer("1", layer.BaseStreamInfo, layer.ParsedOffset, (float)layer.Pan, (float)layer.Volume);
+						met.LayersToChange.Add(
+							met.Layers.IndexOf(layer),
+							copy
+						);
+                        copy.ProcessBeat(layer.ParsedString, parsedReferencers);
                     }
                 }
             }

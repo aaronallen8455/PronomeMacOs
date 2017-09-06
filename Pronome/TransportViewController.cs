@@ -72,15 +72,10 @@ namespace Pronome.Mac
 		/// <param name="layer">Layer.</param>
 		public void AddLayer(Layer layer)
 		{
-            // sometimes the colors get stripped
-            //ColorAllBeatCodeSyntax();
-            
             // add the layer to the datasource
             Datasource.Data.Add(layer);
 
             LayerCollection.ReloadData();
-
-            //Metronome.Instance.AddLayer(layer);
 		}
 
 		/// <summary>
@@ -93,11 +88,56 @@ namespace Pronome.Mac
 
 			LayerCollection.ReloadData();
 
-			// sometimes the colors get stripped
-			//ColorAllBeatCodeSyntax();
-
 			// remove from metronome
-			Metronome.Instance.RemoveLayer(layer);
+			int index = Metronome.Instance.Layers.IndexOf(layer);
+            int beatCount = layer.Beat.Count;
+            Metronome.Instance.RemoveLayer(layer);
+
+            // handle referencers
+            var layers = Metronome.Instance.Layers.Where(x => x.ParsedString.Contains($"${index + 1}"));
+
+            foreach (Layer l in layers.ToArray())
+            {
+                string newBeatCode = l.ParsedString;
+                // check if the layer has no other cells besides the reference now pointing to itself. if so, replace the ref(s) with beat we are deleting
+                if (Metronome.Instance.Layers.IndexOf(l) == index)
+                {
+                    bool hasValue = Regex.IsMatch(l.ParsedString, @"[,|][\[{]*\d");
+					// replace with old beat
+					if (!hasValue)
+					{
+                        // check if deleted layer has more than one cell
+                        if (beatCount > 1)
+                        {
+                            // if single cell repeat was used on the ref, convert to multi cell
+                            newBeatCode = Regex.Replace(
+                                l.ParsedString, 
+                                $@"\${index + 1}(\(\d+\)[\d.+\-/*]*)", 
+                                $"[{layer.ParsedString}]$1"
+                            );
+                        }
+                        // straight replace all others
+                        newBeatCode = newBeatCode.Replace($"${index + 1}", layer.ParsedString);
+					}
+                }
+
+                if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+                {
+                    try
+                    {
+                        l.SetBeatCode(newBeatCode);
+                    }
+                    catch (Exception)
+                    {
+                        // if something weird happened, just make it "1"
+                        l.SetBeatCode("1");
+                    }
+                }
+                else
+                {
+                    l.SetBeatCode(newBeatCode);
+                }
+            }
 		}
 		#endregion
 
