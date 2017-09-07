@@ -119,14 +119,18 @@ namespace Pronome.Mac.Editor
             {
 				node = Parent;
 
-                HashSet<CellTreeNode> touched = new HashSet<CellTreeNode>();
-
-                while (node != null && (node.Right == null || node.Right == this || touched.Contains(node.Right)))
+                while (node != null && node.Cell.Position < Cell.Position)
                 {
-                    touched.Add(node);
-
                     node = node.Parent;
                 }
+
+                //if (!IsLeftChild())
+                //{
+                //    while (node != null && (node.Parent == null || !node.IsLeftChild()))
+                //    {
+                //        node = node.Parent;
+                //    }
+                //}
             }
 
             return node;
@@ -149,22 +153,27 @@ namespace Pronome.Mac.Editor
             {
 				node = Parent;
 
-                HashSet<CellTreeNode> touched = new HashSet<CellTreeNode>();
-
-                while (node != null && (node.Left == null || node.Left == this || touched.Contains(node.Left)))
+                while (node.Cell.Position > Cell.Position)
                 {
-                    touched.Add(node);
                     node = node.Parent;
                 }
+
+                //if (IsLeftChild())
+                //{
+                //    while (node != null && node.IsLeftChild())
+                //    {
+                //        node = Parent;
+                //    }
+				//}
             }
 
             return node;
         }
 
-        public void CopyTo(CellTreeNode node)
-        {
-            node.Cell = Cell;
-        }
+		public void CopyTo(CellTreeNode node)
+		{
+			node.Cell = Cell;
+		}
         #endregion
     }
 }

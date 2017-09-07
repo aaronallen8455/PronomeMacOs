@@ -176,7 +176,6 @@
       <DependentUpon>EditorViewController.cs</DependentUpon>
     </Compile>
     <Compile Include="Editor\CellTree.cs" />
-    <Compile Include="Editor\DrawingDelegate.cs" />
     <Compile Include="Editor\DrawingView.cs" />
     <Compile Include="Editor\DrawingView.designer.cs">
       <DependentUpon>DrawingView.cs</DependentUpon>

@@ -41,6 +41,8 @@ namespace Pronome.Mac
         static CGColor SelectedCellColor = NSColor.Purple.CGColor;
         static CGColor RowBackgroundColor = NSColor.LightGray.CGColor;
         static CGColor SelectBoxColor = NSColor.DarkGray.CGColor;
+        static CGColor GridLineColor = NSColor.Red.CGColor;
+        static CGColor MeasureLineColor = NSColor.Blue.CGColor;
         #endregion
 
         #region Computed Properties
@@ -58,6 +60,49 @@ namespace Pronome.Mac
                 WillChangeValue("CursorPosition");
                 _cursorPostion = value;
                 DidChangeValue("CursorPosition");
+            }
+        }
+
+
+        private string _gridSpacingString = "1";
+        [Export("GridSpacingString")]
+        public string GridSpacingString
+        {
+            get => _gridSpacingString;
+            set
+            {
+                WillChangeValue("GridSpacingString");
+                if (BeatCell.TryParse(value, out double bpm) && bpm > 0)
+                {
+                    GridSpacing = bpm;
+					_gridSpacingString = value;
+
+                    // draw selected row if one exists
+                    if (SelectedCells.Root != null)
+                    {
+                        QueueRowToDraw(SelectedCells.Root.Cell.Row);
+                    }
+                }
+                DidChangeValue("GridSpacingString");
+            }
+        }
+
+        private string _measureSizeString = "4";
+        [Export("MeasureSizeString")]
+        public string MeasureSizeString
+        {
+            get => _measureSizeString;
+            set
+            {
+                WillChangeValue("MeasureSizeString");
+                if (BeatCell.TryParse(value, out double bpm) && bpm > 0)
+                {
+                    MeasureSize = bpm;
+                    _measureSizeString = value;
+                    // need to redraw the whole view
+                    NeedsDisplay = true;
+                }
+                DidChangeValue("MeasureSizeString");
             }
         }
         #endregion
@@ -81,6 +126,16 @@ namespace Pronome.Mac
         private int SelectBoxUpperBound;
         private int SelectBoxLowerBound;
         private int _selectRowIndex;
+
+        /// <summary>
+        /// The spacing of the grid lines in BPM
+        /// </summary>
+        protected double GridSpacing = 1;
+
+        /// <summary>
+        /// Spacing between measure lines in BPM
+        /// </summary>
+        protected double MeasureSize = 4;
         #endregion
 
         public DrawingView(IntPtr handle) : base(handle)
@@ -181,7 +236,23 @@ namespace Pronome.Mac
 
 			using (CGContext ctx = NSGraphicsContext.CurrentContext.CGContext)
 			{
+                // draw measure lines
+                ctx.SetStrokeColor(MeasureLineColor);
+                ctx.SetLineWidth(1);
+                double xPos = PaddingLeft;
+                ctx.MoveTo((int)xPos, 0);
+                double spacing = MeasureSize * ScalingFactor;
+                while (xPos <= Frame.Width)
+                {
+                    int x = (int)xPos;
+                    ctx.MoveTo(x, 0);
 
+                    ctx.AddLineToPoint(x, Frame.Height);
+
+                    xPos += spacing;
+                }
+                ctx.StrokePath();
+                
                 if (!RowsToDraw.Any())
                 {
                     // draw all rows if initializing or changing window size.
@@ -197,9 +268,14 @@ namespace Pronome.Mac
 					{
 						DrawRow(row, ctx);
 					}
-                    
                 }
-			}
+
+				// draw grid lines if there's a selection
+				if (SelectedCells.Root != null)
+                {
+                    DrawGridLines(ctx);
+                }
+            }
         }
 
         public override void ViewDidMoveToWindow()
@@ -325,15 +401,49 @@ namespace Pronome.Mac
 				}
 
 				// see if click is in y range
-				if (!isRightButton && loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
+				if (!isRightButton && loc.Y >= ypos && loc.Y <= ypos + RowHeight)
 				{
-					// check if a cell was clicked
-					if (Rows[rowIndex].Cells.TryFind(ConvertPosition(loc.X, Rows[rowIndex]), out Cell cell))
-					{
-						// perform selection actions
-						SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+                    // cell range
+                    bool cellSelected = false;
+                    if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
+                    {
+                        if (Rows[rowIndex].Cells.TryFind(ConvertPosition(loc.X, Rows[rowIndex]), out Cell cell))
+                        {
+                            // perform selection actions
+                            SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+                            cellSelected = true;
+                            QueueRowToDraw(Rows[rowIndex]);
+                        }
+                    }
 
-						QueueRowToDraw(Rows[rowIndex]);
+					// check if a cell was clicked
+					if (!cellSelected && SelectedCells.Root != null)
+					{
+						// try to create new cell
+						// see if clicked on a grid line (within a pad amount)
+						double start = (SelectedCells.GetMin().Cell.Position + Rows[rowIndex].Offset) * ScalingFactor + PaddingLeft;
+
+						if (start < loc.X)
+						{
+							double x = loc.X - start;
+							double spacing = GridSpacing * ScalingFactor;
+							double mod = x % spacing;
+                            double pad = Math.Min(CellWidth / 2, spacing * .125);
+							// see if it registers as a hit
+							if (mod <= pad || mod >= spacing - pad)
+							{
+
+							}
+						}
+						else
+						{
+							double end = (SelectedCells.GetMax().Cell.Position + Rows[rowIndex].Offset) * ScalingFactor + PaddingLeft;
+
+							if (end > loc.X)
+							{
+
+							}
+						}
 					}
 				}
 			}
@@ -440,8 +550,6 @@ namespace Pronome.Mac
                     pos += length;
                 }
                 baseCtx.SetAlpha(1);
-
-                // draw grid lines if there's a selection
             }
         }
 
@@ -558,6 +666,45 @@ namespace Pronome.Mac
         }
 
         /// <summary>
+        /// Draws the grid lines.
+        /// </summary>
+        /// <param name="ctx">Context.</param>
+		protected void DrawGridLines(CGContext ctx)
+		{
+			Row row = SelectedCells.Root.Cell.Row;
+
+			double start = (SelectedCells.GetMin().Cell.Position + row.Offset) * ScalingFactor + PaddingLeft;
+			double end = (SelectedCells.GetMax().Cell.Position + row.Offset) * ScalingFactor + PaddingLeft;
+			int yPos = GetYPositionOfRow(row);
+
+			double spacing = GridSpacing * ScalingFactor;
+
+			start -= spacing;
+			end += spacing;
+
+			ctx.SetStrokeColor(GridLineColor);
+			ctx.SetLineWidth(1);
+
+			while (start >= 0)
+			{
+				int x = (int)start;
+				ctx.MoveTo(x, yPos);
+				ctx.AddLineToPoint(x, yPos + RowHeight);
+				start -= spacing;
+			}
+
+			while (end <= Frame.Width)
+			{
+				int x = (int)end;
+				ctx.MoveTo(x, yPos);
+				ctx.AddLineToPoint(x, yPos + RowHeight);
+				end += spacing;
+			}
+
+			ctx.StrokePath();
+		}
+
+        /// <summary>
         /// Draws a group box with the specified attributes.
         /// </summary>
         /// <param name="ctx">Context.</param>
@@ -668,11 +815,18 @@ namespace Pronome.Mac
                     {
                         SelectionAnchor = max;
 
-                        CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false);
+                        CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false).Prev();
                         // select cells down to the target
-						while (node.Cell != cell)
+						while (node != null && node.Cell != cell)
                         {
-                            node = node.Prev();
+                            node.Cell.IsSelected = true;
+                            SelectedCells.Insert(node.Cell);
+
+							node = node.Prev();
+                        }
+
+                        if (node != null)
+                        {
                             node.Cell.IsSelected = true;
                             SelectedCells.Insert(node.Cell);
                         }
