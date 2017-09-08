@@ -140,7 +140,7 @@ namespace Pronome.Mac.Editor
             // cells are stored in red black tree
             CellTree cells = new CellTree();
 
-			string[] chunks = beat.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
+			//string[] chunks = beat.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
             Stack<Multiply> OpenMultGroups = new Stack<Multiply>();
 
 			// BPM value
@@ -151,9 +151,10 @@ namespace Pronome.Mac.Editor
 			// remove whitespace
 			beat = Regex.Replace(beat, @"\s", "");
 			// switch single cell repeats to bracket notation
-			beat = Regex.Replace(beat, @"(?<=^|\[|\{|,|\|)([^\]\}\,\|]*?)(?=\(\d+\))", "[$1]");
+            beat = Regex.Replace(beat, @"(?<=^|\[|\{|,|\|)([\[\{]*)([^\]\}\,\|]*?)(?=\(\d+\))", "$1[$2]");
 
-			// split the string into cells
+            // split the string into cells
+            //foreach (string chunk in chunks)
 			foreach (Match match in Regex.Matches(beat, @".+?([,|]|$)"))
 			{
 				Cell cell = new Cell(this) { Position = position };
@@ -161,44 +162,55 @@ namespace Pronome.Mac.Editor
 
 				string chunk = match.Value;
 
-				// check for opening mult group
-				int multInd = chunk.IndexOf('{');
-				if (multInd > -1)
-				{
-					while (chunk.Contains('{'))
-					{
-                        OpenMultGroups.Push(new Multiply() { Row = this });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
-                        cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
-						OpenMultGroups.Peek().Cells.AddLast(cell);
-						OpenMultGroups.Peek().Position = cell.Position;
+                // add all rep and mult groups in order
+                int repIndex = chunk.IndexOf('[');
+                int multIndex = chunk.IndexOf('{');
 
-						chunk = chunk.Remove(multInd, 1);
-					}
-				}
-				else if (OpenMultGroups.Any())
-				{
-                    cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
-					OpenMultGroups.Peek().Cells.AddLast(cell);
-				}
-
-				// check for opening repeat group
-				if (chunk.IndexOf('[') > -1)
-				{
-					while (chunk.Contains('['))
-					{
-                        OpenRepeatGroups.Push(new Repeat() { Row = this });
-                        cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
-						OpenRepeatGroups.Peek().Cells.AddLast(cell);
-						OpenRepeatGroups.Peek().Position = cell.Position;
-
-						chunk = chunk.Remove(chunk.IndexOf('['), 1);
-					}
-				}
-				else if (OpenRepeatGroups.Any())
-				{
-                    cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
+                if (repIndex == -1 && OpenRepeatGroups.Any())
+                {
 					OpenRepeatGroups.Peek().Cells.AddLast(cell);
-				}
+                }
+                if (multIndex == -1 && OpenMultGroups.Any())
+                {
+					OpenMultGroups.Peek().Cells.AddLast(cell);
+                }
+
+                while (multIndex != -1 || repIndex != -1)
+                {
+					// check for opening repeat group
+                    if (repIndex != -1 && (multIndex == -1 || repIndex < multIndex))
+					{
+						//while (chunk.Contains('['))
+						//{
+							OpenRepeatGroups.Push(new Repeat() { Row = this, Cells = new LinkedList<Cell>() });
+							OpenRepeatGroups.Peek().Cells.AddLast(cell);
+							// need to subtract repeat groups offset because contents is in new CGLayer
+							OpenRepeatGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+
+                        chunk = chunk.Remove(repIndex, 1);
+						//}
+						//cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
+					}
+					else if (multIndex != -1)
+					{
+						//while (chunk.Contains('{'))
+						//{
+							OpenMultGroups.Push(new Multiply() { Row = this, Cells = new LinkedList<Cell>() });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
+							//cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
+							OpenMultGroups.Peek().Cells.AddLast(cell);
+							// need to subtract repeat groups offset because contents is in new CGLayer
+							OpenMultGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+
+							chunk = chunk.Remove(multIndex, 1);
+						//}
+					}
+					
+					repIndex = chunk.IndexOf('[');
+					multIndex = chunk.IndexOf('{');
+                }
+				
+                cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
+                cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
 
 				// parse the BPM value or get reference
 				if (chunk.IndexOf('$') > -1)
@@ -262,11 +274,12 @@ namespace Pronome.Mac.Editor
 				}
 
 				bool addedToRepCanvas = false;
-				while (chunk.Contains('}') || chunk.Contains(']'))
-				{
-					// create the mult and rep groups in the correct order
-					int multIndex = chunk.IndexOf('}');
-					int repIndex = chunk.IndexOf(']');
+
+				multIndex = chunk.IndexOf('}');
+				repIndex = chunk.IndexOf(']');
+                while (multIndex != -1 || repIndex != -1)
+                {
+                    // create the mult and rep groups in the correct order
 
 					if (multIndex > -1 && (multIndex < repIndex || repIndex == -1))
 					{
@@ -276,7 +289,7 @@ namespace Pronome.Mac.Editor
 						mg.FactorValue = Regex.Match(chunk, @"(?<=})[\d.+\-/*]+").Value;
 						mg.Factor = BeatCell.Parse(mg.FactorValue);
 						// set duration
-                        mg.Length = cell.Position + cell.ActualDuration - mg.Position;
+                        mg.Length = cell.Position + cell.Duration - mg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
 						
 						var m = Regex.Match(chunk, @"\}[\d.+\-/*]+");
 
@@ -289,7 +302,7 @@ namespace Pronome.Mac.Editor
 						// add rep group
 
                         Repeat rg = OpenRepeatGroups.Pop();
-                        rg.Length = cell.Position + cell.ActualDuration - rg.Position;
+                        rg.Length = cell.Position + cell.Duration - rg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
 						Match mtch = Regex.Match(chunk, @"](\d+)");
 						if (mtch.Length == 0)
 						{
@@ -312,6 +325,9 @@ namespace Pronome.Mac.Editor
 						// move to outer group if exists
 						chunk = chunk.Substring(chunk.IndexOf(']') + 1);
 					}
+
+					multIndex = chunk.IndexOf('}');
+					repIndex = chunk.IndexOf(']');
 				}
 
 				// check if its a break, |

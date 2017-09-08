@@ -524,13 +524,14 @@ namespace Pronome.Mac
 
                         continue;
                     }
+                    // todo: nested repeats need to have their position modified as well
+                    int xPos = (int)((cell.Position - cell.RepeatGroups.Select(r => r.Position).Sum()) * ScalingFactor);
 
-                    int xPos = (int)(cell.Position * ScalingFactor);
                     ctx.MoveTo(xPos, CellHeightPad);
 
                     if (cell.IsSelected) ctx.SetFillColor(SelectedCellColor);
                     else ctx.SetFillColor(CellColor);
-
+                    // draw the cell
                     ctx.FillRect(new CGRect(xPos, CellHeightPad, CellWidth, RowHeight - 2 * CellHeightPad));
 				}
 
@@ -555,44 +556,52 @@ namespace Pronome.Mac
 
         protected CGContext HandleRepeatGroups(CGContext layerCtx, Stack<Repeat> ActiveRepeats, Stack<CGLayer> RepeatLayers, Cell cell)
         {
-            if (!ActiveRepeats.Any()) return layerCtx;
-            // check if repeat groups are ended
-            Repeat repGroup = ActiveRepeats.Peek();
+            //if (!ActiveRepeats.Any() && !cell.RepeatGroups.Any()) return layerCtx;
 
-            while (repGroup != null && !cell.RepeatGroups.Contains(repGroup))
+            if (ActiveRepeats.Any())
             {
-                ActiveRepeats.Pop();
-                var replyer = RepeatLayers.Pop();
-                // get the context to draw on
-                var c = RepeatLayers.Peek()?.Context ?? layerCtx;
-                // draw originals
-                int dur = (int)(repGroup.Length * ScalingFactor);
-                int xp = (int)(repGroup.Position * ScalingFactor);
-                c.DrawLayer(replyer, new CGPoint(xp, 0));
-                // draw copies
-                c.SetAlpha(.7f); // repeats are faded
-                for (int i = 1; i < repGroup.Times; i++)
-                {
-                    c.DrawLayer(replyer, new CGPoint(xp + dur * i, 0));
-                }
-                c.SetAlpha(1f);
+				// check if repeat groups are ended
+				Repeat repGroup = ActiveRepeats.Peek();
 
-                replyer.Dispose();
+				while (repGroup != null && !cell.RepeatGroups.Contains(repGroup))
+				{
+					ActiveRepeats.Pop();
+					var replyer = RepeatLayers.Pop();
+					// get the context to draw on
+                    var c = RepeatLayers.Any() ? RepeatLayers.Peek().Context : layerCtx;
+					// draw originals
+					int dur = (int)(repGroup.Length * ScalingFactor);
+					int xp = (int)(repGroup.Position * ScalingFactor);
+					c.DrawLayer(replyer, new CGPoint(xp, 0));
+					// draw copies
+					c.SetAlpha(.4f); // repeats are faded
+					for (int i = 1; i < repGroup.Times; i++)
+					{
+						c.DrawLayer(replyer, new CGPoint(xp + dur * i, 0));
+					}
+					c.SetAlpha(1f);
 
-                repGroup = ActiveRepeats.Peek();
+					replyer.Dispose();
+
+                    repGroup = ActiveRepeats.Any() ? ActiveRepeats.Peek() : null;
+				}
             }
 
+
             // update to current context
-            CGContext ctx = RepeatLayers.Peek()?.Context ?? layerCtx;
+            CGContext ctx = RepeatLayers.Any() ? RepeatLayers.Peek().Context : layerCtx;
 
             // check if repeat groups are opened
-            if (ActiveRepeats.Peek() != cell.RepeatGroups.Last?.Value)
+            if ((!ActiveRepeats.Any() && cell.RepeatGroups.Any()) || (ActiveRepeats.Any() && ActiveRepeats.Peek() != cell.RepeatGroups.Last?.Value))
             {
                 LinkedListNode<Repeat> cellGroup = cell.RepeatGroups.Last;
                 // find the group that is currently open
-                while (cellGroup?.Value != ActiveRepeats.Peek())
+                if (ActiveRepeats.Any())
                 {
-                    cellGroup = cellGroup.Previous;
+					while (cellGroup?.Value != ActiveRepeats.Peek())
+					{
+						cellGroup = cellGroup.Previous;
+					}
                 }
                 // add all new groups
                 while (cellGroup != null)
@@ -622,24 +631,28 @@ namespace Pronome.Mac
         /// <param name="ctx">Context.</param>
         protected void HandleMultGroups(Stack<Multiply> ActiveMults, Cell cell, CGContext ctx)
         {
-            if (!ActiveMults.Any()) return;
-
-            Multiply multGroup = ActiveMults.Peek();
-            // check if a mult groups are closed
-            while (multGroup != null && !cell.MultGroups.Contains(multGroup))
+            if (ActiveMults.Any())
             {
-                ActiveMults.Pop();
-                multGroup = ActiveMults.Peek();
+				Multiply multGroup = ActiveMults.Peek();
+				// check if a mult groups are closed
+                while (multGroup != null && !cell.MultGroups.Contains(multGroup))
+				{
+					ActiveMults.Pop();
+                    multGroup = ActiveMults.Any() ? ActiveMults.Peek() : null;
+				}
             }
 
             // check if mult groups are opened
             LinkedListNode<Multiply> cellMGrp = cell.MultGroups.Last;
-            if (ActiveMults.Peek() != cellMGrp?.Value)
+            if (cellMGrp != null && (!ActiveMults.Any() || ActiveMults.Peek() != cellMGrp.Value))
             {
                 // descend to currently active group
-                while (ActiveMults.Peek() != cellMGrp?.Value)
+                if (ActiveMults.Any())
                 {
-                    cellMGrp = cellMGrp.Previous;
+					while (ActiveMults.Peek() != cellMGrp?.Value)
+					{
+						cellMGrp = cellMGrp.Previous;
+					}
                 }
 
                 while (cellMGrp != null)
@@ -648,7 +661,7 @@ namespace Pronome.Mac
                     ActiveMults.Push(mg);
 
                     // draw the element
-                    DrawGroupElement(ctx, NSColor.Orange.CGColor, mg);
+                    DrawGroupElement(ctx, NSColor.Orange.CGColor, mg, CellHeightPad);
 
                     cellMGrp = cellMGrp.Next;
                 }
@@ -718,7 +731,7 @@ namespace Pronome.Mac
 			var gradient = new CGGradient(
 				CGColorSpace.CreateDeviceRGB(),
 				new CGColor[] { color, clear, clear, color },
-				new nfloat[] { 0, .1f, .9f, 1 }
+				new nfloat[] { 0, .2f, .8f, 1 }
 			);
 
             var start = new CGPoint(group.Position * ScalingFactor, pad);
@@ -726,7 +739,7 @@ namespace Pronome.Mac
 
             ctx.SaveState();
 
-            var rect = new CGRect(start, new CGSize(group.Length * ScalingFactor, RowHeight - pad / 2));
+            var rect = new CGRect(start, new CGSize(group.Length * ScalingFactor, RowHeight - pad * 2));
             ctx.AddRect(rect);
 
             ctx.Clip();
@@ -738,6 +751,7 @@ namespace Pronome.Mac
 				CGGradientDrawingOptions.None
 			);
 
+            ctx.SetLineWidth(3);
             ctx.SetStrokeColor(color);
             ctx.AddRect(rect);
             ctx.StrokePath();
