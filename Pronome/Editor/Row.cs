@@ -180,29 +180,25 @@ namespace Pronome.Mac.Editor
 					// check for opening repeat group
                     if (repIndex != -1 && (multIndex == -1 || repIndex < multIndex))
 					{
-						//while (chunk.Contains('['))
-						//{
-							OpenRepeatGroups.Push(new Repeat() { Row = this, Cells = new LinkedList<Cell>() });
-							OpenRepeatGroups.Peek().Cells.AddLast(cell);
-							// need to subtract repeat groups offset because contents is in new CGLayer
-							OpenRepeatGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+						OpenRepeatGroups.Push(new Repeat() { Row = this, Cells = new LinkedList<Cell>() });
+						OpenRepeatGroups.Peek().Cells.AddLast(cell);
+						// need to subtract repeat groups offset because contents is in new CGLayer
+						OpenRepeatGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
                         chunk = chunk.Remove(repIndex, 1);
-						//}
-						//cell.RepeatGroups = new LinkedList<Repeat>(OpenRepeatGroups);
+
+                        cell.GroupActions.AddLast((true, OpenRepeatGroups.Peek()));
 					}
 					else if (multIndex != -1)
 					{
-						//while (chunk.Contains('{'))
-						//{
-							OpenMultGroups.Push(new Multiply() { Row = this, Cells = new LinkedList<Cell>() });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
-							//cell.MultGroups = new LinkedList<Multiply>(OpenMultGroups);
-							OpenMultGroups.Peek().Cells.AddLast(cell);
-							// need to subtract repeat groups offset because contents is in new CGLayer
-							OpenMultGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+						OpenMultGroups.Push(new Multiply() { Row = this, Cells = new LinkedList<Cell>() });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
+						OpenMultGroups.Peek().Cells.AddLast(cell);
+						// need to subtract repeat groups offset because contents is in new CGLayer
+						OpenMultGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
-							chunk = chunk.Remove(multIndex, 1);
-						//}
+						chunk = chunk.Remove(multIndex, 1);
+
+                        cell.GroupActions.AddLast((true, OpenMultGroups.Peek()));
 					}
 					
 					repIndex = chunk.IndexOf('[');
@@ -259,7 +255,7 @@ namespace Pronome.Mac.Editor
 						cell.Value = bpm;
 						cell.SetDurationDirectly(BeatCell.Parse(bpm));
 						// progress position
-						position += cell.ActualDuration;
+                        position += cell.Duration;
 					}
 				}
 
@@ -275,6 +271,7 @@ namespace Pronome.Mac.Editor
 
 				bool addedToRepCanvas = false;
 
+                // close groups
 				multIndex = chunk.IndexOf('}');
 				repIndex = chunk.IndexOf(']');
                 while (multIndex != -1 || repIndex != -1)
@@ -289,13 +286,16 @@ namespace Pronome.Mac.Editor
 						mg.FactorValue = Regex.Match(chunk, @"(?<=})[\d.+\-/*]+").Value;
 						mg.Factor = BeatCell.Parse(mg.FactorValue);
 						// set duration
-                        mg.Length = cell.Position + cell.Duration - mg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+                        mg.Length = position - mg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
 						
 						var m = Regex.Match(chunk, @"\}[\d.+\-/*]+");
 
 						chunk = chunk.Remove(m.Index, m.Length);
 
 						MultGroups.AddLast(mg);
+
+                        // log group end
+                        cell.GroupActions.AddLast((false, mg));
 					}
 					else if (repIndex > -1)
 					{
@@ -317,6 +317,10 @@ namespace Pronome.Mac.Editor
 						{
 							rg.Times = int.Parse(mtch.Groups[1].Value);
 						}
+
+                        RepeatGroups.AddLast(rg);
+
+                        cell.GroupActions.AddLast((false, rg));
 
 						// build the group
 						position = BuildRepeatGroup(cell, rg, OpenRepeatGroups, position, !addedToRepCanvas);

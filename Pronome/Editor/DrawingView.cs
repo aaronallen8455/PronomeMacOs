@@ -506,34 +506,15 @@ namespace Pronome.Mac
                 layerCtx.SetFillColor(RowBackgroundColor);
                 layerCtx.FillRect(new CGRect(0, 0, width, RowHeight));
 
-                // these stacks facilitate the drawing of repeat groups.
-                Stack<Repeat> ActiveRepeats = new Stack<Repeat>();
+                // holds the Layer for each repeat group
                 Stack<CGLayer> RepeatLayers = new Stack<CGLayer>();
 
-                Stack<Multiply> ActiveMults = new Stack<Multiply>();
+				CGContext ctx = layerCtx;
 
                 foreach (Cell cell in row.Cells)
                 {
-                    CGContext ctx = HandleRepeatGroups(layerCtx, ActiveRepeats, RepeatLayers, cell);
-
-                    HandleMultGroups(ActiveMults, cell, ctx);
-
-                    if (!string.IsNullOrEmpty(cell.Reference))
-                    {
-                        DrawReferenceRect(cell, ctx);
-
-                        continue;
-                    }
-                    // todo: nested repeats need to have their position modified as well
-                    int xPos = (int)((cell.Position - cell.RepeatGroups.Select(r => r.Position).Sum()) * ScalingFactor);
-
-                    ctx.MoveTo(xPos, CellHeightPad);
-
-                    if (cell.IsSelected) ctx.SetFillColor(SelectedCellColor);
-                    else ctx.SetFillColor(CellColor);
-                    // draw the cell
-                    ctx.FillRect(new CGRect(xPos, CellHeightPad, CellWidth, RowHeight - 2 * CellHeightPad));
-				}
+                    ctx = DrawElements(layerCtx, RepeatLayers, ctx, cell);
+                }
 
                 int pos = (int)(row.Offset * ScalingFactor) + PaddingLeft;
                 int length = (int)(row.Duration * ScalingFactor);
@@ -554,118 +535,106 @@ namespace Pronome.Mac
             }
         }
 
-        protected CGContext HandleRepeatGroups(CGContext layerCtx, Stack<Repeat> ActiveRepeats, Stack<CGLayer> RepeatLayers, Cell cell)
-        {
-            //if (!ActiveRepeats.Any() && !cell.RepeatGroups.Any()) return layerCtx;
+        /// <summary>
+        /// Draws all the elements for a single cell. Each repeat group has it's own layer
+        /// </summary>
+        /// <returns>The elements.</returns>
+        /// <param name="baseLayerCtx">Base Layer context.</param>
+        /// <param name="RepeatLayers">Repeat layers.</param>
+        /// <param name="ctx">Context.</param>
+        /// <param name="cell">Cell.</param>
+        protected CGContext DrawElements(CGContext baseLayerCtx, Stack<CGLayer> RepeatLayers, CGContext ctx, Cell cell)
+		{
+			bool cellDrawn = false;
 
-            if (ActiveRepeats.Any())
-            {
-				// check if repeat groups are ended
-				Repeat repGroup = ActiveRepeats.Peek();
-
-				while (repGroup != null && !cell.RepeatGroups.Contains(repGroup))
+            // handle groups in correct order
+			foreach ((bool begun, AbstractGroup group) in cell.GroupActions)
+			{
+				// draw the cell before groups start closing.
+				if (!begun && !cellDrawn)
 				{
-					ActiveRepeats.Pop();
-					var replyer = RepeatLayers.Pop();
-					// get the context to draw on
-                    var c = RepeatLayers.Any() ? RepeatLayers.Peek().Context : layerCtx;
-					// draw originals
-					int dur = (int)(repGroup.Length * ScalingFactor);
-					int xp = (int)(repGroup.Position * ScalingFactor);
-					c.DrawLayer(replyer, new CGPoint(xp, 0));
-					// draw copies
-					c.SetAlpha(.4f); // repeats are faded
-					for (int i = 1; i < repGroup.Times; i++)
-					{
-						c.DrawLayer(replyer, new CGPoint(xp + dur * i, 0));
-					}
-					c.SetAlpha(1f);
+					DrawCellRect(cell, ctx);
 
-					replyer.Dispose();
-
-                    repGroup = ActiveRepeats.Any() ? ActiveRepeats.Peek() : null;
+					cellDrawn = true;
 				}
-            }
 
-
-            // update to current context
-            CGContext ctx = RepeatLayers.Any() ? RepeatLayers.Peek().Context : layerCtx;
-
-            // check if repeat groups are opened
-            if ((!ActiveRepeats.Any() && cell.RepeatGroups.Any()) || (ActiveRepeats.Any() && ActiveRepeats.Peek() != cell.RepeatGroups.Last?.Value))
-            {
-                LinkedListNode<Repeat> cellGroup = cell.RepeatGroups.Last;
-                // find the group that is currently open
-                if (ActiveRepeats.Any())
-                {
-					while (cellGroup?.Value != ActiveRepeats.Peek())
+				if (group.GetType() == typeof(Repeat))
+				{
+					if (begun)
 					{
-						cellGroup = cellGroup.Previous;
+						// begin repeat group
+
+						int w = (int)(group.Length * ScalingFactor);
+						RepeatLayers.Push(CGLayer.Create(ctx, new CGSize(w, RowHeight)));
+
+						// draw the element
+						DrawGroupElement(ctx, NSColor.Green.CGColor, group);
+
+						ctx = RepeatLayers.Peek().Context;
 					}
-                }
-                // add all new groups
-                while (cellGroup != null)
-                {
-                    var gp = cellGroup.Value;
-                    ActiveRepeats.Push(gp);
-                    int w = (int)(gp.Length * ScalingFactor);
-                    RepeatLayers.Push(CGLayer.Create(ctx, new CGSize(w, RowHeight)));
+					else
+					{
+						// end repeat group
 
-                    // draw the element
-                    DrawGroupElement(ctx, NSColor.Green.CGColor, gp);
+						var replyer = RepeatLayers.Pop();
+						// get the context to draw on
+						ctx = RepeatLayers.Any() ? RepeatLayers.Peek().Context : baseLayerCtx;
+						// draw originals
+						int dur = (int)(group.Length * ScalingFactor);
+						int xp = (int)(group.Position * ScalingFactor);
+						ctx.DrawLayer(replyer, new CGPoint(xp, 0));
+						// draw copies
+						ctx.SetAlpha(.4f); // repeats are faded
+						for (int i = 1; i < (group as Repeat).Times; i++)
+						{
+							ctx.DrawLayer(replyer, new CGPoint(xp + dur * i, 0));
+						}
+						ctx.SetAlpha(1f);
 
-                    ctx = RepeatLayers.Peek().Context;
+						replyer.Dispose();
+					}
+				}
+				else
+				{
+					if (begun)
+					{
+						// begin mult group
 
-                    cellGroup = cellGroup.Next;
-                }
-            }
+						DrawGroupElement(ctx, NSColor.Orange.CGColor, group, CellHeightPad);
+					}
+				}
+			}
 
-            return ctx;
-        }
+			if (!cellDrawn)
+			{
+				DrawCellRect(cell, ctx);
+			}
+
+			return ctx;
+		}
 
         /// <summary>
-        /// Add / remove groups from the stack, draw any new groups.
+        /// Draws the rect that represents the cell.
         /// </summary>
-        /// <param name="ActiveMults">Active mults.</param>
         /// <param name="cell">Cell.</param>
         /// <param name="ctx">Context.</param>
-        protected void HandleMultGroups(Stack<Multiply> ActiveMults, Cell cell, CGContext ctx)
+        protected void DrawCellRect(Cell cell, CGContext ctx)
         {
-            if (ActiveMults.Any())
-            {
-				Multiply multGroup = ActiveMults.Peek();
-				// check if a mult groups are closed
-                while (multGroup != null && !cell.MultGroups.Contains(multGroup))
-				{
-					ActiveMults.Pop();
-                    multGroup = ActiveMults.Any() ? ActiveMults.Peek() : null;
-				}
-            }
+			if (!string.IsNullOrEmpty(cell.Reference))
+			{
+				DrawReferenceRect(cell, ctx);
 
-            // check if mult groups are opened
-            LinkedListNode<Multiply> cellMGrp = cell.MultGroups.Last;
-            if (cellMGrp != null && (!ActiveMults.Any() || ActiveMults.Peek() != cellMGrp.Value))
-            {
-                // descend to currently active group
-                if (ActiveMults.Any())
-                {
-					while (ActiveMults.Peek() != cellMGrp?.Value)
-					{
-						cellMGrp = cellMGrp.Previous;
-					}
-                }
+                return;
+			}
 
-                while (cellMGrp != null)
-                {
-                    var mg = cellMGrp.Value;
-                    ActiveMults.Push(mg);
+			int xPos = (int)((cell.Position - cell.RepeatGroups.Select(r => r.Position).Sum()) * ScalingFactor);
 
-                    // draw the element
-                    DrawGroupElement(ctx, NSColor.Orange.CGColor, mg, CellHeightPad);
+			ctx.MoveTo(xPos, CellHeightPad);
 
-                    cellMGrp = cellMGrp.Next;
-                }
-            }
+			if (cell.IsSelected) ctx.SetFillColor(SelectedCellColor);
+			else ctx.SetFillColor(CellColor);
+			// draw the cell
+			ctx.FillRect(new CGRect(xPos, CellHeightPad, CellWidth, RowHeight - 2 * CellHeightPad));
         }
 
         /// <summary>
@@ -726,11 +695,12 @@ namespace Pronome.Mac
         /// <param name="pad">Pad.</param>
         protected void DrawGroupElement(CGContext ctx, CGColor color, AbstractGroup group, int pad = 0)
         {
+            var transp = new CGColor(color, .6f);
             var clear = new CGColor(color, 0);
 
 			var gradient = new CGGradient(
 				CGColorSpace.CreateDeviceRGB(),
-				new CGColor[] { color, clear, clear, color },
+				new CGColor[] { transp, clear, clear, transp },
 				new nfloat[] { 0, .2f, .8f, 1 }
 			);
 

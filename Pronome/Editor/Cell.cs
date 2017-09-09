@@ -42,30 +42,6 @@ namespace Pronome.Mac.Editor
 					touchedGroups.Add(mg);
                     mg.Length += diff;
 				}
-
-                //// reposition all subsequent cells and groups and references
-				//foreach (Cell cell in Row.Cells.SkipWhile(x => x != this).Skip(1))
-				//{
-				//
-				//	cell.Position += diff;
-				//	// reposition reference rect
-				//	if (cell.ReferenceRectangle != null)
-				//	{
-				//		double cur = Canvas.GetLeft(cell.ReferenceRectangle);
-				//		Canvas.SetLeft(cell.ReferenceRectangle, cur + diff);
-				//	}
-				//}
-				// reposition groups
-				//foreach (RepeatGroup rg in Row.RepeatGroups.Where(x => !touchedGroups.Contains(x) && x.Position > Position))
-				//{
-				//	rg.Position += diff;
-				//}
-				//foreach (MultGroup mg in Row.MultGroups.Where(x => !touchedGroups.Contains(x) && x.Position > Position))
-				//{
-				//	mg.Position += diff;
-				//}
-				// resize sizer
-				//Row.ChangeSizerWidthByAmount(diff);
 			}
 		}
 
@@ -138,6 +114,11 @@ namespace Pronome.Mac.Editor
 		/// Repeat groups that this cell is part of
 		/// </summary>
 		public LinkedList<Repeat> RepeatGroups = new LinkedList<Repeat>();
+
+        /// <summary>
+        /// The group actions that occur at this cell. First part of tuple is true if group was begun, false if ended.
+        /// </summary>
+        public LinkedList<(bool, AbstractGroup)> GroupActions = new LinkedList<(bool, AbstractGroup)>();
 
 		/// <summary>
 		/// Is this cell part of a reference. Should not be manipulable if so
