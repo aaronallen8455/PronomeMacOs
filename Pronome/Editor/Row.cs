@@ -142,6 +142,29 @@ namespace Pronome.Mac.Editor
 
 			//string[] chunks = beat.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
             Stack<Multiply> OpenMultGroups = new Stack<Multiply>();
+            // holds the current mult factor
+            Stack<double> OpenMultFactor = new Stack<double>();
+            OpenMultFactor.Push(1);
+
+            // build list of mult group factors ahead of time
+            // this is so we already know the factor when the mult group gets created (factors are at end of group).
+            List<string> MultFactors = new List<string>();
+            Stack<int> mIndexStack = new Stack<int>();
+            int mIndex = 0;
+            foreach (Match m in Regex.Matches(beat, @"([\{\}])([\d+\-*/.]*)"))
+            {
+                if (m.Groups[1].Value == "{")
+                {
+                    MultFactors.Add("");
+                    mIndexStack.Push(mIndex);
+                    mIndex++;
+                }
+                else
+                {
+                    MultFactors[mIndexStack.Pop()] = m.Groups[2].Value;
+                }
+            }
+            mIndex = 0;
 
 			// BPM value
 			double position = 0;// Offset;
@@ -183,7 +206,7 @@ namespace Pronome.Mac.Editor
 						OpenRepeatGroups.Push(new Repeat() { Row = this, Cells = new LinkedList<Cell>() });
 						OpenRepeatGroups.Peek().Cells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer
-						OpenRepeatGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+                        OpenRepeatGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
                         chunk = chunk.Remove(repIndex, 1);
 
@@ -191,10 +214,18 @@ namespace Pronome.Mac.Editor
 					}
 					else if (multIndex != -1)
 					{
-						OpenMultGroups.Push(new Multiply() { Row = this, Cells = new LinkedList<Cell>() });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
+						OpenMultGroups.Push(new Multiply() 
+                        { 
+                            Row = this, 
+                            Cells = new LinkedList<Cell>(),
+                            FactorValue = MultFactors[mIndex],
+                            Factor = BeatCell.Parse(MultFactors[mIndex++])
+                        });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
 						OpenMultGroups.Peek().Cells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer
-						OpenMultGroups.Peek().Position = cell.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+						OpenMultGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
+
+                        OpenMultFactor.Push(OpenMultFactor.Peek() * OpenMultGroups.Peek().Factor);
 
 						chunk = chunk.Remove(multIndex, 1);
 
@@ -234,6 +265,7 @@ namespace Pronome.Mac.Editor
 						refIndex = int.Parse(cell.Reference) - 1;
 					}
 
+                    // todo: factor in mult groups here
                     (CellTree pbCells, double duration) = ResolveReference(refIndex, position);
 					// add the ref cells in
 					//cells = new LinkedList<Cell>(cells.Concat(pbr.Cells));
@@ -255,7 +287,7 @@ namespace Pronome.Mac.Editor
 						cell.Value = bpm;
 						cell.SetDurationDirectly(BeatCell.Parse(bpm));
 						// progress position
-                        position += cell.Duration;
+                        position += cell.Duration * OpenMultFactor.Peek();
 					}
 				}
 
@@ -269,7 +301,7 @@ namespace Pronome.Mac.Editor
 					cell.Source = source;
 				}
 
-				bool addedToRepCanvas = false;
+				//bool addedToRepCanvas = false;
 
                 // close groups
 				multIndex = chunk.IndexOf('}');
@@ -280,14 +312,15 @@ namespace Pronome.Mac.Editor
 
 					if (multIndex > -1 && (multIndex < repIndex || repIndex == -1))
 					{
-						// add mult group
-
+                        // close mult group
+                        OpenMultFactor.Pop();
                         Multiply mg = OpenMultGroups.Pop();
-						mg.FactorValue = Regex.Match(chunk, @"(?<=})[\d.+\-/*]+").Value;
-						mg.Factor = BeatCell.Parse(mg.FactorValue);
+						//mg.FactorValue = Regex.Match(chunk, @"(?<=})[\d.+\-/*]+").Value;
+						//mg.Factor = BeatCell.Parse(mg.FactorValue);
 						// set duration
                         mg.Length = position - mg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
-						
+                        mg.Length *= OpenMultFactor.Peek();
+
 						var m = Regex.Match(chunk, @"\}[\d.+\-/*]+");
 
 						chunk = chunk.Remove(m.Index, m.Length);
@@ -299,10 +332,10 @@ namespace Pronome.Mac.Editor
 					}
 					else if (repIndex > -1)
 					{
-						// add rep group
+						// close rep group
 
                         Repeat rg = OpenRepeatGroups.Pop();
-                        rg.Length = cell.Position + cell.Duration - rg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
+                        rg.Length = position - rg.Position - OpenRepeatGroups.Select(x => x.Position).Sum();
 						Match mtch = Regex.Match(chunk, @"](\d+)");
 						if (mtch.Length == 0)
 						{
@@ -323,9 +356,9 @@ namespace Pronome.Mac.Editor
                         cell.GroupActions.AddLast((false, rg));
 
 						// build the group
-						position = BuildRepeatGroup(cell, rg, OpenRepeatGroups, position, !addedToRepCanvas);
+                        position = BuildRepeatGroup(rg, OpenMultFactor.Peek(), position);
 
-						addedToRepCanvas = true;
+						//addedToRepCanvas = true;
 						// move to outer group if exists
 						chunk = chunk.Substring(chunk.IndexOf(']') + 1);
 					}
@@ -601,11 +634,9 @@ namespace Pronome.Mac.Editor
 		/// <summary>
 		/// Perform all graphical tasks with initializing a repeat group. Group must have and Times, LastTermMod, Postion, Duration already set.
 		/// </summary>
-		/// <param name="cell"></param>
 		/// <param name="rg"></param>
-		/// <param name="openRepeatGroups"></param>
 		/// <returns></returns>
-        protected double BuildRepeatGroup(Cell cell, Repeat rg, Stack<Repeat> openRepeatGroups, double position, bool addToCanvas = true)
+        protected double BuildRepeatGroup(Repeat rg, double multGroupsFactor, double position)
 		{
 			//double position = 0;
 			RepeatGroups.AddLast(rg);
@@ -616,7 +647,7 @@ namespace Pronome.Mac.Editor
                 position += rg.Length;
 			}
 
-			position += BeatCell.Parse(rg.LastTermModifier); //* EditorWindow.Scale * EditorWindow.BaseFactor;
+            position += BeatCell.Parse(rg.LastTermModifier) * multGroupsFactor; //* EditorWindow.Scale * EditorWindow.BaseFactor;
 
 			return position;
 		}
