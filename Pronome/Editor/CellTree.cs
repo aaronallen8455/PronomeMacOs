@@ -581,6 +581,7 @@ namespace Pronome.Mac.Editor
         public void Clear()
         {
             Root = null;
+            Count = 0;
         }
 		#endregion
 

@@ -105,6 +105,96 @@ namespace Pronome.Mac
                 DidChangeValue("MeasureSizeString");
             }
         }
+
+        private string _durationField;
+        /// <summary>
+        /// Gets or sets the duration field.
+        /// </summary>
+        /// <value>The duration field.</value>
+        [Export("Duration")]
+        public string DurationField
+        {
+            get
+            {
+                if (SelectionExists)
+                {
+                    if (SelectedCells.Count == 1)
+                    {
+                        return SelectedCells.Root.Cell.Value;
+                    }
+                    else
+                    {
+                        // check if all selected have the same duration
+                        double bpm = SelectedCells.Root.Cell.Duration;
+                        foreach (Cell cell in SelectedCells)
+                        {
+                            if (bpm != cell.Duration)
+                            {
+                                bpm = -1;
+                                break;
+                            }
+                        }
+                        if (bpm > 0)
+                        {
+                            return SelectedCells.Root.Cell.Value;
+                        }
+                    }
+                }
+
+                return string.Empty;
+            }
+            set
+            {
+                WillChangeValue("Duration");
+                if (BeatCell.TryParse(value, out double bpm))
+                {
+					_durationField = value;
+
+                    foreach (Cell cell in SelectedCells)
+                    {
+                        cell.Value = value;
+                        //cell.Duration = bpm;
+                    }
+                    Row selectedRow = SelectedCells.Root.Cell.Row;
+                    double startPos = SelectedCells.GetMin().Cell.Position;
+                    int count = SelectedCells.Count;
+                    // need to rebuild the row
+                    string bc = selectedRow.Stringify();
+                    selectedRow.FillFromBeatCode(bc);
+
+                    // reselect cells
+                    DeselectCells();
+                    CellTreeNode newSelect = selectedRow.Cells.Lookup(startPos, false);
+                    // select first cell
+					SelectCell(newSelect.Cell);
+
+                    for (int i = 0; i < count - 1; i++)
+                    {
+                        newSelect = newSelect.Next();
+                    }
+                    // select through to last cell
+                    if (!newSelect.Cell.IsSelected)
+                    {
+						SelectCell(newSelect.Cell, true);
+                    }
+
+                    // redraw selected row
+                    QueueRowToDraw(selectedRow);
+                    // TODO create undo action
+                }
+                DidChangeValue("Duration");
+            }
+        }
+
+        /// <summary>
+        /// True if a selection is made.
+        /// </summary>
+        /// <value><c>true</c> if selection exists; otherwise, <c>false</c>.</value>
+        [Export("SelectionExists")]
+        public bool SelectionExists
+        {
+            get => SelectedCells.Root != null;
+        }
         #endregion
 
         #region Public fields
@@ -750,6 +840,8 @@ namespace Pronome.Mac
         /// <param name="extendSelection">If set to <c>true</c> extend selection.</param>
         protected void SelectCell(Cell cell, bool extendSelection = false)
         {
+            WillChangeValue("Duration");
+
             // is there an existing selection?
             if (SelectedCells.Root != null)
             {
@@ -874,6 +966,8 @@ namespace Pronome.Mac
                 SelectionAnchor = new CellTreeNode(cell);
                 SelectedCells.Insert(SelectionAnchor);
             }
+
+            DidChangeValue("Duration");
         }
 
         /// <summary>
