@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using AppKit;
 using Foundation;
 
@@ -45,6 +47,8 @@ namespace Pronome.Mac
                     string path = url.Path;
                     // load the beat
                     SavedFileManager.Load(path);
+                    // add to recenlty opened
+                    NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(url);
                 }
             }
         }
@@ -83,6 +87,34 @@ namespace Pronome.Mac
             if (string.IsNullOrEmpty(SavedFileManager.CurrentlyOpenFile)) return;
 
             SavedFileManager.Load(SavedFileManager.CurrentlyOpenFile);
+        }
+
+        /// <summary>
+        /// Used by File > Open Recent
+        /// </summary>
+        /// <returns><c>true</c>, if file was opened, <c>false</c> otherwise.</returns>
+        /// <param name="sender">Sender.</param>
+        /// <param name="filename">Filename.</param>
+        public override bool OpenFile(NSApplication sender, string filename)
+        {
+            if (File.Exists(filename))
+            {
+                try
+                {
+					SavedFileManager.Load(filename);
+
+					// add to recenlty opened
+                    NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(NSUrl.FromFilename(filename));
+
+					return true;
+                }
+                catch
+                {
+                    
+                }
+            }
+
+            return false;
         }
     }
 }

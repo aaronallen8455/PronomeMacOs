@@ -478,73 +478,6 @@ namespace Pronome.Mac.Editor
             }
 
             yield break;
-
-            //HashSet<CellTreeNode> touched = new HashSet<CellTreeNode>();
-			//
-            //CellTreeNode node = Root;
-			//
-            //// find least value
-            //while (node.Left != null)
-            //{
-            //    node = node.Left;
-            //}
-			//
-            //// in order traversal
-            //while (node != null)
-            //{
-            //    if (!touched.Contains(node))
-            //    {
-			//		yield return node.Cell;
-			//		touched.Add(node);
-            //    }
-            //    else
-            //    {
-            //        node = node.Parent;
-			//
-            //        if (node == null)
-            //        {
-            //            yield break;
-            //        }
-			//
-            //        if (touched.Contains(node))
-            //        {
-            //            node = node.Parent;
-            //        }
-            //        else
-            //        {
-			//			yield return node.Cell;
-			//			touched.Add(node);
-            //        }
-            //    }
-			//
-            //    while (node != null && node.Right == null)
-            //    {
-            //        node = node.Parent;
-			//
-            //        if (node == null) 
-            //            yield break;
-			//
-            //        if (!touched.Contains(node))
-            //        {
-            //            yield return node?.Cell;
-            //            touched.Add(node);
-            //        }
-            //        else break;
-            //    }
-			//
-            //    if (node != null)
-            //    {
-            //        if (!touched.Contains(node.Right))
-            //            node = node.Right;
-			//
-            //        while (node.Left != null && !touched.Contains(node.Left))
-            //        {
-            //            node = node.Left;
-            //        }
-            //    }
-            //}
-			//
-            //yield break;
         }
 
         public CellTreeNode GetMin()
@@ -573,6 +506,23 @@ namespace Pronome.Mac.Editor
             }
 
             return node;
+        }
+
+        /// <summary>
+        /// Convert to an array of cells
+        /// </summary>
+        /// <returns>The array.</returns>
+        public Cell[] ToArray()
+        {
+            Cell[] array = new Cell[Count];
+
+            int i = 0;
+            foreach (CellTreeNode node in this)
+            {
+                array[i++] = node.Cell;
+            }
+
+            return array;
         }
 
         /// <summary>

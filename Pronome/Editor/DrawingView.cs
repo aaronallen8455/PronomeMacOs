@@ -159,8 +159,9 @@ namespace Pronome.Mac
                     double startPos = SelectedCells.GetMin().Cell.Position;
                     int count = SelectedCells.Count;
                     // need to rebuild the row
-                    string bc = selectedRow.Stringify();
-                    selectedRow.FillFromBeatCode(bc);
+                    //string bc = selectedRow.Stringify();
+                    //selectedRow.FillFromBeatCode(bc);
+                    selectedRow.Reparse();
 
                     // reselect cells
                     DeselectCells();
@@ -180,6 +181,12 @@ namespace Pronome.Mac
 
                     // redraw selected row
                     QueueRowToDraw(selectedRow);
+                    // redraw referencers
+                    foreach (int index in Row.ReferenceMap[selectedRow.Index])
+                    {
+                        Rows[index].Reparse();
+                        QueueRowToDraw(Rows[index]);
+                    }
                     // TODO create undo action
                 }
                 DidChangeValue("Duration");
@@ -226,6 +233,11 @@ namespace Pronome.Mac
         /// Spacing between measure lines in BPM
         /// </summary>
         protected double MeasureSize = 4;
+
+        /// <summary>
+        /// Holds the copied cells that can then be pasted
+        /// </summary>
+        protected Cell[] ClipBoard;
         #endregion
 
         public DrawingView(IntPtr handle) : base(handle)
@@ -374,6 +386,72 @@ namespace Pronome.Mac
 
             // add the tracking area, for mouse move events
             AddTrackingRect(Frame, this, IntPtr.Zero, false);
+        }
+
+        [Action("copy:")]
+		public void CopyAction(NSObject sender)
+		{
+            ClipBoard = SelectedCells.ToArray();
+		}
+
+        [Action("cut:")]
+        public void CutAction(NSObject sender)
+        {
+            ClipBoard = SelectedCells.ToArray();
+            // delete cells
+            Row selectedRow = SelectedCells.Root.Cell.Row;
+            DeleteSelectedCells();
+            selectedRow.Reparse();
+            QueueRowToDraw(selectedRow);
+            // handle referencers
+            foreach (int index in Row.ReferenceMap[selectedRow.Index])
+            {
+                Rows[index].Reparse();
+                QueueRowToDraw(Rows[index]);
+            }
+        }
+
+        [Action("paste:")]
+        public void PasteAction(NSObject sender)
+        {
+            // replace selected cells with cells from clipboard
+            foreach (Cell cell in ClipBoard)
+            {
+                cell.Row = SelectedCells.Root.Cell.Row;
+            }
+            // get bpm duration of clipboard
+            double duration = ClipBoard.Select(x => x.Duration).Sum();
+            // bpm position of selection
+            double pos = SelectedCells.GetMin().Cell.Position;
+            double selDuration = SelectedCells.ToArray().Select(x => x.Duration).Sum();
+
+            // if replacement is longer, we need to reposition cells in destination
+
+
+            DeleteSelectedCells();
+            // need to change the cells' row reference
+        }
+
+        /// <summary>
+        /// Check if copy/cut/paste is valid
+        /// </summary>
+        /// <returns><c>true</c>, if menu action was validated, <c>false</c> otherwise.</returns>
+        /// <param name="item">Item.</param>
+        [Action("validateMenuItem:")]
+        public bool ValidateMenuAction(NSMenuItem item)
+        {
+            string actionName = item.Action.Name;
+
+            if (actionName == "cut:" || actionName == "copy:")
+            {
+                return SelectionExists;
+            }
+            else if (actionName == "paste:")
+            {
+                return SelectionExists && ClipBoard != null;
+            }
+
+            return true;
         }
 
 		#endregion
@@ -982,6 +1060,23 @@ namespace Pronome.Mac
 
             SelectedCells.Clear();
             SelectionAnchor = null;
+        }
+
+        /// <summary>
+        /// Deletes the selected cells, does not parse new beatcode (or referencers) or redraw.
+        /// </summary>
+        protected void DeleteSelectedCells()
+        {
+            if (SelectionExists)
+            {
+                Row selectedRow = SelectedCells.Root.Cell.Row;
+                foreach (CellTreeNode node in SelectedCells)
+                {
+                    selectedRow.Cells.Remove(node.Cell);
+                }
+
+                DeselectCells();
+            }
         }
 
         /// <summary>

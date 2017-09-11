@@ -125,6 +125,16 @@ namespace Pronome.Mac.Editor
 			BeatCodeIsCurrent = true;
 		}
 
+        /// <summary>
+        /// Reparses to represent current state of cell objects.
+        /// </summary>
+        public void Reparse()
+        {
+            string newCode = Stringify();
+
+            FillFromBeatCode(newCode);
+        }
+
 		/// <summary>
 		/// Used in the ParseBeat method to track the currently open, nested repeat groups
 		/// </summary>
