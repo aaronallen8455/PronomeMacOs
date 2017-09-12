@@ -15,10 +15,21 @@ namespace Pronome.Mac
             get => DrawingView;
         }
 
+        protected NSUndoManager UndoManager;
+
 		public EditorViewController (IntPtr handle) : base (handle)
 		{
-            
 		}
+
+        public override void AwakeFromNib()
+        {
+            base.AwakeFromNib();
+
+            //var undo = View.Window.WillReturnUndoManager;
+            //undo.
+
+            UndoManager = new NSUndoManager();
+        }
 
         public override void ViewDidLoad()
         {
@@ -27,6 +38,35 @@ namespace Pronome.Mac
             // initialize the drawing view
             //DrawingView.WantsLayer = true;
             //DrawingView.Layer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
+        }
+
+        partial void ApplyChangesAction(NSObject sender)
+        {
+            var o = new NSObject();
+
+            //UndoManager.BeginUndoGrouping();
+
+			//UndoManager.RegisterUndo(o, (obj) => DView.AlphaValue = .1f);
+			UndoManager.RegisterUndoWithTarget(this, new ObjCRuntime.Selector("undo"), o);
+            //if (!UndoManager.IsUndoing)
+            //{
+                UndoManager.SetActionname("Testing");
+
+            //UndoManager.Undo();
+            //UndoManager.Undo();
+            //}
+            //UndoManager.Undo();
+			//undo.RegisterUndoWithTarget(this, new Selector("undoRemove:"), args);
+			//if (!undo.IsUndoing)
+			//{
+			//	undo.SetActionname("Remove Person");
+			//}
+        }
+
+        [Export("undo")]
+        void Undo()
+        {
+            
         }
 	}
 }

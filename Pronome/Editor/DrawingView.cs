@@ -21,7 +21,9 @@ namespace Pronome.Mac
 		/// <summary>
 		/// Used to convert BPM to pixels
 		/// </summary>
-		static public double ScalingFactor = 20;
+		static public float ScalingFactor = 60;
+
+        const float BaseFactor = 60;
         #endregion
 
         #region Constants
@@ -182,10 +184,13 @@ namespace Pronome.Mac
                     // redraw selected row
                     QueueRowToDraw(selectedRow);
                     // redraw referencers
-                    foreach (int index in Row.ReferenceMap[selectedRow.Index])
+                    if (Row.ReferenceMap.ContainsKey(selectedRow.Index))
                     {
-                        Rows[index].Reparse();
-                        QueueRowToDraw(Rows[index]);
+						foreach (int index in Row.ReferenceMap[selectedRow.Index])
+						{
+							Rows[index].Reparse();
+							QueueRowToDraw(Rows[index]);
+						}
                     }
                     // TODO create undo action
                 }
@@ -201,6 +206,30 @@ namespace Pronome.Mac
         public bool SelectionExists
         {
             get => SelectedCells.Root != null;
+        }
+
+        string _zoom = "100%";
+        [Export("Zoom")]
+        public string Zoom
+        {
+            get => _zoom;
+            set
+            {
+                WillChangeValue("Zoom");
+
+                string trimmed = value.TrimEnd('%').TrimStart();
+                if (float.TryParse(trimmed, out float num) && num > 0 && num < 5000)
+                {
+                    ScalingFactor = BaseFactor * (100 / num);
+
+                    // redraw
+                    NeedsDisplay = true;
+
+                    _zoom = trimmed + "%";
+                }
+
+                DidChangeValue("Zoom");
+            }
         }
         #endregion
 
@@ -237,7 +266,7 @@ namespace Pronome.Mac
         /// <summary>
         /// Holds the copied cells that can then be pasted
         /// </summary>
-        protected Cell[] ClipBoard;
+        protected LinkedList<Cell> ClipBoard;
         #endregion
 
         public DrawingView(IntPtr handle) : base(handle)
@@ -304,7 +333,10 @@ namespace Pronome.Mac
 
             if (pos >= 0)
             {
-                CursorPosition = pos.ToString("F2");
+                string measure = ((int)(pos / MeasureSize)).ToString();
+                string position = (pos % MeasureSize).ToString("F2");
+
+                CursorPosition = measure + " : " + position;
             }
             else
             {
@@ -391,45 +423,167 @@ namespace Pronome.Mac
         [Action("copy:")]
 		public void CopyAction(NSObject sender)
 		{
-            ClipBoard = SelectedCells.ToArray();
+            ClipBoard = new LinkedList<Cell>();
+            //ClipBoard = SelectedCells.ToArray().Where(x => !x.IsReference).ToArray();
+            Row selectedRow = SelectedCells.Root.Cell.Row;
+            var firstSelected = SelectedCells.GetMin().Cell;
+            var lastSelected = SelectedCells.GetMax().Cell;
+			// original is key, copy is value
+			Dictionary<Repeat, Repeat> CopiedRepeatGroups = new Dictionary<Repeat, Repeat>();
+            Dictionary<Multiply, Multiply> CopiedMultGroups = new Dictionary<Multiply, Multiply>();
+
+            foreach (Cell c in SelectedCells.ToArray().Where(x => !x.IsReference))
+            {
+                Cell copy = new Cell(c.Row)
+                {
+                    Value = c.Value,
+                    Source = c.Source,
+                    Reference = c.Reference,
+                    IsBreak = c.IsBreak,
+                    Position = c.Position
+                };
+
+				// if this is the first cell and is the first cell of a rep group or mult group, copy those groups
+				foreach (Repeat rg in c.RepeatGroups)
+				{
+					Repeat rgCopy = null;
+					if (CopiedRepeatGroups.ContainsKey(rg))
+					{
+						rgCopy = CopiedRepeatGroups[rg];
+					}
+					else if (rg.Cells.First.Value == c
+                             && (!lastSelected.RepeatGroups.Contains(rg)
+                                 || rg.Cells.Last.Value == lastSelected))
+					{
+                        rgCopy = new Repeat()
+                        {
+                            Times = rg.Times,
+                            LastTermModifier = rg.LastTermModifier,
+                        };
+						CopiedRepeatGroups.Add(rg, rgCopy);
+					}
+
+					if (rgCopy != null)
+					{
+						rgCopy.Cells.AddLast(copy);
+						copy.RepeatGroups.AddLast(rgCopy);
+					}
+				}
+
+                foreach (Multiply mg in c.MultGroups)
+				{
+                    Multiply mgCopy = null;
+					if (CopiedMultGroups.ContainsKey(mg))
+					{
+						mgCopy = CopiedMultGroups[mg];
+					}
+					else if (mg.Cells.First.Value == c
+                             && (!lastSelected.MultGroups.Contains(mg)
+                                 || mg.Cells.Last.Value == lastSelected))
+					{
+                        mgCopy = new Multiply();
+						mgCopy.FactorValue = mg.FactorValue;
+						CopiedMultGroups.Add(mg, mgCopy);
+					}
+
+					if (mgCopy != null)
+					{
+						mgCopy.Cells.AddLast(copy);
+						copy.MultGroups.AddLast(mgCopy);
+					}
+				}
+
+                ClipBoard.AddLast(copy);
+            }
 		}
 
         [Action("cut:")]
         public void CutAction(NSObject sender)
         {
-            ClipBoard = SelectedCells.ToArray();
+            CopyAction(sender);
+
             // delete cells
             Row selectedRow = SelectedCells.Root.Cell.Row;
             DeleteSelectedCells();
             selectedRow.Reparse();
             QueueRowToDraw(selectedRow);
             // handle referencers
-            foreach (int index in Row.ReferenceMap[selectedRow.Index])
+            if (Row.ReferenceMap.ContainsKey(selectedRow.Index))
             {
-                Rows[index].Reparse();
-                QueueRowToDraw(Rows[index]);
+				foreach (int index in Row.ReferenceMap[selectedRow.Index])
+				{
+					Rows[index].Reparse();
+					QueueRowToDraw(Rows[index]);
+				}
             }
         }
 
         [Action("paste:")]
         public void PasteAction(NSObject sender)
         {
+            Row row = SelectedCells.Root.Cell.Row;
             // replace selected cells with cells from clipboard
-            foreach (Cell cell in ClipBoard)
-            {
-                cell.Row = SelectedCells.Root.Cell.Row;
-            }
+
             // get bpm duration of clipboard
             double duration = ClipBoard.Select(x => x.Duration).Sum();
+            double pos = ClipBoard.First.Value.Position;
             // bpm position of selection
-            double pos = SelectedCells.GetMin().Cell.Position;
+            double selPos = SelectedCells.GetMin().Cell.Position;
             double selDuration = SelectedCells.ToArray().Select(x => x.Duration).Sum();
 
             // if replacement is longer, we need to reposition cells in destination
+            if (selDuration > duration)
+            {
+                CellTreeNode n = row.Cells.Lookup(SelectedCells.GetMax().Cell.Position);
+                n = n.Next();
+                while (n != null)
+                {
+                    n.Cell.Position += selDuration - duration;
+                }
+            }
 
+            // apply groups from selection
+            Cell firstSelected = SelectedCells.GetMin().Cell;
+            foreach (Repeat repG in firstSelected.RepeatGroups)
+            {
+                foreach (Cell c in ClipBoard)
+                {
+                    repG.Cells.AddLast(c);
+                    c.RepeatGroups.AddLast(repG);
+                }
+            }
+
+            foreach (Multiply multG in firstSelected.MultGroups)
+            {
+                foreach (Cell c in ClipBoard)
+                {
+                    multG.Cells.AddLast(c);
+                    c.MultGroups.AddLast(multG);
+                }
+            }
 
             DeleteSelectedCells();
+
+            // insert replacement cells
+            foreach (Cell cell in ClipBoard)
+            {
+				cell.Row = row;
+                cell.Position += selPos - pos;
+                row.Cells.Insert(cell);
+            }
+
+            row.Reparse();
+            QueueRowToDraw(row);
+
             // need to change the cells' row reference
+            if (Row.ReferenceMap.ContainsKey(row.Index))
+            {
+				foreach (int i in Row.ReferenceMap[row.Index])
+				{
+					Rows[i].Reparse();
+					QueueRowToDraw(Rows[i]);
+				}
+            }
         }
 
         /// <summary>
@@ -509,6 +663,9 @@ namespace Pronome.Mac
         /// <param name="theEvent">The event.</param>
 		private void DragHandler(NSEvent theEvent)
 		{
+            // continue to print coordinates
+            MouseMoved(theEvent);
+            
 			if (!SelectBoxOrigin.IsEmpty)
 			{
 				var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
@@ -1069,10 +1226,9 @@ namespace Pronome.Mac
         {
             if (SelectionExists)
             {
-                Row selectedRow = SelectedCells.Root.Cell.Row;
-                foreach (CellTreeNode node in SelectedCells)
+                foreach (Cell cell in SelectedCells)
                 {
-                    selectedRow.Cells.Remove(node.Cell);
+                    cell.Delete();
                 }
 
                 DeselectCells();

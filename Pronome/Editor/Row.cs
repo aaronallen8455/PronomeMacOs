@@ -213,7 +213,7 @@ namespace Pronome.Mac.Editor
 					// check for opening repeat group
                     if (repIndex != -1 && (multIndex == -1 || repIndex < multIndex))
 					{
-						OpenRepeatGroups.Push(new Repeat() { Row = this, Cells = new LinkedList<Cell>() });
+						OpenRepeatGroups.Push(new Repeat() { Row = this });
 						OpenRepeatGroups.Peek().Cells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer
                         OpenRepeatGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
@@ -227,7 +227,6 @@ namespace Pronome.Mac.Editor
 						OpenMultGroups.Push(new Multiply() 
                         { 
                             Row = this, 
-                            Cells = new LinkedList<Cell>(),
                             FactorValue = MultFactors[mIndex],
                             Factor = BeatCell.Parse(MultFactors[mIndex++])
                         });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });

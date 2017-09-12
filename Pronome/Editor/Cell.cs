@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using CoreGraphics;
+﻿using System.Collections.Generic;
 using Pronome.Mac.Editor.Groups;
 using System.Linq;
-using AppKit;
-using Foundation;
 
 namespace Pronome.Mac.Editor
 {
 	public class Cell
 	{
 		public Row Row;
-
-		/// <summary>
-		/// Currently selected cells
-		/// </summary>
-		public static Selection SelectedCells = new Selection();
 
 		protected double _duration;
 		/// <summary>
@@ -63,12 +54,6 @@ namespace Pronome.Mac.Editor
 			get => _value;
 			set
 			{
-				// update the duration UI input if this is the only selected cell
-				if (IsSelected && SelectedCells.Cells.Count == 1)
-				{
-					//EditorWindow.Instance.durationInput.Text = value;
-				}
-
 				_value = value;
 			}
 		}
@@ -125,118 +110,9 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		public bool IsReference = false;
 
-		/// <summary>
-		/// Drawn in place of cell rect if this is a reference. Denotes a referenced block.
-		/// </summary>
-		//public CGLayer ReferenceRectangle;
-
 		public Cell(Row row)
 		{
 			Row = row;
-			//Rectangle = EditorWindow.Instance.Resources["cellRectangle"] as Rectangle;
-			//Rectangle.Height = (double)EditorWindow.Instance.Resources["cellHeight"];
-
-			// the ref rect
-			//ReferenceRectangle = EditorWindow.Instance.Resources["referenceRectangle"] as Rectangle;
-			//// set Canvas.Top
-			//double top = (double)EditorWindow.Instance.Resources["rowHeight"] / 2 - (double)EditorWindow.Instance.Resources["cellHeight"] / 2;
-			//Canvas.SetTop(Rectangle, top);
-			//Canvas.SetTop(ReferenceRectangle, top);
-			//
-			//Panel.SetZIndex(Rectangle, 10);
-			//Rectangle.MouseLeftButtonDown += Rectangle_MouseDown;
-			//ReferenceRectangle.MouseLeftButtonDown += Rectangle_MouseDown;
-		}
-
-		///// <summary>
-		///// Select the cell
-		///// </summary>
-		///// <param name="sender"></param>
-		///// <param name="e"></param>
-		//private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
-		//{
-		//	if (!IsReference) // ref cells should not be manipulable
-		//	{
-		//		ToggleSelect();
-		//
-		//		EditorWindow.Instance.UpdateUiForSelectedCell();
-		//	}
-		//
-		//	e.Handled = true;
-		//}
-
-		public void ToggleSelect(bool Clicked = true)
-		{
-
-			IsSelected = !IsSelected;
-			// set selection color
-			//Rectangle.Stroke = IsSelected ? System.Windows.Media.Brushes.DeepPink : System.Windows.Media.Brushes.Black;
-			// select the reference rect if this cell is a ref
-			if (!string.IsNullOrEmpty(Reference))
-			{
-				//ReferenceRectangle.Opacity += .4 * (IsSelected ? 1 : -1);
-			}
-			// if not a multi select, deselect currently selected cell(s)
-			if (IsSelected)
-			{
-				if (Clicked)
-				{
-                    //var e = NSApplication.SharedApplication.CurrentEvent;
-                    //e.ModifierFlags
-					// multiSelect
-					//if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
-					//{
-					//	int start = -1;
-					//	int end = -1;
-					//	for (int i = 0; i < Row.Cells.Count; i++)
-					//	{
-					//		if (start == -1 && Row.Cells[i].IsSelected)
-					//		{
-					//			start = i;
-					//			end = i;
-					//		}
-					//		else if (Row.Cells[i].IsSelected || Row.Cells[i] == this)
-					//		{
-					//			end = i;
-					//		}
-					//	}
-					//	// have to set this otherwise it will get flipped by SelectRange.
-					//	IsSelected = false;
-					//
-					//	SelectedCells.SelectRange(start, end, Row, false);
-                    //
-					//	return;
-					//}
-					//else
-					//{ // single select : deselect others
-					//	foreach (Cell c in SelectedCells.Cells.ToArray())
-					//	{
-					//		c.ToggleSelect(false);
-					//	}
-					//}
-				}
-
-				SelectedCells.Cells.Add(this);
-				//EditorWindow.Instance.SetCellSelected(true);
-			}
-			else if (!IsSelected)
-			{ // deselect if not a cell in a multi-select being clicked
-				if (SelectedCells.Cells.Count > 1 && Clicked)
-				{
-					//ToggleSelect(false);
-					foreach (Cell c in SelectedCells.Cells.ToArray())
-					{
-						c.ToggleSelect(false);
-					}
-				}
-
-				SelectedCells.Cells.Remove(this);
-				if (!SelectedCells.Cells.Any())
-				{
-					// no cells selected
-					//EditorWindow.Instance.SetCellSelected(false);
-				}
-			}
 		}
 
 		/// <summary>
@@ -249,82 +125,14 @@ namespace Pronome.Mac.Editor
 			//_actualDuration = -1; // reevaluate actual duration
 		}
 
-		//public int CompareTo(object obj)
-		//{
-		//	if (obj is Cell cell)
-		//	{
-		//		return Position > cell.Position ? 1 : -1;
-		//	}
-		//	return 0;
-		//}
+        public void Delete()
+        {
+            Row.Cells.Remove(this);
 
-		public class Selection
-		{
-			/// <summary>
-			/// Cells currently contained by the selection
-			/// </summary>
-			public List<Cell> Cells = new List<Cell>();
-
-			/// <summary>
-			/// First cell in the selection. Set when grid lines are drawn
-			/// </summary>
-			public Cell FirstCell;
-
-			/// <summary>
-			/// Last cell in the selection. Set when grid lines are drawn
-			/// </summary>
-			public Cell LastCell;
-
-			/// <summary>
-			/// Remove all cells from the selection
-			/// </summary>
-			public void Clear()
-			{
-				Cells.Clear();
-				FirstCell = null;
-				LastCell = null;
-			}
-
-			/// <summary>
-			/// Deselect all curently selected cells
-			/// </summary>
-			public void DeselectAll(bool updateUi = true)
-			{
-				foreach (Cell c in Cells.ToArray())
-				{
-					c.ToggleSelect(false);
-				}
-
-				Clear();
-
-				if (updateUi)
-				{
-					//EditorWindow.Instance.UpdateUiForSelectedCell();
-				}
-			}
-
-			/// <summary>
-			/// Select all cells from start to end inclusive
-			/// </summary>
-			/// <param name="start"></param>
-			/// <param name="end"></param>
-			/// <param name="row"></param>
-			public void SelectRange(double start, double end, Row row, bool updateUi = true)
-			{
-				DeselectAll(false);
-
-                CellTreeNode[] nodes = row.Cells.GetRange(start, end);
-
-                if (nodes.Length > 0)
-                {
-                    
-					if (updateUi)
-					{
-						//EditorWindow.Instance.UpdateUiForSelectedCell();
-					}
-                }
-
-			}
-		}
+            foreach (AbstractGroup grp in RepeatGroups.Concat<AbstractGroup>(MultGroups))
+            {
+                grp.Cells.Remove(this);
+            }
+        }
 	}
 }

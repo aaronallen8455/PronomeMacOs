@@ -130,11 +130,10 @@
                                     <action selector="ApplyChangesAction:" target="Dnq-3n-e4D" id="fiz-u3-FCe"/>
                                 </connections>
                             </button>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n8m-do-2Sy">
-                                <rect key="frame" x="10" y="45" width="72" height="17"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n8m-do-2Sy">
+                                <rect key="frame" x="10" y="45" width="113" height="15"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Cursor Position" id="Lof-xs-6Wf">
-                                    <font key="font" metaFont="system"/>
+                                    <font key="font" size="12" name="Courier"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -193,19 +192,27 @@
                                     </objectValues>
                                 </comboBoxCell>
                             </comboBox>
-                            <comboBox verticalHuggingPriority="750" fixedFrame="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="taV-cH-Xzt">
-                                <rect key="frame" x="11" y="10" width="99" height="26"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <comboBox verticalHuggingPriority="750" ambiguous="YES" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="taV-cH-Xzt">
+                                <rect key="frame" x="11" y="10" width="72" height="26"/>
                                 <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" completes="NO" numberOfVisibleItems="5" id="3Ve-6b-pAa">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <objectValues>
-                                        <string>Item 1</string>
-                                        <string>Item 2</string>
-                                        <string>Item 3</string>
+                                        <string>800%</string>
+                                        <string>400%</string>
+                                        <string>200%</string>
+                                        <string>150%</string>
+                                        <string>100%</string>
+                                        <string>67%</string>
+                                        <string>50%</string>
+                                        <string>33%</string>
+                                        <string>25%</string>
                                     </objectValues>
                                 </comboBoxCell>
+                                <connections>
+                                    <binding destination="Dnq-3n-e4D" name="value" keyPath="self.DView.Zoom" id="siW-8F-Scj"/>
+                                </connections>
                             </comboBox>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hsU-uV-PXw">
                                 <rect key="frame" x="10" y="355" width="30" height="30"/>
@@ -311,9 +318,13 @@
                             </textField>
                         </subviews>
                         <constraints>
+                            <constraint firstItem="n8m-do-2Sy" firstAttribute="leading" secondItem="nP9-1I-8J7" secondAttribute="leading" constant="12" id="06C-3p-Cwe"/>
+                            <constraint firstAttribute="bottom" secondItem="taV-cH-Xzt" secondAttribute="bottom" constant="14" id="DBp-ud-srS"/>
                             <constraint firstAttribute="trailing" secondItem="GVG-gb-2sm" secondAttribute="trailing" constant="10" id="EYE-1B-8CE"/>
                             <constraint firstItem="GVG-gb-2sm" firstAttribute="leading" secondItem="nP9-1I-8J7" secondAttribute="leading" constant="10" id="Hdj-pC-LhB"/>
+                            <constraint firstItem="taV-cH-Xzt" firstAttribute="leading" secondItem="nP9-1I-8J7" secondAttribute="leading" constant="11" id="Kjm-jV-lNL"/>
                             <constraint firstAttribute="trailing" secondItem="dOs-pU-Tbl" secondAttribute="trailing" constant="20" id="NK1-6B-2Zz"/>
+                            <constraint firstAttribute="bottom" secondItem="n8m-do-2Sy" secondAttribute="bottom" constant="45" id="PQQ-vs-6Pw"/>
                             <constraint firstAttribute="bottom" secondItem="GVG-gb-2sm" secondAttribute="bottom" constant="70" id="RYc-9E-Xmw"/>
                             <constraint firstItem="GVG-gb-2sm" firstAttribute="top" secondItem="nP9-1I-8J7" secondAttribute="top" constant="89" id="W56-lB-aaD"/>
                         </constraints>
@@ -323,6 +334,7 @@
                     </connections>
                 </viewController>
                 <customObject id="gMV-MS-acH" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <userDefaultsController representsSharedInstance="YES" id="FQt-K7-wda"/>
             </objects>
             <point key="canvasLocation" x="-811" y="-337"/>
         </scene>

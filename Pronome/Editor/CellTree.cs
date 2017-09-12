@@ -15,6 +15,7 @@ namespace Pronome.Mac.Editor
 		public CellTreeNode Root;
 
         public int Count;
+
 		#endregion
 
 		public CellTree()
@@ -517,9 +518,9 @@ namespace Pronome.Mac.Editor
             Cell[] array = new Cell[Count];
 
             int i = 0;
-            foreach (CellTreeNode node in this)
+            foreach (Cell cell in this)
             {
-                array[i++] = node.Cell;
+                array[i++] = cell;
             }
 
             return array;

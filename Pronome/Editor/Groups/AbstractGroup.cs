@@ -17,6 +17,7 @@ namespace Pronome.Mac.Editor.Groups
 
         public AbstractGroup()
         {
+            Cells = new LinkedList<Cell>();
         }
     }
 }
