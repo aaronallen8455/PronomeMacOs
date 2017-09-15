@@ -79,6 +79,7 @@
     <Folder Include="Visualizer\Bounce\" />
     <Folder Include="Editor\" />
     <Folder Include="Editor\Groups\" />
+    <Folder Include="Editor\Action\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -187,6 +188,11 @@
     <Compile Include="Editor\Groups\Reference.cs" />
     <Compile Include="Editor\Row.cs" />
     <Compile Include="Editor\Cell.cs" />
+    <Compile Include="Editor\UndoManager.cs" />
+    <Compile Include="Editor\Action.cs" />
+    <Compile Include="Editor\Action\RemoveCells.cs" />
+    <Compile Include="Editor\Action\PasteCells.cs" />
+    <Compile Include="Editor\Action\CellDuration.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

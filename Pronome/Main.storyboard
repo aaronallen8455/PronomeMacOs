@@ -128,6 +128,11 @@
                                 </buttonCell>
                                 <connections>
                                     <action selector="ApplyChangesAction:" target="Dnq-3n-e4D" id="fiz-u3-FCe"/>
+                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.ChangesApplied" id="am3-yf-ks4">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                 </connections>
                             </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" allowsCharacterPickerTouchBarItem="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n8m-do-2Sy">
@@ -438,12 +443,6 @@
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <menu key="submenu" title="Edit" id="W48-6f-4Dl">
                                     <items>
-                                        <menuItem title="Beat Editor" keyEquivalent="e" id="JJt-DR-Mmd">
-                                            <connections>
-                                                <segue destination="81i-5i-YTw" kind="show" id="sOy-h0-kMb"/>
-                                            </connections>
-                                        </menuItem>
-                                        <menuItem isSeparatorItem="YES" id="cO4-fK-sK5"/>
                                         <menuItem title="Undo" keyEquivalent="z" id="dRJ-4n-Yzg">
                                             <connections>
                                                 <action selector="undo:" target="Ady-hI-5gd" id="M6e-cu-g7V"/>
@@ -485,6 +484,126 @@
                                         <menuItem title="Select All" keyEquivalent="a" id="Ruw-6m-B2m">
                                             <connections>
                                                 <action selector="selectAll:" target="Ady-hI-5gd" id="VNm-Mi-diN"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Beat Editor" id="nRG-3S-RHp">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Beat Editor" id="Bfb-yg-YDB">
+                                    <items>
+                                        <menuItem title="Beat Editor" keyEquivalent="e" id="JJt-DR-Mmd">
+                                            <connections>
+                                                <segue destination="81i-5i-YTw" kind="show" id="sOy-h0-kMb"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="cO4-fK-sK5"/>
+                                        <menuItem title="Undo" tag="1" id="oS1-do-maH">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="undoBeat:" target="Ady-hI-5gd" id="fjq-ZN-ys6"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Redo" id="dk5-eo-FiP">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="redoBeat:" target="Ady-hI-5gd" id="OIL-YH-PHI"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="GgZ-HW-1HL"/>
+                                        <menuItem title="Repeat Group" id="AnB-KE-AEL">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Repeat Group" id="XbN-IT-RYn">
+                                                <items>
+                                                    <menuItem title="Create" id="yPB-H2-O18">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="createRepGroup:" target="Ady-hI-5gd" id="L4I-1i-r4L"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Edit" id="Lax-R1-NEB">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="editRepGroup:" target="Ady-hI-5gd" id="11S-Vq-QbD"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Remove" id="EsA-Ps-5aE">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="removeRepGroup:" target="Ady-hI-5gd" id="Iyr-vx-dvg"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem title="Multiply Group" id="vSm-hz-OXO">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Multiply Group" id="qzv-KK-Jc8">
+                                                <items>
+                                                    <menuItem title="Create" id="6w8-dW-sSu">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="createMultGroup:" target="Ady-hI-5gd" id="8tT-bB-TPe"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Edit" id="9QW-YT-lX5">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="editMultGroup:" target="Ady-hI-5gd" id="pbA-bO-JWS"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Remove" id="ugI-5Z-ejn">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="removeMultGroup:" target="Ady-hI-5gd" id="Qcq-Dd-zxu"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem title="Reference" id="BjY-hK-Tf0">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Reference" id="YAL-BU-9RE">
+                                                <items>
+                                                    <menuItem title="Create" id="nL3-6w-jdo">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="createRef:" target="Ady-hI-5gd" id="odi-wE-Gn0"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Edit" id="ujQ-nM-lkf">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="editRef:" target="Ady-hI-5gd" id="P3w-5u-7vT"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                    <menuItem title="Remove" id="k4H-h5-MwF">
+                                                        <modifierMask key="keyEquivalentModifierMask"/>
+                                                        <connections>
+                                                            <action selector="removeRef:" target="Ady-hI-5gd" id="5k3-lY-PVr"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="vM8-3X-Cbu"/>
+                                        <menuItem title="Move Cell(s) Left" id="AfK-dW-OAe">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="moveCellsLeft:" target="Ady-hI-5gd" id="DZx-eZ-aop"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Move Cell(s) Right" id="T8P-uD-su3">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="moveCellsRight:" target="Ady-hI-5gd" id="IRa-J5-sfQ"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Remove Cell(s)" id="YDB-py-y9M">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="removeCells:" target="Ady-hI-5gd" id="U96-sJ-Jfj"/>
                                             </connections>
                                         </menuItem>
                                     </items>

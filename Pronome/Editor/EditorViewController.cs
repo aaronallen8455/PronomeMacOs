@@ -4,69 +4,222 @@ using System;
 using CoreGraphics;
 using Foundation;
 using AppKit;
+using Pronome.Mac.Editor;
+using System.Collections.Generic;
+using Pronome.Mac.Editor.Action;
 
 namespace Pronome.Mac
 {
-	public partial class EditorViewController : NSViewController
-	{
+    public partial class EditorViewController : NSViewController
+    {
+        #region static fields
+        /// <summary>
+        /// The instance. Behaves like a singleton
+        /// </summary>
+        public static EditorViewController Instance;
+
+        /// <summary>
+        /// The undo stack.
+        /// </summary>
+        public static Stack<IEditorAction> UndoStack = new Stack<IEditorAction>(50);
+
+        /// <summary>
+        /// The redo stack.
+        /// </summary>
+        public static Stack<IEditorAction> RedoStack = new Stack<IEditorAction>(50);
+        #endregion
+
+        #region Computed Properties
         [Export("DView")]
         public DrawingView DView
         {
             get => DrawingView;
         }
+        #endregion
 
-        protected NSUndoManager UndoManager;
-
-		public EditorViewController (IntPtr handle) : base (handle)
-		{
-		}
-
-        public override void AwakeFromNib()
+        #region Constructor
+        public EditorViewController(IntPtr handle) : base(handle)
         {
-            base.AwakeFromNib();
-
-            //var undo = View.Window.WillReturnUndoManager;
-            //undo.
-
-            UndoManager = new NSUndoManager();
+            Instance = this;
         }
+        #endregion
 
-        public override void ViewDidLoad()
+        #region Public static methods
+        public static void InitNewAction(IEditorAction action)
         {
-            base.ViewDidLoad();
-
-            // initialize the drawing view
-            //DrawingView.WantsLayer = true;
-            //DrawingView.Layer.ContentsScale = NSScreen.MainScreen.BackingScaleFactor;
+            action.Redo();
+            UndoStack.Push(action);
+            RedoStack.Clear();
         }
+        #endregion
 
+        #region Actions
+        /// <summary>
+        /// Applies changes that were made to the beat.
+        /// </summary>
+        /// <param name="sender">Sender.</param>
         partial void ApplyChangesAction(NSObject sender)
         {
-            var o = new NSObject();
-
-            //UndoManager.BeginUndoGrouping();
-
-			//UndoManager.RegisterUndo(o, (obj) => DView.AlphaValue = .1f);
-			UndoManager.RegisterUndoWithTarget(this, new ObjCRuntime.Selector("undo"), o);
-            //if (!UndoManager.IsUndoing)
-            //{
-                UndoManager.SetActionname("Testing");
-
-            //UndoManager.Undo();
-            //UndoManager.Undo();
-            //}
-            //UndoManager.Undo();
-			//undo.RegisterUndoWithTarget(this, new Selector("undoRemove:"), args);
-			//if (!undo.IsUndoing)
-			//{
-			//	undo.SetActionname("Remove Person");
-			//}
+            DView.ChangesApplied = true;
         }
 
-        [Export("undo")]
-        void Undo()
+        /// <summary>
+        /// Enable or disable the various menu items
+        /// </summary>
+        /// <returns><c>true</c>, if menu action was validated, <c>false</c> otherwise.</returns>
+        /// <param name="item">Item.</param>
+		[Action("validateMenuItem:")]
+		public bool ValidateMenuAction(NSMenuItem item)
+		{
+			string actionName = item.Action.Name;
+
+            switch(actionName)
+            {
+                case "undoBeat:":
+                    if (UndoStack.Count > 0)
+                    {
+                        var action = UndoStack.Peek();
+
+                        item.Title = "Undo " + action.HeaderText;
+
+                        return true;
+                    }
+
+                    item.Title = "Undo";
+                    return false;
+                case "redoBeat:":
+                    if (RedoStack.Count > 0)
+                    {
+                        var action = RedoStack.Peek();
+
+                        item.Title = "Redo " + action.HeaderText;
+
+                        return true;
+                    }
+                    item.Title = "Redo";
+                    return false;
+                case "createRepGroup:":
+                    break;
+                case "editRepGroup:":
+                    break;
+                case "removeRepGroup:":
+                    break;
+                case "createMultGroup:":
+                    break;
+                case "editMultGroup:":
+                    break;
+                case "removeMultGroup:":
+                    break;
+                case "createRef:":
+                    break;
+                case "editRef:":
+                    break;
+                case "removeRef:":
+                    break;
+                case "moveCellsLeft:":
+                    break;
+                case "moveCellsRight:":
+                    break;
+                case "removeCells:":
+                    return DView.SelectedCells.Root != null;
+            }
+
+			return true;
+		}
+
+        [Action("undoBeat:")]
+        void UndoBeat(NSObject sender)
+        {
+            var action = UndoStack.Pop();
+
+            action.Undo();
+
+            RedoStack.Push(action);
+        }
+
+        [Action("redoBeat:")]
+        void RedoBeat(NSObject sender)
+        {
+            var action = RedoStack.Pop();
+
+            action.Redo();
+
+            UndoStack.Push(action);
+        }
+
+		[Action("createRepGroup:")]
+		void CreateRepGroup(NSObject sender)
+		{
+
+		}
+
+		[Action("editRepGroup:")]
+		void EditRepGroup(NSObject sender)
+		{
+
+		}
+
+		[Action("removeRepGroup:")]
+		void RemoveRepGroup(NSObject sender)
+		{
+
+		}
+
+        [Action("createMultGroup:")]
+        void CreateMultGroup(NSObject sender)
         {
             
         }
-	}
+
+		[Action("editMultGroup:")]
+		void EditMultGroup(NSObject sender)
+		{
+
+		}
+
+		[Action("removeMultGroup:")]
+		void RemoveMultGroup(NSObject sender)
+		{
+
+		}
+
+		[Action("createRef:")]
+		void CreateRef(NSObject sender)
+		{
+
+		}
+
+		[Action("editRef:")]
+		void EditRef(NSObject sender)
+		{
+
+		}
+
+		[Action("removeRef:")]
+		void RemoveRef(NSObject sender)
+		{
+
+		}
+
+		[Action("moveCellsLeft:")]
+		void MoveCellsLeft(NSObject sender)
+		{
+
+		}
+
+		[Action("moveCellsRight:")]
+		void MoveCellsRight(NSObject sender)
+		{
+
+		}
+
+		[Action("removeCells:")]
+		void RemoveCells(NSObject sender)
+		{
+            var action = new RemoveCells(DView.SelectedCells);
+
+            InitNewAction(action);
+		}
+        #endregion
+    }
 }

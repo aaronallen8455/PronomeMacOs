@@ -10,6 +10,7 @@ using CoreGraphics;
 using Pronome.Mac.Editor.Groups;
 using System.Linq;
 using CoreAnimation;
+using Pronome.Mac.Editor.Action;
 
 namespace Pronome.Mac
 {
@@ -45,6 +46,9 @@ namespace Pronome.Mac
         static CGColor SelectBoxColor = NSColor.DarkGray.CGColor;
         static CGColor GridLineColor = NSColor.Red.CGColor;
         static CGColor MeasureLineColor = NSColor.Blue.CGColor;
+        static CGColor ReferenceRectColor = NSColor.Magenta.CGColor;
+        static CGColor RepeatGroupColor = NSColor.Green.CGColor;
+        static CGColor MultGroupColor = NSColor.Orange.CGColor;
         #endregion
 
         #region Computed Properties
@@ -150,49 +154,9 @@ namespace Pronome.Mac
                 WillChangeValue("Duration");
                 if (BeatCell.TryParse(value, out double bpm))
                 {
-					_durationField = value;
+                    var action = new CellDuration(SelectedCells, value);
 
-                    foreach (Cell cell in SelectedCells)
-                    {
-                        cell.Value = value;
-                        //cell.Duration = bpm;
-                    }
-                    Row selectedRow = SelectedCells.Root.Cell.Row;
-                    double startPos = SelectedCells.GetMin().Cell.Position;
-                    int count = SelectedCells.Count;
-                    // need to rebuild the row
-                    //string bc = selectedRow.Stringify();
-                    //selectedRow.FillFromBeatCode(bc);
-                    selectedRow.Reparse();
-
-                    // reselect cells
-                    DeselectCells();
-                    CellTreeNode newSelect = selectedRow.Cells.Lookup(startPos, false);
-                    // select first cell
-					SelectCell(newSelect.Cell);
-
-                    for (int i = 0; i < count - 1; i++)
-                    {
-                        newSelect = newSelect.Next();
-                    }
-                    // select through to last cell
-                    if (!newSelect.Cell.IsSelected)
-                    {
-						SelectCell(newSelect.Cell, true);
-                    }
-
-                    // redraw selected row
-                    QueueRowToDraw(selectedRow);
-                    // redraw referencers
-                    if (Row.ReferenceMap.ContainsKey(selectedRow.Index))
-                    {
-						foreach (int index in Row.ReferenceMap[selectedRow.Index])
-						{
-							Rows[index].Reparse();
-							QueueRowToDraw(Rows[index]);
-						}
-                    }
-                    // TODO create undo action
+                    EditorViewController.InitNewAction(action);
                 }
                 DidChangeValue("Duration");
             }
@@ -229,6 +193,19 @@ namespace Pronome.Mac
                 }
 
                 DidChangeValue("Zoom");
+            }
+        }
+
+        bool _changesApplied = true;
+        [Export("ChangesApplied")]
+        public bool ChangesApplied
+        {
+            get => _changesApplied;
+            set
+            {
+                WillChangeValue("ChangesApplied");
+                _changesApplied = value;
+                DidChangeValue("ChangesApplied");
             }
         }
         #endregion
@@ -274,8 +251,227 @@ namespace Pronome.Mac
             Instance = this;
 
             // instantiate the rows
-            Rows = Metronome.Instance.Layers.Select(x => new Row(x)).ToArray();
+            Rows = new Row[Metronome.Instance.Layers.Count];
+            for (int i = 0; i < Rows.Length; i++)
+            {
+                Rows[i] = new Row(Metronome.Instance.Layers[i]);
+            }
+            //Rows = Metronome.Instance.Layers.Select(x => new Row(x)).ToArray();
         }
+
+		#region Public methods
+		/// <summary>
+		/// Clears the current selection. Does not redraw rows.
+		/// </summary>
+		public void DeselectCells()
+		{
+			foreach (Cell c in SelectedCells)
+			{
+				c.IsSelected = false;
+			}
+
+			SelectedCells.Clear();
+			SelectionAnchor = null;
+		}
+
+		/// <summary>
+		/// Performs actions on cell selection based on a targeted cell.
+		/// </summary>
+		/// <param name="cell">Cell.</param>
+		/// <param name="extendSelection">If set to <c>true</c> extend selection.</param>
+		public void SelectCell(Cell cell, bool extendSelection = false)
+		{
+			WillChangeValue("Duration");
+
+			// is there an existing selection?
+			if (SelectedCells.Root != null)
+			{
+				// is current selection in same row?
+				if (extendSelection && SelectedCells.Root.Cell.Row == cell.Row)
+				{
+					// extend or collapse the selection
+					CellTreeNode min = SelectedCells.GetMin();
+					CellTreeNode max = SelectedCells.GetMax();
+
+					if (min.Cell == cell)
+					{
+						// clicked on a boundary cell
+						if (SelectedCells.Count == 1)
+						{
+							DeselectCells();
+						}
+						else
+						{
+							SelectedCells.Remove(min);
+							cell.IsSelected = false;
+
+							if (SelectionAnchor == min)
+							{
+								SelectionAnchor = max;
+							}
+						}
+					}
+					else if (max.Cell == cell)
+					{
+						if (SelectedCells.Count == 1)
+						{
+							DeselectCells();
+						}
+						else
+						{
+							SelectedCells.Remove(max);
+							cell.IsSelected = false;
+
+							if (SelectionAnchor == max)
+							{
+								SelectionAnchor = min;
+							}
+						}
+					}
+					else if (cell.Position < min.Cell.Position)
+					{
+						SelectionAnchor = max;
+
+						CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false).Prev();
+						// select cells down to the target
+						while (node != null && node.Cell != cell)
+						{
+                            if (!node.Cell.IsReference)
+                            {
+								node.Cell.IsSelected = true;
+								SelectedCells.Insert(node.Cell);
+                            }
+
+							node = node.Prev();
+						}
+
+                        if (node != null && !node.Cell.IsReference)
+						{
+							node.Cell.IsSelected = true;
+							SelectedCells.Insert(node.Cell);
+						}
+					}
+					else if (cell.Position > max.Cell.Position)
+					{
+						SelectionAnchor = min;
+
+						CellTreeNode node = cell.Row.Cells.Lookup(max.Cell.Position, false);
+						// select cells up to the target
+						while (node.Cell != cell)
+						{
+							node = node.Next();
+                            if (!node.Cell.IsReference)
+                            {
+								node.Cell.IsSelected = true;
+								SelectedCells.Insert(node.Cell);
+                            }
+						}
+					}
+					else
+					{
+						// collapsing selection
+						if (SelectionAnchor == min)
+						{
+							CellTreeNode node = cell.Row.Cells.Lookup(max.Cell.Position, false);
+
+							while (node.Cell != cell)
+							{
+                                if (!node.Cell.IsReference)
+                                {
+									node.Cell.IsSelected = false;
+									SelectedCells.Remove(node.Cell);
+                                }
+								node = node.Prev();
+							}
+						}
+						else
+						{
+							CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false);
+
+							while (node.Cell != cell)
+							{
+                                if (!node.Cell.IsReference)
+                                {
+									node.Cell.IsSelected = false;
+									SelectedCells.Remove(node.Cell);
+                                }
+								node = node.Next();
+							}
+						}
+					}
+				}
+				else
+				{
+					// clear and select target cell only
+					if (SelectedCells.Root.Cell.Row != cell.Row)
+					{
+						QueueRowToDraw(SelectedCells.Root.Cell.Row);
+					}
+
+					DeselectCells();
+					SelectCell(cell);
+				}
+			}
+			else
+			{
+                // select a single cell
+                if (!cell.IsReference)
+                {
+					cell.IsSelected = true;
+					SelectionAnchor = new CellTreeNode(cell);
+					SelectedCells.Insert(SelectionAnchor);
+                }
+			}
+
+			DidChangeValue("Duration");
+		}
+
+		/// <summary>
+		/// Deletes the selected cells, does not parse new beatcode (or referencers) or redraw.
+		/// </summary>
+		public void DeleteSelectedCells()
+		{
+			if (SelectionExists)
+			{
+				foreach (Cell cell in SelectedCells)
+				{
+					cell.Delete();
+				}
+
+				DeselectCells();
+			}
+		}
+
+		/// <summary>
+		/// Queues all rows to draw.
+		/// </summary>
+		public void QueueAllRowsToDraw()
+		{
+			foreach (Row row in Rows)
+			{
+				QueueRowToDraw(row);
+			}
+		}
+
+		/// <summary>
+		/// Queues the row to draw.
+		/// </summary>
+		/// <param name="row">Row.</param>
+		public void QueueRowToDraw(Row row)
+		{
+			// see if there are any layers referencing this one.
+
+			RowsToDraw.Enqueue(row);
+
+			foreach (Row r in RowsToDraw)
+			{
+				int ind = r.Index;
+				int y = GetYPositionOfRow(row);
+				CGRect dirty = new CGRect(0, y, Frame.Width, RowHeight);
+				SetNeedsDisplayInRect(dirty);
+			}
+		}
+        #endregion
 
         #region Overrides
 
@@ -518,72 +714,16 @@ namespace Pronome.Mac
             }
         }
 
+        /// <summary>
+        /// Paste the cells in the clipboard over the currently selected ones
+        /// </summary>
+        /// <param name="sender">Sender.</param>
         [Action("paste:")]
         public void PasteAction(NSObject sender)
         {
-            Row row = SelectedCells.Root.Cell.Row;
-            // replace selected cells with cells from clipboard
+            var action = new PasteCells(ClipBoard, SelectedCells);
 
-            // get bpm duration of clipboard
-            double duration = ClipBoard.Select(x => x.Duration).Sum();
-            double pos = ClipBoard.First.Value.Position;
-            // bpm position of selection
-            double selPos = SelectedCells.GetMin().Cell.Position;
-            double selDuration = SelectedCells.ToArray().Select(x => x.Duration).Sum();
-
-            // if replacement is longer, we need to reposition cells in destination
-            if (selDuration > duration)
-            {
-                CellTreeNode n = row.Cells.Lookup(SelectedCells.GetMax().Cell.Position);
-                n = n.Next();
-                while (n != null)
-                {
-                    n.Cell.Position += selDuration - duration;
-                }
-            }
-
-            // apply groups from selection
-            Cell firstSelected = SelectedCells.GetMin().Cell;
-            foreach (Repeat repG in firstSelected.RepeatGroups)
-            {
-                foreach (Cell c in ClipBoard)
-                {
-                    repG.Cells.AddLast(c);
-                    c.RepeatGroups.AddLast(repG);
-                }
-            }
-
-            foreach (Multiply multG in firstSelected.MultGroups)
-            {
-                foreach (Cell c in ClipBoard)
-                {
-                    multG.Cells.AddLast(c);
-                    c.MultGroups.AddLast(multG);
-                }
-            }
-
-            DeleteSelectedCells();
-
-            // insert replacement cells
-            foreach (Cell cell in ClipBoard)
-            {
-				cell.Row = row;
-                cell.Position += selPos - pos;
-                row.Cells.Insert(cell);
-            }
-
-            row.Reparse();
-            QueueRowToDraw(row);
-
-            // need to change the cells' row reference
-            if (Row.ReferenceMap.ContainsKey(row.Index))
-            {
-				foreach (int i in Row.ReferenceMap[row.Index])
-				{
-					Rows[i].Reparse();
-					QueueRowToDraw(Rows[i]);
-				}
-            }
+            EditorViewController.InitNewAction(action);
         }
 
         /// <summary>
@@ -780,38 +920,6 @@ namespace Pronome.Mac
         }
 
         /// <summary>
-        /// Queues all rows to draw.
-        /// </summary>
-        protected void QueueAllRowsToDraw()
-        {
-            foreach(Row row in Rows)
-            {
-                QueueRowToDraw(row);
-            }
-        }
-
-        /// <summary>
-        /// Queues the row to draw.
-        /// </summary>
-        /// <param name="row">Row.</param>
-        protected void QueueRowToDraw(Row row)
-        {
-            //RowsToDraw.Clear();
-
-            // see if there are any layers referencing this one.
-
-            RowsToDraw.Enqueue(row);
-
-            foreach (Row r in RowsToDraw)
-            {
-                int ind = r.Index;
-                int y = GetYPositionOfRow(row);
-                CGRect dirty = new CGRect(0, y, Frame.Width, RowHeight);
-                SetNeedsDisplayInRect(dirty);
-            }
-        }
-
-        /// <summary>
         /// Draws the specific row.
         /// </summary>
         /// <param name="row">Row.</param>
@@ -893,7 +1001,7 @@ namespace Pronome.Mac
 						RepeatLayers.Push(CGLayer.Create(ctx, new CGSize(w, RowHeight)));
 
 						// draw the element
-						DrawGroupElement(ctx, NSColor.Green.CGColor, group);
+						DrawGroupElement(ctx, RepeatGroupColor, group);
 
 						ctx = RepeatLayers.Peek().Context;
 					}
@@ -925,7 +1033,7 @@ namespace Pronome.Mac
 					{
 						// begin mult group
 
-						DrawGroupElement(ctx, NSColor.Orange.CGColor, group, CellHeightPad);
+						DrawGroupElement(ctx, MultGroupColor, group, CellHeightPad);
 					}
 				}
 			}
@@ -945,14 +1053,12 @@ namespace Pronome.Mac
         /// <param name="ctx">Context.</param>
         protected void DrawCellRect(Cell cell, CGContext ctx)
         {
+            int xPos = (int)((cell.Position - cell.RepeatGroups.Select(r => r.Position).Sum()) * ScalingFactor);
+
 			if (!string.IsNullOrEmpty(cell.Reference))
 			{
-				DrawReferenceRect(cell, ctx);
-
-                return;
+				DrawReferenceRect(cell, xPos, ctx);				
 			}
-
-			int xPos = (int)((cell.Position - cell.RepeatGroups.Select(r => r.Position).Sum()) * ScalingFactor);
 
 			ctx.MoveTo(xPos, CellHeightPad);
 
@@ -967,9 +1073,13 @@ namespace Pronome.Mac
         /// </summary>
         /// <param name="cell">Cell.</param>
         /// <param name="ctx">Context.</param>
-        protected void DrawReferenceRect(Cell cell, CGContext ctx)
+        protected void DrawReferenceRect(Cell cell, int xPos, CGContext ctx)
         {
-            throw new NotImplementedException();
+            var trans = new CGColor(ReferenceRectColor, .3f);
+
+            CGRect rect = new CGRect(xPos, 0, cell.Duration * ScalingFactor, RowHeight);
+            ctx.SetFillColor(trans);
+            ctx.FillRect(rect);
         }
 
         /// <summary>
@@ -1066,173 +1176,6 @@ namespace Pronome.Mac
             SelectBoxLowerBound = lowerBound;
 
 			Layer?.AddSublayer(SelectBox);
-        }
-
-        /// <summary>
-        /// Performs actions on cell selection based on a targeted cell.
-        /// </summary>
-        /// <param name="cell">Cell.</param>
-        /// <param name="extendSelection">If set to <c>true</c> extend selection.</param>
-        protected void SelectCell(Cell cell, bool extendSelection = false)
-        {
-            WillChangeValue("Duration");
-
-            // is there an existing selection?
-            if (SelectedCells.Root != null)
-            {
-                // is current selection in same row?
-                if (extendSelection && SelectedCells.Root.Cell.Row == cell.Row)
-                {
-                    // extend or collapse the selection
-                    CellTreeNode min = SelectedCells.GetMin();
-                    CellTreeNode max = SelectedCells.GetMax();
-
-                    if (min.Cell == cell)
-                    {
-						// clicked on a boundary cell
-                        if (SelectedCells.Count == 1)
-                        {
-                            DeselectCells();
-                        }
-                        else
-                        {
-                            SelectedCells.Remove(min);
-                            cell.IsSelected = false;
-
-                            if (SelectionAnchor == min)
-                            {
-                                SelectionAnchor = max;
-                            }
-                        }
-                    }
-                    else if (max.Cell == cell)
-                    {
-                        if (SelectedCells.Count == 1)
-                        {
-                            DeselectCells();
-                        }
-                        else
-                        {
-                            SelectedCells.Remove(max);
-                            cell.IsSelected = false;
-
-                            if (SelectionAnchor == max)
-                            {
-                                SelectionAnchor = min;
-                            }
-                        }
-                    }
-                    else if (cell.Position < min.Cell.Position)
-                    {
-                        SelectionAnchor = max;
-
-                        CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false).Prev();
-                        // select cells down to the target
-						while (node != null && node.Cell != cell)
-                        {
-                            node.Cell.IsSelected = true;
-                            SelectedCells.Insert(node.Cell);
-
-							node = node.Prev();
-                        }
-
-                        if (node != null)
-                        {
-                            node.Cell.IsSelected = true;
-                            SelectedCells.Insert(node.Cell);
-                        }
-                    }
-                    else if (cell.Position > max.Cell.Position)
-                    {
-                        SelectionAnchor = min;
-
-                        CellTreeNode node = cell.Row.Cells.Lookup(max.Cell.Position, false);
-                        // select cells up to the target
-                        while (node.Cell != cell)
-                        {
-                            node = node.Next();
-                            node.Cell.IsSelected = true;
-                            SelectedCells.Insert(node.Cell);
-                        }
-                    }
-                    else
-                    {
-                        // collapsing selection
-                        if (SelectionAnchor == min)
-                        {
-                            CellTreeNode node = cell.Row.Cells.Lookup(max.Cell.Position, false);
-
-                            while (node.Cell != cell)
-                            {
-                                node.Cell.IsSelected = false;
-                                SelectedCells.Remove(node.Cell);
-                                node = node.Prev();
-                            }
-                        }
-                        else
-                        {
-                            CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false);
-
-                            while (node.Cell != cell)
-                            {
-                                node.Cell.IsSelected = false;
-                                SelectedCells.Remove(node.Cell);
-                                node = node.Next();
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // clear and select target cell only
-                    if (SelectedCells.Root.Cell.Row != cell.Row)
-                    {
-                        QueueRowToDraw(SelectedCells.Root.Cell.Row);
-                    }
-
-                    DeselectCells();
-                    SelectCell(cell);
-                }
-            }
-            else
-            {
-                // select a single cell
-                cell.IsSelected = true;
-                SelectionAnchor = new CellTreeNode(cell);
-                SelectedCells.Insert(SelectionAnchor);
-            }
-
-            DidChangeValue("Duration");
-        }
-
-        /// <summary>
-        /// Clears the current selection. Does not redraw rows.
-        /// </summary>
-        protected void DeselectCells()
-        {
-            foreach (Cell c in SelectedCells)
-            {
-                c.IsSelected = false;
-            }
-
-            SelectedCells.Clear();
-            SelectionAnchor = null;
-        }
-
-        /// <summary>
-        /// Deletes the selected cells, does not parse new beatcode (or referencers) or redraw.
-        /// </summary>
-        protected void DeleteSelectedCells()
-        {
-            if (SelectionExists)
-            {
-                foreach (Cell cell in SelectedCells)
-                {
-                    cell.Delete();
-                }
-
-                DeselectCells();
-            }
         }
 
         /// <summary>

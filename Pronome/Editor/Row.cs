@@ -108,6 +108,10 @@ namespace Pronome.Mac.Editor
 
 			ReferenceMap = new Dictionary<int, HashSet<int>>();
 
+			RepeatGroups.Clear();
+			MultGroups.Clear();
+			ReferencedLayers.Clear();
+
 			FillFromBeatCode(layer.ParsedString);
 		}
 
@@ -191,7 +195,6 @@ namespace Pronome.Mac.Editor
 			foreach (Match match in Regex.Matches(beat, @".+?([,|]|$)"))
 			{
 				Cell cell = new Cell(this) { Position = position };
-                cells.Insert(cell);
 
 				string chunk = match.Value;
 
@@ -280,15 +283,22 @@ namespace Pronome.Mac.Editor
 					//cells = new LinkedList<Cell>(cells.Concat(pbr.Cells));
 					// progress position
                     position += duration;
-					cell.SetDurationDirectly(duration);
-
+					//cell.SetDurationDirectly(duration);
+                    bool first = true;
 					foreach (Cell c in pbCells)
 					{
+                        if (first)
+                        {
+                            c.SetDurationDirectly(duration);
+                            c.Reference = cell.Reference;
+                            first = false;
+                        }
                         cells.Insert(c);
 					}
 				}
 				else
 				{
+                    cells.Insert(cell); // can't put referencers in b/c of overlap
 					// get bpm value
 					string bpm = Regex.Match(chunk, @"[\d./+*\-]+").Value;
 					if (!string.IsNullOrEmpty(bpm))
@@ -497,23 +507,11 @@ namespace Pronome.Mac.Editor
 		}
 
 		/// <summary>
-		/// Clear out all the data, prepare row to be rebuilt using a code string.
-		/// </summary>
-		public void Reset()
-		{
-			RepeatGroups.Clear();
-			MultGroups.Clear();
-			ReferencedLayers.Clear();
-			Cells.Clear();
-		}
-
-		/// <summary>
 		/// Redraw the editor to reflect the internal state
 		/// </summary>
 		public void Redraw()
 		{
 			string code = Stringify();
-			Reset();
 			FillFromBeatCode(code);
 			Offset = BeatCell.Parse(OffsetValue);
 		}
