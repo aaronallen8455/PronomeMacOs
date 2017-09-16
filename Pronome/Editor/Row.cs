@@ -90,7 +90,7 @@ namespace Pronome.Mac.Editor
 		/// <summary>
 		/// Maps the index of a row to the indexes of the rows that reference it.
 		/// </summary>
-		public static Dictionary<int, HashSet<int>> ReferenceMap;
+        public static Dictionary<int, HashSet<int>> ReferenceMap = new Dictionary<int, HashSet<int>>();
 
 		/// <summary>
 		/// The index of this row
@@ -105,8 +105,6 @@ namespace Pronome.Mac.Editor
 
             Offset = layer.OffsetBpm;
             OffsetValue = layer.ParsedOffset;
-
-			ReferenceMap = new Dictionary<int, HashSet<int>>();
 
 			RepeatGroups.Clear();
 			MultGroups.Clear();
@@ -291,6 +289,7 @@ namespace Pronome.Mac.Editor
                         {
                             c.SetDurationDirectly(duration);
                             c.Reference = cell.Reference;
+                            c.IsReference = false;
                             first = false;
                         }
                         cells.Insert(c);

@@ -455,7 +455,7 @@ namespace Pronome.Mac.Editor
 
             CellTreeNode cell = FindAboveOrEqualTo(start);
 
-            while (cell.Cell.Position <= end)
+            while (cell != null && cell.Cell.Position <= end)
             {
                 cells.Add(cell);
 

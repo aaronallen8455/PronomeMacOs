@@ -112,7 +112,6 @@ namespace Pronome.Mac
             }
         }
 
-        private string _durationField;
         /// <summary>
         /// Gets or sets the duration field.
         /// </summary>
@@ -332,7 +331,7 @@ namespace Pronome.Mac
 					{
 						SelectionAnchor = max;
 
-						CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false).Prev();
+						CellTreeNode node = cell.Row.Cells.Lookup(min.Cell.Position, false)?.Prev();
 						// select cells down to the target
 						while (node != null && node.Cell != cell)
 						{
@@ -454,13 +453,11 @@ namespace Pronome.Mac
 		}
 
 		/// <summary>
-		/// Queues the row to draw.
+		/// Queues the row to draw. Does not redraw referencers
 		/// </summary>
 		/// <param name="row">Row.</param>
 		public void QueueRowToDraw(Row row)
 		{
-			// see if there are any layers referencing this one.
-
 			RowsToDraw.Enqueue(row);
 
 			foreach (Row r in RowsToDraw)
@@ -762,8 +759,8 @@ namespace Pronome.Mac
 			{
 				// handle selection
 				var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
-				double start = ConvertPosition(Math.Min(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
-				double end = ConvertPosition(Math.Max(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+				double start = ConvertPixelsToBpm(Math.Min(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+				double end = ConvertPixelsToBpm(Math.Max(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
 
 				// check if extending current selection
 				bool shift = theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask);
@@ -785,9 +782,9 @@ namespace Pronome.Mac
 				}
 				else if (!shift)
 				{
-					DeselectCells();
+					QueueRowToDraw(SelectedCells.Root.Cell.Row);
 
-					QueueRowToDraw(Rows[_selectRowIndex]);
+                    DeselectCells();
 				}
 
 
@@ -872,7 +869,7 @@ namespace Pronome.Mac
                     bool cellSelected = false;
                     if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
                     {
-                        if (Rows[rowIndex].Cells.TryFind(ConvertPosition(loc.X, Rows[rowIndex]), out Cell cell))
+                        if (Rows[rowIndex].Cells.TryFind(ConvertPixelsToBpm(loc.X, Rows[rowIndex]), out Cell cell))
                         {
                             // perform selection actions
                             SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
@@ -886,37 +883,87 @@ namespace Pronome.Mac
 					{
 						// try to create new cell
 						// see if clicked on a grid line (within a pad amount)
-						double start = (SelectedCells.GetMin().Cell.Position + Rows[rowIndex].Offset) * ScalingFactor + PaddingLeft;
+						Row row = Rows[rowIndex];
 
-						if (start < loc.X)
+                        //double end = ConvertBpmToPixels(SelectedCells.GetMax().Cell.Position, row);
+                        double end = SelectedCells.GetMax().Cell.Position;
+                        double start = -1;
+
+                        double pad = Math.Min(CellWidth / ScalingFactor / 2, GridSpacing * .125);
+                        double xPos = ConvertPixelsToBpm(loc.X, row);
+                        double x = -1;
+                        double mod = -1;
+                        bool aboveSelection = false;
+
+                        if (end < xPos)
+                        {
+                            x = xPos - end;
+                            mod = x % GridSpacing;
+                            aboveSelection = true;
+                        }
+                        else
+                        {
+                            start = SelectedCells.GetMin().Cell.Position;
+
+                            if (start > xPos)
+                            {
+                                x = start - xPos;
+                                mod = x % GridSpacing;
+                            }
+                        }
+
+						// see if it registers as a hit
+                        if (x >= 0 && (mod <= pad || mod >= GridSpacing - pad))
 						{
-							double x = loc.X - start;
-							double spacing = GridSpacing * ScalingFactor;
-							double mod = x % spacing;
-                            double pad = Math.Min(CellWidth / 2, spacing * .125);
-							// see if it registers as a hit
-							if (mod <= pad || mod >= spacing - pad)
-							{
+                            // check if it's inside the ghost zone of a rep group
+                            int div = (int)(x / GridSpacing);
+                            // bpm position within row
+                            xPos = aboveSelection ? end + div * GridSpacing : start - div * GridSpacing;
+                            //Repeat rg = row.RepeatGroups.Where(x => x.P)
+                            bool inGroup = false;
+                            foreach (Repeat rg in row.RepeatGroups)
+                            {
+                                if (xPos < rg.Position + rg.Length) break;
 
-							}
-						}
-						else
-						{
-							double end = (SelectedCells.GetMax().Cell.Position + Rows[rowIndex].Offset) * ScalingFactor + PaddingLeft;
+                                double range = rg.Position + rg.Length * rg.Times;
+                                if (rg.Position + rg.Length <= xPos && xPos < range)
+                                {
+                                    inGroup = true;
+                                    break;
+                                }
+                            }
 
-							if (end > loc.X)
-							{
-
-							}
+                            if (!inGroup)
+                            {
+                                // check if inside a reference
+                            }
+                            //var action = new AddCell();
 						}
 					}
 				}
 			}
 		}
 
-        protected double ConvertPosition(double value, Row row)
+        /// <summary>
+        /// Converts a position from pixels to BPM
+        /// </summary>
+        /// <returns>The position.</returns>
+        /// <param name="value">Value.</param>
+        /// <param name="row">Row.</param>
+        protected double ConvertPixelsToBpm(double value, Row row)
         {
             return (value - PaddingLeft) / ScalingFactor - row.Offset;
+        }
+
+        /// <summary>
+        /// Converts bpm to pixels.
+        /// </summary>
+        /// <returns>The bpm to pixels.</returns>
+        /// <param name="value">Value.</param>
+        /// <param name="row">Row.</param>
+        protected double ConvertBpmToPixels(double value, Row row)
+        {
+            return (value + row.Offset) * ScalingFactor + PaddingLeft;
         }
 
         /// <summary>
@@ -1075,7 +1122,7 @@ namespace Pronome.Mac
         /// <param name="ctx">Context.</param>
         protected void DrawReferenceRect(Cell cell, int xPos, CGContext ctx)
         {
-            var trans = new CGColor(ReferenceRectColor, .3f);
+            var trans = new CGColor(ReferenceRectColor, cell.IsSelected ? .7f : .3f);
 
             CGRect rect = new CGRect(xPos, 0, cell.Duration * ScalingFactor, RowHeight);
             ctx.SetFillColor(trans);

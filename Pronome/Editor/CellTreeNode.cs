@@ -123,14 +123,6 @@ namespace Pronome.Mac.Editor
                 {
                     node = node.Parent;
                 }
-
-                //if (!IsLeftChild())
-                //{
-                //    while (node != null && (node.Parent == null || !node.IsLeftChild()))
-                //    {
-                //        node = node.Parent;
-                //    }
-                //}
             }
 
             return node;
@@ -153,18 +145,10 @@ namespace Pronome.Mac.Editor
             {
 				node = Parent;
 
-                while (node.Cell.Position > Cell.Position)
+                while (node != null && node.Cell.Position > Cell.Position)
                 {
                     node = node.Parent;
                 }
-
-                //if (IsLeftChild())
-                //{
-                //    while (node != null && node.IsLeftChild())
-                //    {
-                //        node = Parent;
-                //    }
-				//}
             }
 
             return node;

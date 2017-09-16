@@ -35,10 +35,10 @@ namespace Pronome.Mac.Editor.Action
         public RemoveCells(CellTree cells) : base(cells.Root.Cell.Row, cells.Count > 1 ? "Remove Cells" : "Remove Cell")
 		{
 			Cells = cells;
-            Row = cells.Root.Cell.Row;
+            //Row = cells.Root.Cell.Row;
             //PreviousCellValue = previousCellValue;
             //Index = cells[0].Row.Cells.IndexOf(cells[0]);
-            StartNode = cells.GetMin();
+            StartNode = Row.Cells.Lookup(cells.GetMin().Cell.Position);
             EndNode = cells.GetMax();
 
 			StringBuilder duration = new StringBuilder();
@@ -74,8 +74,8 @@ namespace Pronome.Mac.Editor.Action
 					touchedGroups.Add(rg);
 
 					if (
-                        (StartNode.Cell == rg.Cells.First.Value || rg.Position >= StartNode.Cell.Position)
-                        && (EndNode.Cell == rg.Cells.Last.Value || rg.Position + rg.Length <= EndNode.Cell.Position))
+                        (StartNode.Cell == rg.Cells.First?.Value || rg.Position >= StartNode.Cell.Position)
+                        && (EndNode.Cell == rg.Cells.Last?.Value || rg.Position + rg.Length <= EndNode.Cell.Position))
 					{
 						RepGroups.Add(rg);
 
@@ -141,10 +141,6 @@ namespace Pronome.Mac.Editor.Action
             Cell firstCell = StartNode.Cell;
             // remove cells
 
-            foreach (CellTreeNode c in Row.Cells.GetRange(StartNode.Cell.Position, EndNode.Cell.Position))
-            {
-                Row.Cells.Remove(c);
-            }
 
 			// remove groups
 			foreach (Repeat rg in RepGroups)
@@ -171,32 +167,39 @@ namespace Pronome.Mac.Editor.Action
 			else
 			{
                 Cell prevCell = StartNode.Prev().Cell;
-				// if previous cell is the last cell of a rep group, increase rep groups offset
-
-				// TODO: In case of a selection starting inside a rep group and ending outside it, the LTM needs to increase
-
-				Repeat groupToAddTo = null;
-				foreach (Repeat rg in prevCell.RepeatGroups.Reverse())
-				{
-					if (!firstCell.RepeatGroups.Contains(rg))
+                if (prevCell != null)
+                {
+					// if previous cell is the last cell of a rep group, increase rep groups offset
+										
+					Repeat groupToAddTo = null;
+					foreach (Repeat rg in prevCell.RepeatGroups.Reverse())
 					{
-						groupToAddTo = rg;
+						if (!firstCell.RepeatGroups.Contains(rg))
+						{
+							groupToAddTo = rg;
+						}
+						else break;
 					}
-					else break;
-				}
-
-				if (groupToAddTo != null)
-				{
-					groupToAddTo.LastTermModifier = BeatCell.Add(groupToAddTo.LastTermModifier, BeatCodeDuration);
-				}
-				else if (!firstCell.RepeatGroups.Any() || prevCell.RepeatGroups.Contains(firstCell.RepeatGroups.Last.Value))
-				{
-					// otherwise, increase the prev cell's duration
-					// but only if it is not the cell prior to a repgroup for which first cell of select is first cell of the rep group.
-					prevCell.Value = BeatCell.Add(prevCell.Value, BeatCodeDuration);
-				}
-
+					
+					if (groupToAddTo != null)
+					{
+						groupToAddTo.LastTermModifier = BeatCell.Add(groupToAddTo.LastTermModifier, BeatCodeDuration);
+					}
+					else if (!firstCell.RepeatGroups.Any() || prevCell.RepeatGroups.Contains(firstCell.RepeatGroups.Last.Value))
+					{
+						// otherwise, increase the prev cell's duration
+						// but only if it is not the cell prior to a repgroup for which first cell of select is first cell of the rep group.
+						prevCell.Value = BeatCell.Add(prevCell.Value, BeatCodeDuration);
+					}
+                }
 			}
+
+			foreach (CellTreeNode c in Row.Cells.GetRange(StartNode.Cell.Position, EndNode.Cell.Position))
+			{
+				Row.Cells.Remove(c);
+			}
+
+            DrawingView.Instance.DeselectCells();
 
 			// no longer need these
 			RepGroups = null;
