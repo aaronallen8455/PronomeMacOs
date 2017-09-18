@@ -38,17 +38,25 @@ namespace Pronome.Mac.Editor.Action
             //Row = cells.Root.Cell.Row;
             //PreviousCellValue = previousCellValue;
             //Index = cells[0].Row.Cells.IndexOf(cells[0]);
-            StartNode = Row.Cells.Lookup(cells.GetMin().Cell.Position);
-            EndNode = cells.GetMax();
+            StartNode = Row.Cells.Lookup(cells.Min.Cell.Position);
+            EndNode = cells.Max;
 
 			StringBuilder duration = new StringBuilder();
 			// find all groups that are encompassed by the selection
             HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
             Repeat groupBeingAppendedTo = null; // a group who's LTM is actively being augemented
             Queue<Repeat> rgToAppendTo = new Queue<Repeat>(); // RGs that may need to have their LTM added to
+            LinkedList<AbstractGroup> openedGroups = new LinkedList<AbstractGroup>();
+            LinkedList<AbstractGroup> closedGroups = new LinkedList<AbstractGroup>();
+
 			foreach (Cell c in Cells)
 			{
-                if (!string.IsNullOrEmpty(c.Reference)) continue;
+                //if (!string.IsNullOrEmpty(c.Reference)) continue;
+                foreach ((bool begun, AbstractGroup group) in c.GroupActions)
+                {
+                    if (begun) openedGroups.AddFirst(group);
+                    else closedGroups.AddFirst(group);
+                }
 
 				// add to the LTM of groups with a previous cell in the selection but not this cell
 				if (rgToAppendTo.Any() && !c.RepeatGroups.Contains(rgToAppendTo.Peek()))
@@ -122,6 +130,32 @@ namespace Pronome.Mac.Editor.Action
 				}
 			}
 
+            // Transfer group actions from deleted cells to the 2 cells outside the deleted group
+            CellTreeNode after = EndNode.Next();
+            CellTreeNode before = StartNode.Prev();
+
+            if (after != null)
+            {
+				foreach (AbstractGroup group in openedGroups)
+				{
+					if (group.Cells.Count > 0)
+					{
+                        after.Cell.GroupActions.AddFirst((true, group));
+					}
+				}
+            }
+
+            if (before != null)
+            {
+				foreach (AbstractGroup group in closedGroups)
+				{
+					if (group.Cells.Count > 0)
+					{
+                        before.Cell.GroupActions.AddFirst((false, group));
+					}
+				}
+            }
+
 			BeatCodeDuration = BeatCell.SimplifyValue(duration.ToString());
 		}
 
@@ -194,10 +228,19 @@ namespace Pronome.Mac.Editor.Action
                 }
 			}
 
-			foreach (CellTreeNode c in Row.Cells.GetRange(StartNode.Cell.Position, EndNode.Cell.Position))
-			{
-				Row.Cells.Remove(c);
-			}
+            // remove cells from tree
+            while (true)
+            {
+                var next = StartNode.Next();
+                Row.Cells.Remove(StartNode);
+                if (StartNode == EndNode) break;
+                StartNode = next;
+            } 
+
+			//foreach (CellTreeNode c in Row.Cells.GetRange(StartNode.Cell.Position, EndNode.Cell.Position))
+			//{
+			//	Row.Cells.Remove(c);
+			//}
 
             DrawingView.Instance.DeselectCells();
 

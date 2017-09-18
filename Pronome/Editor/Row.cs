@@ -92,6 +92,11 @@ namespace Pronome.Mac.Editor
 		/// </summary>
         public static Dictionary<int, HashSet<int>> ReferenceMap = new Dictionary<int, HashSet<int>>();
 
+        /// <summary>
+        /// The positions and durations of all references. Used for hit detection
+        /// </summary>
+        public List<(double position, double duration)> ReferencePositionAndDurations = new List<(double, double)>();
+
 		/// <summary>
 		/// The index of this row
 		/// </summary>
@@ -275,10 +280,12 @@ namespace Pronome.Mac.Editor
 						refIndex = int.Parse(cell.Reference) - 1;
 					}
 
+
                     // todo: factor in mult groups here
                     (CellTree pbCells, double duration) = ResolveReference(refIndex, position);
-					// add the ref cells in
-					//cells = new LinkedList<Cell>(cells.Concat(pbr.Cells));
+                    // remember the position and duration of the reference
+                    ReferencePositionAndDurations.Add((position, duration));
+
 					// progress position
                     position += duration;
 					//cell.SetDurationDirectly(duration);
@@ -537,92 +544,160 @@ namespace Pronome.Mac.Editor
 			{
                 if (cell.IsReference) continue;
 
-				// check for open mult group
-                foreach (Multiply mg in cell.MultGroups)
-				{
-					if (mg.Cells.First.Value == cell)
-					{
-						//OpenMultGroups.Push(cell.MultGroup);
-						result.Append('{');
-					}
-				}
-				// check for open repeat group
-                foreach (Repeat rg in cell.RepeatGroups)
-				{
-					if (rg.Cells.First.Value == cell && rg.Cells.Where(x => !x.IsReference).Count() > 1)
-					{
-						//OpenRepeatGroups.Push(cell.RepeatGroup);
-						result.Append('[');
-					}
-				}
+                bool innersAdded = false;
+
+                foreach ((bool begun, AbstractGroup group) in cell.GroupActions)
+                {
+                    if (!begun && !innersAdded)
+                    {
+                        // add inner components
+                        StringifyInnerComponents(result, cell);
+
+                        innersAdded = true;
+                    }
+
+                    if (begun)
+                    {
+                        if (group.GetType() == typeof(Repeat))
+                        {
+                            // open repeat group
+                            // is single cell?
+                            if (((Repeat)group).Cells.Count != 1)
+                            {
+                                result.Append('[');
+                            }
+                        }
+                        else
+                        {
+                            // open mult group
+                            result.Append('{');
+                        }
+                    }
+                    else
+                    {
+                        if (group.GetType() == typeof(Repeat))
+                        {
+                            var rg = group as Repeat;
+                            // close repeat group
+                            if (rg.Cells.Count != 1)
+                            {
+                                result.Append(']');
+                                // multi cell
+                                if (!string.IsNullOrEmpty(rg.LastTermModifier))
+                                {
+                                    result.Append($"]({rg.Times.ToString()}){rg.LastTermModifier})");
+                                }
+                                else
+                                {
+                                    result.Append($"]{rg.Times.ToString()}");
+                                }
+                            }
+                            else
+                            {
+                                // single cell
+                                result.Append($"({rg.Times.ToString()})");
+                            }
+                        }
+                        else
+                        {
+                            // close mult group
+                            result.Append('}');
+                            result.Append((group as Multiply).FactorValue);
+                        }
+                    }
+                }
+
+                if (!innersAdded)
+                {
+                    StringifyInnerComponents(result, cell);
+                }
+
+				//// check for open mult group
+                //foreach (Multiply mg in cell.MultGroups)
+				//{
+				//	if (mg.Cells.First.Value == cell)
+				//	{
+				//		//OpenMultGroups.Push(cell.MultGroup);
+				//		result.Append('{');
+				//	}
+				//}
+				//// check for open repeat group
+                //foreach (Repeat rg in cell.RepeatGroups)
+				//{
+				//	if (rg.Cells.First.Value == cell && rg.Cells.Where(x => !x.IsReference).Count() > 1)
+				//	{
+				//		//OpenRepeatGroups.Push(cell.RepeatGroup);
+				//		result.Append('[');
+				//	}
+				//}
 				// get duration or reference ID
-				if (string.IsNullOrEmpty(cell.Reference))
-				{
-					result.Append(cell.Value);
-				}
-				else
-				{
-					result.Append($"${cell.Reference}");
-				}
-				// check for source modifier
-				if (cell.Source != null && cell.Source.Uri != Layer.BaseSourceName)
-				{
-					string source;
-					// is pitch or wav?
-					if (cell.Source.IsPitch)
-					{
-						source = cell.Source.Uri;
-					}
-					else
-					{
-                        if (!cell.Source.IsInternal)
-						{
-							source = cell.Source.Index.ToString();
-						}
-						else
-						{
-							source = cell.Source.Index.ToString();
-						}
-					}
-					result.Append($"@{source}");
-				}
-				// check for close repeat group
-                foreach (Repeat rg in cell.RepeatGroups)
-				{
-					Cell[] cells = rg.Cells.Where(x => !x.IsReference).ToArray();
-					if (cells.Last() == cell)
-					{
-						// is single cell rep?
-						if (cells.Length == 1)
-						{
-							result.Append($"({rg.Times})");
-							if (!string.IsNullOrEmpty(rg.LastTermModifier))
-							{
-								result.Append(rg.LastTermModifier);
-							}
-						}
-						else
-						{
-							// multi cell
-							if (!string.IsNullOrEmpty(rg.LastTermModifier))
-							{
-								result.Append($"]({rg.Times}){rg.LastTermModifier}");
-							}
-							else
-							{
-								result.Append($"]{rg.Times}");
-							}
-						}
-					}
-				}
-				// check for close mult group
-                foreach (Multiply mg in cell.MultGroups)
-				{
-					if (mg.Cells.Last.Value == cell)
-					{
-						result.Append($"}}{mg.FactorValue}");
-					}
-				}
+				//if (string.IsNullOrEmpty(cell.Reference))
+				//{
+				//	result.Append(cell.Value);
+				//}
+				//else
+				//{
+				//	result.Append($"${cell.Reference}");
+				//}
+				//// check for source modifier
+				//if (cell.Source != null && cell.Source.Uri != Layer.BaseSourceName)
+				//{
+				//	string source;
+				//	// is pitch or wav?
+				//	if (cell.Source.IsPitch)
+				//	{
+				//		source = cell.Source.Uri;
+				//	}
+				//	else
+				//	{
+                //        if (!cell.Source.IsInternal)
+				//		{
+				//			source = cell.Source.Index.ToString();
+				//		}
+				//		else
+				//		{
+				//			source = cell.Source.Index.ToString();
+				//		}
+				//	}
+				//	result.Append($"@{source}");
+				//}
+				//// check for close repeat group
+                //foreach (Repeat rg in cell.RepeatGroups)
+				//{
+				//	Cell[] cells = rg.Cells.Where(x => !x.IsReference).ToArray();
+				//	if (cells.Last() == cell)
+				//	{
+				//		// is single cell rep?
+				//		if (cells.Length == 1)
+				//		{
+				//			result.Append($"({rg.Times})");
+				//			if (!string.IsNullOrEmpty(rg.LastTermModifier))
+				//			{
+				//				result.Append(rg.LastTermModifier);
+				//			}
+				//		}
+				//		else
+				//		{
+				//			// multi cell
+				//			if (!string.IsNullOrEmpty(rg.LastTermModifier))
+				//			{
+				//				result.Append($"]({rg.Times}){rg.LastTermModifier}");
+				//			}
+				//			else
+				//			{
+				//				result.Append($"]{rg.Times}");
+				//			}
+				//		}
+				//	}
+				//}
+				//// check for close mult group
+                //foreach (Multiply mg in cell.MultGroups)
+				//{
+				//	if (mg.Cells.Last.Value == cell)
+				//	{
+				//		result.Append($"}}{mg.FactorValue}");
+				//	}
+				//}
 				// check if is break point |
 				if (cell.IsBreak)
 				{
@@ -637,11 +712,50 @@ namespace Pronome.Mac.Editor
 			return result.ToString().TrimEnd(',');
 		}
 
-		/// <summary>
-		/// Perform all graphical tasks with initializing a repeat group. Group must have and Times, LastTermMod, Postion, Duration already set.
-		/// </summary>
-		/// <param name="rg"></param>
-		/// <returns></returns>
+        /// <summary>
+        /// Stringifies the inner components - value, source mod, reference.
+        /// </summary>
+        /// <param name="result">Result.</param>
+        /// <param name="cell">Cell.</param>
+        private void StringifyInnerComponents(StringBuilder result, Cell cell)
+        {
+            if (string.IsNullOrEmpty(cell.Reference))
+            {
+                result.Append(cell.Value);
+            }
+            else
+            {
+                result.Append($"${cell.Reference}");
+            }
+            // check for source modifier
+            if (cell.Source != null && cell.Source.Uri != Layer.BaseSourceName)
+            {
+                string source;
+                // is pitch or wav?
+                if (cell.Source.IsPitch)
+                {
+                    source = cell.Source.Uri;
+                }
+                else
+                {
+                    if (!cell.Source.IsInternal)
+                    {
+                        source = cell.Source.Index.ToString();
+                    }
+                    else
+                    {
+                        source = cell.Source.Index.ToString();
+                    }
+                }
+                result.Append($"@{source}");
+            }
+        }
+
+        /// <summary>
+        /// Perform all graphical tasks with initializing a repeat group. Group must have and Times, LastTermMod, Postion, Duration already set.
+        /// </summary>
+        /// <param name="rg"></param>
+        /// <returns></returns>
         protected double BuildRepeatGroup(Repeat rg, double multGroupsFactor, double position)
 		{
 			//double position = 0;

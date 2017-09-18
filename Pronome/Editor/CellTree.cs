@@ -14,6 +14,10 @@ namespace Pronome.Mac.Editor
 		#region Public Fields
 		public CellTreeNode Root;
 
+        public CellTreeNode Max;
+
+        public CellTreeNode Min;
+
         public int Count;
 
 		#endregion
@@ -25,24 +29,38 @@ namespace Pronome.Mac.Editor
 
         #region Public Methods
 
-        public CellTree Insert (Cell cell)
+        /// <summary>
+        /// Insert the specified cell. Returns false if position is taken.
+        /// </summary>
+        /// <returns>The insert.</returns>
+        /// <param name="cell">Cell.</param>
+        public bool Insert (Cell cell)
         {
             return Insert(new CellTreeNode(cell));
         }
 
-		public CellTree Insert(CellTreeNode node)
+		public bool Insert(CellTreeNode node)
 		{
 			node.IsRed = true;
 
 			CellTreeNode parent = Root;
 
-			if (Root == null) Root = node;
+			if (Root == null) 
+            {
+                Root = node;
+                Min = node;
+                Max = node;
+            }
 			else
 			{
+                bool isMin = true;
+                bool isMax = true;
 				while (true)
 				{
                     if (parent.Cell.Position > node.Cell.Position)
 					{
+                        isMax = false;
+
 						if (parent.Left == null)
 						{
 							parent.Left = node;
@@ -53,10 +71,12 @@ namespace Pronome.Mac.Editor
 					}
 					else
 					{
+                        isMin = false;
+
                         if (parent.Cell.Position == node.Cell.Position)
                         {
                             // no overlapping
-                            return this;
+                            return false;
                         }
 
 						if (parent.Right == null)
@@ -68,6 +88,15 @@ namespace Pronome.Mac.Editor
 						parent = parent.Right;
 					}
 				}
+
+                if (isMin)
+                {
+                    Min = node;
+                }
+                else if (isMax)
+                {
+                    Max = node;
+                }
 
 				node.Parent = parent;
 			}
@@ -146,7 +175,7 @@ namespace Pronome.Mac.Editor
 
             Count++;
 
-			return this;
+			return true;
 		}
 
 		public CellTree Remove(double value)
@@ -167,11 +196,16 @@ namespace Pronome.Mac.Editor
 		{
 			CellTreeNode nodeToDeleteAfterwards = null;
 
+			if (node == Min) Min = node.Next();
+			else if (node == Max) Max = node.Prev();
+
 			if (node.Left == null && node.Right == null)
 			{
 				if (Root == node)
 				{
 					Root = null;
+                    Min = null;
+                    Max = null;
 					return this;
 				}
 
@@ -467,7 +501,7 @@ namespace Pronome.Mac.Editor
 
         public IEnumerator GetEnumerator()
         {
-            CellTreeNode node = GetMin();
+            CellTreeNode node = Min;
 
             if (node == null) yield break;
 
@@ -481,33 +515,33 @@ namespace Pronome.Mac.Editor
             yield break;
         }
 
-        public CellTreeNode GetMin()
-        {
-            CellTreeNode node = Root;
+        //public CellTreeNode GetMin()
+        //{
+        //    CellTreeNode node = Root;
+		//
+        //    if (node == null) return null;
+		//
+        //    while (node.Left != null)
+        //    {
+        //        node = node.Left;
+        //    }
+		//
+        //    return node;
+        //}
 
-            if (node == null) return null;
-
-            while (node.Left != null)
-            {
-                node = node.Left;
-            }
-
-            return node;
-        }
-
-        public CellTreeNode GetMax()
-        {
-            CellTreeNode node = Root;
-
-            if (node == null) return null;
-
-            while (node.Right != null)
-            {
-                node = node.Right;
-            }
-
-            return node;
-        }
+        //public CellTreeNode GetMax()
+        //{
+        //    CellTreeNode node = Root;
+		//
+        //    if (node == null) return null;
+		//
+        //    while (node.Right != null)
+        //    {
+        //        node = node.Right;
+        //    }
+		//
+        //    return node;
+        //}
 
         /// <summary>
         /// Convert to an array of cells
@@ -532,6 +566,8 @@ namespace Pronome.Mac.Editor
         public void Clear()
         {
             Root = null;
+            Min = null;
+            Max = null;
             Count = 0;
         }
 		#endregion

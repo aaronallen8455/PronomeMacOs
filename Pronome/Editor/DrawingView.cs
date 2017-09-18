@@ -232,7 +232,7 @@ namespace Pronome.Mac
         /// <summary>
         /// The spacing of the grid lines in BPM
         /// </summary>
-        protected double GridSpacing = 1;
+        public double GridSpacing = 1;
 
         /// <summary>
         /// Spacing between measure lines in BPM
@@ -289,8 +289,8 @@ namespace Pronome.Mac
 				if (extendSelection && SelectedCells.Root.Cell.Row == cell.Row)
 				{
 					// extend or collapse the selection
-					CellTreeNode min = SelectedCells.GetMin();
-					CellTreeNode max = SelectedCells.GetMax();
+					CellTreeNode min = SelectedCells.Min;
+					CellTreeNode max = SelectedCells.Max;
 
 					if (min.Cell == cell)
 					{
@@ -619,8 +619,8 @@ namespace Pronome.Mac
             ClipBoard = new LinkedList<Cell>();
             //ClipBoard = SelectedCells.ToArray().Where(x => !x.IsReference).ToArray();
             Row selectedRow = SelectedCells.Root.Cell.Row;
-            var firstSelected = SelectedCells.GetMin().Cell;
-            var lastSelected = SelectedCells.GetMax().Cell;
+            var firstSelected = SelectedCells.Min.Cell;
+            var lastSelected = SelectedCells.Max.Cell;
 			// original is key, copy is value
 			Dictionary<Repeat, Repeat> CopiedRepeatGroups = new Dictionary<Repeat, Repeat>();
             Dictionary<Multiply, Multiply> CopiedMultGroups = new Dictionary<Multiply, Multiply>();
@@ -865,32 +865,46 @@ namespace Pronome.Mac
 				// see if click is in y range
 				if (!isRightButton && loc.Y >= ypos && loc.Y <= ypos + RowHeight)
 				{
+                    Row row = Rows[rowIndex];
+                    double xPos = ConvertPixelsToBpm(loc.X, row);
+
                     // cell range
-                    bool cellSelected = false;
                     if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
                     {
-                        if (Rows[rowIndex].Cells.TryFind(ConvertPixelsToBpm(loc.X, Rows[rowIndex]), out Cell cell))
+                        // see if a reference is being selected
+                        var reference = row.ReferencePositionAndDurations.Where(p => p.position <= xPos && xPos < p.position + p.duration);
+
+                        if (reference.Any())
+						{
+                            (double pos, double dur) = reference.FirstOrDefault();
+                            Cell rcell = row.Cells.Lookup(pos, false).Cell;
+                            SelectCell(rcell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+                            QueueRowToDraw(row);
+                            return;
+						}
+
+                        if (row.Cells.TryFind(xPos, out Cell cell))
                         {
                             // perform selection actions
                             SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
-                            cellSelected = true;
-                            QueueRowToDraw(Rows[rowIndex]);
+                            QueueRowToDraw(row);
+                            return;
                         }
                     }
 
 					// check if a cell was clicked
-					if (!cellSelected && SelectedCells.Root != null)
+					if (SelectedCells.Root != null)
 					{
-						// try to create new cell
-						// see if clicked on a grid line (within a pad amount)
-						Row row = Rows[rowIndex];
+                        // try to create new cell
+                        // see if clicked on a grid line (within a pad amount)
 
                         //double end = ConvertBpmToPixels(SelectedCells.GetMax().Cell.Position, row);
-                        double end = SelectedCells.GetMax().Cell.Position;
-                        double start = -1;
+                        CellTreeNode endNode = SelectedCells.Max;
+                        CellTreeNode startNode = SelectedCells.Min;
+                        double end = endNode.Cell.Position;
+                        double start = startNode.Cell.Position;
 
                         double pad = Math.Min(CellWidth / ScalingFactor / 2, GridSpacing * .125);
-                        double xPos = ConvertPixelsToBpm(loc.X, row);
                         double x = -1;
                         double mod = -1;
                         bool aboveSelection = false;
@@ -901,22 +915,17 @@ namespace Pronome.Mac
                             mod = x % GridSpacing;
                             aboveSelection = true;
                         }
-                        else
+                        else if(start > xPos)
                         {
-                            start = SelectedCells.GetMin().Cell.Position;
-
-                            if (start > xPos)
-                            {
-                                x = start - xPos;
-                                mod = x % GridSpacing;
-                            }
+                            x = start - xPos;
+                            mod = x % GridSpacing;
                         }
 
 						// see if it registers as a hit
                         if (x >= 0 && (mod <= pad || mod >= GridSpacing - pad))
 						{
                             // check if it's inside the ghost zone of a rep group
-                            int div = (int)(x / GridSpacing);
+                            int div = (int)Math.Round(x / GridSpacing);
                             // bpm position within row
                             xPos = aboveSelection ? end + div * GridSpacing : start - div * GridSpacing;
                             //Repeat rg = row.RepeatGroups.Where(x => x.P)
@@ -933,11 +942,11 @@ namespace Pronome.Mac
                                 }
                             }
 
-                            if (!inGroup)
+							// check if inside a reference
+                            if (!inGroup) //&& row.ReferencePositionAndDurations.Any(p => p.position <= xPos && xPos < p.position + p.duration))
                             {
-                                // check if inside a reference
+                                var action = new AddCell(div, aboveSelection, xPos, row, startNode, endNode);
                             }
-                            //var action = new AddCell();
 						}
 					}
 				}
@@ -1137,8 +1146,8 @@ namespace Pronome.Mac
 		{
 			Row row = SelectedCells.Root.Cell.Row;
 
-			double start = (SelectedCells.GetMin().Cell.Position + row.Offset) * ScalingFactor + PaddingLeft;
-			double end = (SelectedCells.GetMax().Cell.Position + row.Offset) * ScalingFactor + PaddingLeft;
+			double start = (SelectedCells.Min.Cell.Position + row.Offset) * ScalingFactor + PaddingLeft;
+			double end = (SelectedCells.Max.Cell.Position + row.Offset) * ScalingFactor + PaddingLeft;
 			int yPos = GetYPositionOfRow(row);
 
 			double spacing = GridSpacing * ScalingFactor;

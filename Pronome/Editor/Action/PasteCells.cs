@@ -29,8 +29,8 @@ namespace Pronome.Mac.Editor.Action
 			// get bpm duration of clipboard
 			double duration = Cells.Select(x => x.Duration).Sum();
 			double pos = Cells.First.Value.Position;
-			Cell firstCell = SelectedCells.GetMin().Cell;
-			Cell lastCell = SelectedCells.GetMax().Cell;
+			Cell firstCell = SelectedCells.Min.Cell;
+			Cell lastCell = SelectedCells.Max.Cell;
 			// bpm position of selection
             double selPos = firstCell.Position;
 			double selDuration = SelectedCells.ToArray().Select(x => x.Duration).Sum();
@@ -38,7 +38,7 @@ namespace Pronome.Mac.Editor.Action
 			// if replacement is longer, we need to reposition cells in destination
 			if (selDuration > duration)
 			{
-				CellTreeNode n = row.Cells.Lookup(SelectedCells.GetMax().Cell.Position);
+				CellTreeNode n = row.Cells.Lookup(SelectedCells.Max.Cell.Position);
 				n = n.Next();
 				while (n != null)
 				{
@@ -54,7 +54,10 @@ namespace Pronome.Mac.Editor.Action
                 if (rg.Cells.First.Value.Position < firstCell.Position && rg.Cells.Last.Value.Position < lastCell.Position)
                 {
                     // make last cell of group be before selection
+                    rg.Cells.Last.Value.GroupActions.Remove((false, rg));
+
                     CellTreeNode newLast = Row.Cells.Lookup(firstCell.Position).Prev();
+                    newLast.Cell.GroupActions.AddLast((false, rg));
                     rg.Cells.AddLast(newLast.Cell);
                 }
                 else if (rg.Cells.First.Value != firstCell || rg.Cells.Last.Value != lastCell)
@@ -63,11 +66,14 @@ namespace Pronome.Mac.Editor.Action
 					if (rg.Cells.First.Value == firstCell)
 					{
 						Cells.First.Value.RepeatGroups.AddLast(rg);
+                        Cells.First.Value.GroupActions.AddLast((true, rg));
 						rg.Cells.AddFirst(Cells.First.Value);
+
 					}
 					if (Cells.First != Cells.Last && rg.Cells.Last.Value == lastCell)
 					{
 						Cells.Last.Value.RepeatGroups.AddLast(rg);
+                        Cells.Last.Value.GroupActions.AddLast((false, rg));
 						rg.Cells.AddLast(Cells.Last.Value);
 					}
                 }
@@ -78,7 +84,9 @@ namespace Pronome.Mac.Editor.Action
                 // if group is split by end of selection, reassign the group's first cell
                 if (rg.Cells.First.Value.Position > firstCell.Position && rg.Cells.Last.Value.Position > lastCell.Position)
                 {
+                    rg.Cells.First.Value.GroupActions.Remove((true, rg));
                     CellTreeNode newFirst = Row.Cells.Lookup(lastCell.Position).Next();
+                    newFirst.Cell.GroupActions.AddFirst((true, rg));
                     rg.Cells.AddFirst(newFirst.Cell);
                 }
             }
@@ -87,21 +95,26 @@ namespace Pronome.Mac.Editor.Action
 			{
 				if (mg.Cells.First.Value.Position < firstCell.Position && mg.Cells.Last.Value.Position < lastCell.Position)
 				{
-					// make last cell of group be before selection
+                    // make last cell of group be before selection
+                    mg.Cells.Last.Value.GroupActions.Remove((false, mg));
 					CellTreeNode newLast = Row.Cells.Lookup(firstCell.Position).Prev();
+                    newLast.Cell.GroupActions.AddLast((false, mg));
 					mg.Cells.AddLast(newLast.Cell);
 				}
                 else if (mg.Cells.First.Value != firstCell || mg.Cells.Last.Value != lastCell)
                 {
+                    // make new first or last cell
 					if (mg.Cells.First.Value == firstCell)
 					{
 						Cells.First.Value.MultGroups.AddLast(mg);
 						mg.Cells.AddFirst(Cells.First.Value);
+                        Cells.First.Value.GroupActions.AddFirst((true, mg));
 					}
 					if (Cells.First != Cells.Last && mg.Cells.Last.Value == lastCell)
 					{
 						Cells.Last.Value.MultGroups.AddLast(mg);
 						mg.Cells.AddLast(Cells.Last.Value);
+                        Cells.Last.Value.GroupActions.AddLast((false, mg));
 					}
                 }
 			}
@@ -113,6 +126,7 @@ namespace Pronome.Mac.Editor.Action
 				{
 					CellTreeNode newFirst = Row.Cells.Lookup(lastCell.Position).Next();
 					mg.Cells.AddFirst(newFirst.Cell);
+                    newFirst.Cell.GroupActions.AddFirst((true, mg));
 				}
 			}
 
