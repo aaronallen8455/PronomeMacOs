@@ -183,8 +183,10 @@ namespace Pronome.Mac.Editor
                 CellTreeNode endNode = Row.Cells.LookupIndex(selectionEnd);
 
                 EditorViewController.Instance.DView.SelectCell(startNode.Cell);
-
-                EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
+                if (startNode != endNode)
+                {
+					EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
+                }
 			}
 		}
 

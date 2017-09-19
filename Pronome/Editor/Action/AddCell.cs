@@ -182,7 +182,7 @@ namespace Pronome.Mac.Editor.Action
 					val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
 					// account for rep groups and their LTMs
 					Dictionary<Repeat, int> ltmTimes = new Dictionary<Repeat, int>();
-					foreach (Repeat rg in c.RepeatGroups.Reverse())
+                    foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
 					{
 						if (repGroups.Contains(rg)) continue;
 
@@ -240,13 +240,11 @@ namespace Pronome.Mac.Editor.Action
 
             cell.Position = LastSelected.Cell.Position + NumIntervals * DrawingView.Instance.GridSpacing;
 
-			//int index = Row.Cells.InsertSorted(cell);
 			if (Row.Cells.Insert(node))
 			{
-                //RightIndexBoundOfTransform = index - 1;
-
                 CellTreeNode belowNode = node.Prev();
                 Cell below = belowNode.Cell;
+				RightIndexBoundOfTransform = below.Index + 1;
 
                 // add to applicable groups
                 AddToGroups(cell, below);
@@ -280,7 +278,7 @@ namespace Pronome.Mac.Editor.Action
 					val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
 					// account for rep group repititions.
 					Dictionary<Repeat, int> ltmTimes = new Dictionary<Repeat, int>();
-					foreach (Repeat rg in c.RepeatGroups.Reverse())
+                    foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
 					{
 						if (repGroups.Contains(rg)) continue;
 						// don't include a rep group if the end point is included in it.
@@ -401,7 +399,7 @@ namespace Pronome.Mac.Editor.Action
 				val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
 				// deal with repeat groups
 				Dictionary<Repeat, int> lcmTimes = new Dictionary<Repeat, int>();
-				foreach (Repeat rg in c.RepeatGroups.Reverse())
+                foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
 				{
 					if (repGroups.Contains(rg)) continue;
 					// if the selected cell is in this rep group, we don't want to include repetitions
@@ -433,9 +431,9 @@ namespace Pronome.Mac.Editor.Action
 
 			cell.Value = BeatCell.SimplifyValue(val.ToString());
 
+            cell.Position = FirstSelected.Cell.Position - DrawingView.Instance.GridSpacing * NumIntervals;
             Row.Cells.Insert(cell);
-			RightIndexBoundOfTransform = -1;
-			cell.Position = 0;
+            RightIndexBoundOfTransform = -1;
 			Row.OffsetValue = BeatCell.Subtract(Row.OffsetValue, cell.Value); // don't mult group factor this
 		}
 
@@ -452,12 +450,8 @@ namespace Pronome.Mac.Editor.Action
 
             if (Row.Cells.Insert(cellNode))
             {
-                // find insertion index
-                int index = cellNode.Next().Cell.Index;
-
-                RightIndexBoundOfTransform = index;
-
                 Cell below = cellNode.Prev().Cell;
+                RightIndexBoundOfTransform = below.Index;
 
                 // add to applicable groups
                 AddToGroups(cell, below);
@@ -494,7 +488,7 @@ namespace Pronome.Mac.Editor.Action
                     Dictionary<Repeat, int> ltmFactors = new Dictionary<Repeat, int>();
                     // if there's a rep group, add the repeated sections
                     // what order are rg's in? reverse
-                    foreach (Repeat rg in c.RepeatGroups.Reverse())
+                    foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
                     {
                         // don't add ghost reps more than once
                         if (repGroups.Contains(rg)) continue;
@@ -534,6 +528,8 @@ namespace Pronome.Mac.Editor.Action
                             .Append(BeatCell.MultiplyTerms(kv.Key.LastTermModifier, kv.Value))
                             .Append('+');
                     }
+
+                    c = c.Next();
                 }
 
                 val.Append('0');

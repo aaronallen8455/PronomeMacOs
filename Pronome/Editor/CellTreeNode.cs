@@ -16,8 +16,8 @@ namespace Pronome.Mac.Editor
 
         public bool IsRed;
 
-        public Stack<Repeat> RepeatGroups;
-        public Stack<Multiply> MultGroups;
+        //public Stack<Repeat> RepeatGroups = new Stack<Repeat>();
+        //public Stack<Multiply> MultGroups = new Stack<Multiply>();
         #endregion
 
         #region Constructor
