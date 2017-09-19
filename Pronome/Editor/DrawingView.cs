@@ -899,10 +899,12 @@ namespace Pronome.Mac
                         // see if clicked on a grid line (within a pad amount)
 
                         //double end = ConvertBpmToPixels(SelectedCells.GetMax().Cell.Position, row);
-                        CellTreeNode endNode = SelectedCells.Max;
-                        CellTreeNode startNode = SelectedCells.Min;
-                        double end = endNode.Cell.Position;
-                        double start = startNode.Cell.Position;
+                        int end = SelectedCells.Max.Cell.Index;
+                        int start = SelectedCells.Min.Cell.Index;
+
+                        // get selection bounds within the row's cells
+                        CellTreeNode endNode = row.Cells.LookupIndex(end);
+                        CellTreeNode startNode = row.Cells.LookupIndex(start);
 
                         double pad = Math.Min(CellWidth / ScalingFactor / 2, GridSpacing * .125);
                         double x = -1;

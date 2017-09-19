@@ -187,7 +187,7 @@ namespace Pronome.Mac.Editor.Action
 			}
 
             // check if first cell of selection is not row's first cell
-            if (firstCell.Position == 0)
+            if (firstCell.Index == 0)
 			{
 				// will be increasing the row offset, but only if
 				// selection is not part of a rep group that is not

@@ -16,8 +16,14 @@ namespace Pronome.Mac.Editor.Action
 
         protected CellTreeNode LastSelected;
 
+        /// <summary>
+        /// The number of Grid Spacings from the selection bound to the new cell location.
+        /// </summary>
         protected int NumIntervals;
 
+        /// <summary>
+        /// Whether we are adding a cell above the selection.
+        /// </summary>
         protected bool AboveSelection;
 
 		/// <summary>
@@ -134,6 +140,9 @@ namespace Pronome.Mac.Editor.Action
          * 18) ^ there is a repeat group between the selection and the start
          */
 
+        /// <summary>
+        /// Adds the cell above row.
+        /// </summary>
 		protected void AddCellAboveRow()
 		{
             Cell cell = new Cell(Row);
@@ -220,6 +229,9 @@ namespace Pronome.Mac.Editor.Action
 			}
 		}
 
+        /// <summary>
+        /// Adds the cell to row above selection.
+        /// </summary>
 		protected void AddCellToRowAboveSelection()
 		{
             Cell cell = new Cell(Row);
@@ -237,14 +249,7 @@ namespace Pronome.Mac.Editor.Action
                 Cell below = belowNode.Cell;
 
                 // add to applicable groups
-                foreach (Repeat rg in below.RepeatGroups.Where(x => x.Position + x.Length > cell.Position))
-                {
-                    cell.RepeatGroups.AddLast(rg);
-                }
-                foreach (Multiply mg in below.MultGroups.Where(x => x.Position + x.Length > cell.Position))
-                {
-                    cell.MultGroups.AddLast(mg);
-                }
+                AddToGroups(cell, below);
 
 				// is new cell placed in the LTM zone of a rep group?
 				Repeat repWithLtmToMod = null;
@@ -375,210 +380,207 @@ namespace Pronome.Mac.Editor.Action
 			}
 		}
 
-		protected void AddCellBelowRow(double position, double increment)
+        /// <summary>
+        /// Adds the cell below row.
+        /// </summary>
+		protected void AddCellBelowRow()
 		{
-			// in the offset area
-			// how many increments back from first cell selected
-			double diff = (Cell.SelectedCells.FirstCell.Position + Row.Offset) - (position + Row.Offset);
-			int div = (int)(diff / increment);
-			// is it closer to lower of upper grid line?
-			Cell cell = null;
-			if (diff % increment <= increment * GridProx)
-			{
-				// upper
-				cell = new Cell(Row);
-			}
-			else if (diff % increment >= increment * GridProx)
-			{
-				// lower
-				cell = new Cell(Row);
-				div++;
-			}
-			if (cell != null)
-			{
-				// get the value string
-				StringBuilder val = new StringBuilder();
-				// value of grid lines, the 
-				val.Append(BeatCell.MultiplyTerms(EditorWindow.CurrentIncrement, div));
+            Cell cell = new Cell(Row);
+			
+			// get the value string
+			StringBuilder val = new StringBuilder();
+			// value of grid lines, the 
+            val.Append(BeatCell.MultiplyTerms(DrawingView.Instance.GridSpacingString, NumIntervals));
 
-				HashSet<RepeatGroup> repGroups = new HashSet<RepeatGroup>();
-				foreach (Cell c in Row.Cells.TakeWhile(x => x != Cell.SelectedCells.FirstCell).Where(x => string.IsNullOrEmpty(x.Reference)))
+			HashSet<Repeat> repGroups = new HashSet<Repeat>();
+
+            CellTreeNode c = FirstSelected.Prev();
+
+            while (c != null)
+            {
+				val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
+				// deal with repeat groups
+				Dictionary<Repeat, int> lcmTimes = new Dictionary<Repeat, int>();
+				foreach (Repeat rg in c.RepeatGroups.Reverse())
 				{
-					val.Append("+0").Append(BeatCell.Invert(c.Value));
-					// deal with repeat groups
-					Dictionary<RepeatGroup, int> lcmTimes = new Dictionary<RepeatGroup, int>();
-					foreach (RepeatGroup rg in c.RepeatGroups.Reverse())
+					if (repGroups.Contains(rg)) continue;
+					// if the selected cell is in this rep group, we don't want to include repetitions
+                    if (FirstSelected.Cell.RepeatGroups.Contains(rg))
 					{
-						if (repGroups.Contains(rg)) continue;
-						// if the selected cell is in this rep group, we don't want to include repetitions
-						if (Cell.SelectedCells.FirstCell.RepeatGroups.Contains(rg))
-						{
-							repGroups.Add(rg);
-							continue;
-						}
-						foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
-						{
-							val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.Value), rg.Times - 1));
-						}
-
-						foreach (KeyValuePair<RepeatGroup, int> kv in lcmTimes)
-						{
-							lcmTimes[kv.Key] = kv.Value * rg.Times;
-						}
 						repGroups.Add(rg);
-						lcmTimes.Add(rg, 1);
+						continue;
 					}
-					// subtract the LCMs
-					foreach (KeyValuePair<RepeatGroup, int> kv in lcmTimes)
+					foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
 					{
-						val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(kv.Key.LastTermModifier), kv.Value));
+						val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.Value), rg.Times - 1));
 					}
+
+					foreach (KeyValuePair<Repeat, int> kv in lcmTimes)
+					{
+						lcmTimes[kv.Key] = kv.Value * rg.Times;
+					}
+					repGroups.Add(rg);
+					lcmTimes.Add(rg, 1);
 				}
-				cell.Value = BeatCell.SimplifyValue(val.ToString());
-
-				Row.Cells.Insert(0, cell);
-				RightIndexBoundOfTransform = -1;
-				IsValid = true;
-				cell.Position = 0;
-				Row.OffsetValue = BeatCell.Subtract(Row.OffsetValue, cell.Value);
-			}
-		}
-
-		protected void AddCellToRowBelowSelection(double position, double increment)
-		{
-			double diff = Cell.SelectedCells.FirstCell.Position - position;
-			int div = (int)(diff / increment);
-			Cell cell = null;
-			// is it in range of the left or right grid line?
-			if (diff % increment <= increment * GridProx)
-			{
-				// right
-				cell = new Cell(Row);
-			}
-			else if (diff % increment >= increment * (1 - GridProx))
-			{
-				// left
-				cell = new Cell(Row);
-				div++;
-			}
-
-			if (cell != null)
-			{
-				cell.Position = Cell.SelectedCells.FirstCell.Position - div * increment;
-				int index = Row.Cells.InsertSorted(cell);
-				if (index > -1)
+				// subtract the LCMs
+				foreach (KeyValuePair<Repeat, int> kv in lcmTimes)
 				{
-					RightIndexBoundOfTransform = index - 1;
-					IsValid = true;
-
-					Cell below = Row.Cells[index - 1];
-
-					Group.AddToGroups(cell, below);
-
-					// see if the cell is being added to a rep group's LTM zone
-					RepeatGroup repWithLtmToMod = null;
-					foreach (RepeatGroup rg in below.RepeatGroups.Where(
-						x => x.Cells.Last.Value == below && position + increment * GridProx > below.Position + below.ActualDuration))
-					{
-						repWithLtmToMod = rg;
-					}
-
-					// get new value string for below
-					StringBuilder val = new StringBuilder();
-
-					bool repWithLtmToModFound = false;
-					HashSet<RepeatGroup> repGroups = new HashSet<RepeatGroup>();
-					foreach (Cell c in Row.Cells.SkipWhile(x => x != below).TakeWhile(x => x != Cell.SelectedCells.FirstCell))
-					{
-						if (c == cell || !string.IsNullOrEmpty(c.Reference)) continue; // don't include the new cell
-																					   // add the cells value. If modding an LTM, we need to have passed that group first.
-						if (repWithLtmToMod == null || repWithLtmToModFound)
-						{
-							val.Append(c.Value).Append('+');
-						}
-						// we need to track how many times to multiply each rep group's LTM
-						Dictionary<RepeatGroup, int> ltmFactors = new Dictionary<RepeatGroup, int>();
-						// if there's a rep group, add the repeated sections
-						// what order are rg's in? reverse
-						foreach (RepeatGroup rg in c.RepeatGroups.Reverse())
-						{
-							// don't add ghost reps more than once
-							if (repGroups.Contains(rg)) continue;
-							repGroups.Add(rg);
-
-							// don't count reps for groups that contain the selection
-							if (Cell.SelectedCells.FirstCell.RepeatGroups.Contains(rg))
-							{
-								continue;
-							}
-
-							// don't add anything until after the group with LTM to mod has been found (if were modding a LTM)
-							if (repWithLtmToMod == null || repWithLtmToModFound)
-							{
-								foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
-								{
-									val.Append('0').Append(
-										BeatCell.MultiplyTerms(ce.Value, rg.Times - 1))
-										.Append('+');
-								}
-
-							}
-							// found group with LTM tod mod, add it's LTM but not cell values.
-							if (rg == repWithLtmToMod) repWithLtmToModFound = true;
-
-							// increase multiplier of LTMs
-							foreach (KeyValuePair<RepeatGroup, int> kv in ltmFactors)
-							{
-								ltmFactors[kv.Key] = kv.Value * rg.Times;
-							}
-							ltmFactors.Add(rg, 1);
-						}
-						// add in all the LTMs from rep groups
-						foreach (KeyValuePair<RepeatGroup, int> kv in ltmFactors)
-						{
-							val.Append('0')
-								.Append(BeatCell.MultiplyTerms(kv.Key.LastTermModifier, kv.Value))
-								.Append('+');
-						}
-					}
-
-					val.Append('0');
-					val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(EditorWindow.CurrentIncrement), div));
-					cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.Value : repWithLtmToMod.LastTermModifier, val.ToString());
-					//cell.Value = BeatCell.SimplifyValue(below.Value + '-' + val.ToString());
-					string newValue = BeatCell.SimplifyValue(val.ToString());
-
-					// check for cell being doubled
-					if (cell.Value == string.Empty || newValue == string.Empty)
-					{
-						IsValid = false;
-						Row.Cells.Remove(cell);
-						foreach (RepeatGroup rg in cell.RepeatGroups)
-						{
-							rg.Cells.Remove(cell);
-						}
-						foreach (MultGroup mg in cell.MultGroups)
-						{
-							mg.Cells.Remove(cell);
-						}
-						cell = null;
-						return;
-					}
-
-					if (repWithLtmToMod == null)
-					{
-						//oldValue = below.Value;
-						below.Value = newValue;
-					}
-					else
-					{
-						//oldValue = repWithLtmToMod.LastTermModifier;
-						repWithLtmToMod.LastTermModifier = BeatCell.Subtract(
-							repWithLtmToMod.LastTermModifier,
-							newValue);
-					}
+					val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(kv.Key.LastTermModifier), kv.Value));
 				}
-			}
+
+                c = c.Prev();
+            }
+
+			cell.Value = BeatCell.SimplifyValue(val.ToString());
+
+            Row.Cells.Insert(cell);
+			RightIndexBoundOfTransform = -1;
+			cell.Position = 0;
+			Row.OffsetValue = BeatCell.Subtract(Row.OffsetValue, cell.Value); // don't mult group factor this
 		}
-	}
+
+        /// <summary>
+        /// Adds the cell to row below selection.
+        /// </summary>
+		protected void AddCellToRowBelowSelection()
+		{
+            Cell cell = new Cell(Row);
+            CellTreeNode cellNode = new CellTreeNode(cell);
+
+            cell.Position = FirstSelected.Cell.Position - DrawingView.Instance.GridSpacing * NumIntervals;
+
+
+            if (Row.Cells.Insert(cellNode))
+            {
+                // find insertion index
+                int index = cellNode.Next().Cell.Index;
+
+                RightIndexBoundOfTransform = index;
+
+                Cell below = cellNode.Prev().Cell;
+
+                // add to applicable groups
+                AddToGroups(cell, below);
+
+                // see if the cell is being added to a rep group's LTM zone
+                Repeat repWithLtmToMod = null;
+                foreach (Repeat rg in below.RepeatGroups.Where(
+                    x => x.Cells.Last.Value == below && Position > below.Position + below.Duration))
+                {
+                    repWithLtmToMod = rg;
+                }
+
+                // get new value string for below
+                StringBuilder val = new StringBuilder();
+
+                bool repWithLtmToModFound = false;
+                HashSet<Repeat> repGroups = new HashSet<Repeat>();
+
+                CellTreeNode c = cellNode.Prev();
+
+                while (c != FirstSelected)
+                {
+                    if (c == cellNode)
+                    {
+                        c = c.Next();
+                        continue;
+                    }
+
+                    if (repWithLtmToMod == null || repWithLtmToModFound)
+                    {
+                        val.Append(c.Cell.Value).Append('+');
+                    }
+                    // we need to track how many times to multiply each rep group's LTM
+                    Dictionary<Repeat, int> ltmFactors = new Dictionary<Repeat, int>();
+                    // if there's a rep group, add the repeated sections
+                    // what order are rg's in? reverse
+                    foreach (Repeat rg in c.RepeatGroups.Reverse())
+                    {
+                        // don't add ghost reps more than once
+                        if (repGroups.Contains(rg)) continue;
+                        repGroups.Add(rg);
+
+                        // don't count reps for groups that contain the selection
+                        if (FirstSelected.Cell.RepeatGroups.Contains(rg))
+                        {
+                            continue;
+                        }
+
+                        // don't add anything until after the group with LTM to mod has been found (if were modding a LTM)
+                        if (repWithLtmToMod == null || repWithLtmToModFound)
+                        {
+                            foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
+                            {
+                                val.Append('0').Append(
+                                    BeatCell.MultiplyTerms(ce.Value, rg.Times - 1))
+                                    .Append('+');
+                            }
+
+                        }
+                        // found group with LTM tod mod, add it's LTM but not cell values.
+                        if (rg == repWithLtmToMod) repWithLtmToModFound = true;
+
+                        // increase multiplier of LTMs
+                        foreach (KeyValuePair<Repeat, int> kv in ltmFactors)
+                        {
+                            ltmFactors[kv.Key] = kv.Value * rg.Times;
+                        }
+                        ltmFactors.Add(rg, 1);
+                    }
+                    // add in all the LTMs from rep groups
+                    foreach (KeyValuePair<Repeat, int> kv in ltmFactors)
+                    {
+                        val.Append('0')
+                            .Append(BeatCell.MultiplyTerms(kv.Key.LastTermModifier, kv.Value))
+                            .Append('+');
+                    }
+                }
+
+                val.Append('0');
+                val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(DrawingView.Instance.GridSpacingString), NumIntervals));
+                cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.Value : repWithLtmToMod.LastTermModifier, val.ToString());
+                //cell.Value = BeatCell.SimplifyValue(below.Value + '-' + val.ToString());
+                string newValue = BeatCell.SimplifyValue(val.ToString());
+
+                if (repWithLtmToMod == null)
+                {
+                    //oldValue = below.Value;
+                    below.Value = newValue;
+                }
+                else
+                {
+                    //oldValue = repWithLtmToMod.LastTermModifier;
+                    repWithLtmToMod.LastTermModifier = BeatCell.Subtract(
+                        repWithLtmToMod.LastTermModifier,
+                        newValue);
+                }
+            }
+        }
+
+        private static void AddToGroups(Cell cell, Cell below)
+        {
+            foreach (Repeat rg in below.RepeatGroups.Where(x => x.Position + x.Length > cell.Position))
+            {
+                //rg.Cells.Last.Value.GroupActions.Remove();
+                cell.RepeatGroups.AddLast(rg);
+
+                // transfer actions if below was last cell of group
+                if (rg.Cells.Last.Value == below)
+                {
+                    below.GroupActions.Remove((false, rg));
+                    cell.GroupActions.AddLast((false, rg));
+                }
+            }
+            foreach (Multiply mg in below.MultGroups.Where(x => x.Position + x.Length > cell.Position))
+            {
+                cell.MultGroups.AddLast(mg);
+
+                if (mg.Cells.Last.Value == below)
+                {
+                    below.GroupActions.Remove((false, mg));
+                    cell.GroupActions.AddLast((false, mg));
+                }
+            }
+        }
+    }
 }

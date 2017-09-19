@@ -408,6 +408,26 @@ namespace Pronome.Mac.Editor
 		}
 
         /// <summary>
+        /// Finds a node with the given cell index.
+        /// </summary>
+        /// <returns>The index.</returns>
+        /// <param name="index">Index.</param>
+        public CellTreeNode LookupIndex(int index)
+        {
+            CellTreeNode node = Root;
+
+            while (node != null)
+            {
+                if (node.Cell.Index == index) return node;
+
+                if (node.Cell.Index < index) node = node.Right;
+                else node = node.Left;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Find the first cell above or equal to the given BPM position.
         /// </summary>
         /// <returns>The above or equal to.</returns>

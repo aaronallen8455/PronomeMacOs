@@ -124,6 +124,11 @@ namespace Pronome.Mac.Editor
 		/// <param name="beatCode"></param>
 		public void FillFromBeatCode(string beatCode)
 		{
+            // track current multiply factor through entire process (including references)
+            OpenMultFactor = new Stack<double>();
+            OpenMultFactor.Push(1);
+
+            CellIndex = 0;
             //double pos;
 			(Cells, Duration) = ParseBeat(beatCode);
 			//Cells = result.Cells;
@@ -147,6 +152,13 @@ namespace Pronome.Mac.Editor
 		/// </summary>
         Stack<Repeat> OpenRepeatGroups = new Stack<Repeat>();
 
+        /// <summary>
+        /// Used to tack the aggregate multiplication factor.
+        /// </summary>
+        Stack<double> OpenMultFactor;
+
+        int CellIndex;
+
 		/// <summary>
 		/// Build the cell and group objects based on layer.
 		/// </summary>
@@ -160,8 +172,8 @@ namespace Pronome.Mac.Editor
 			//string[] chunks = beat.Split(new char[] { ',', '|' }, StringSplitOptions.RemoveEmptyEntries);
             Stack<Multiply> OpenMultGroups = new Stack<Multiply>();
             // holds the current mult factor
-            Stack<double> OpenMultFactor = new Stack<double>();
-            OpenMultFactor.Push(1);
+            //Stack<double> OpenMultFactor = new Stack<double>();
+            //OpenMultFactor.Push(1);
 
             // build list of mult group factors ahead of time
             // this is so we already know the factor when the mult group gets created (factors are at end of group).
@@ -197,7 +209,7 @@ namespace Pronome.Mac.Editor
             //foreach (string chunk in chunks)
 			foreach (Match match in Regex.Matches(beat, @".+?([,|]|$)"))
 			{
-				Cell cell = new Cell(this) { Position = position };
+                Cell cell = new Cell(this) { Position = position };
 
 				string chunk = match.Value;
 
@@ -237,7 +249,7 @@ namespace Pronome.Mac.Editor
                             Factor = BeatCell.Parse(MultFactors[mIndex++])
                         });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
 						OpenMultGroups.Peek().Cells.AddLast(cell);
-						// need to subtract repeat groups offset because contents is in new CGLayer
+						// need to subtract repeat groups offset because contents is in new CGLayer starting at 0
 						OpenMultGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
                         OpenMultFactor.Push(OpenMultFactor.Peek() * OpenMultGroups.Peek().Factor);
@@ -282,12 +294,13 @@ namespace Pronome.Mac.Editor
 
 
                     // todo: factor in mult groups here
+
                     (CellTree pbCells, double duration) = ResolveReference(refIndex, position);
                     // remember the position and duration of the reference
                     ReferencePositionAndDurations.Add((position, duration));
 
 					// progress position
-                    position += duration;
+                    position += duration * OpenMultFactor.Peek();
 					//cell.SetDurationDirectly(duration);
                     bool first = true;
 					foreach (Cell c in pbCells)
@@ -304,15 +317,17 @@ namespace Pronome.Mac.Editor
 				}
 				else
 				{
+                    cell.Index = CellIndex++;
+
                     cells.Insert(cell); // can't put referencers in b/c of overlap
 					// get bpm value
 					string bpm = Regex.Match(chunk, @"[\d./+*\-]+").Value;
 					if (!string.IsNullOrEmpty(bpm))
 					{
 						cell.Value = bpm;
-						cell.SetDurationDirectly(BeatCell.Parse(bpm));
+                        cell.SetDurationDirectly(BeatCell.Parse(bpm) * OpenMultFactor.Peek());
 						// progress position
-                        position += cell.Duration * OpenMultFactor.Peek();
+                        position += cell.Duration;
 					}
 				}
 

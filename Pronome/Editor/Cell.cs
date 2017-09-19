@@ -73,6 +73,11 @@ namespace Pronome.Mac.Editor
 			}
 		}
 
+        /// <summary>
+        /// Index of this cell within it's row.
+        /// </summary>
+        public int Index;
+
 		public bool IsSelected = false;
 
 		/// <summary>

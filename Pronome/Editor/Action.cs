@@ -98,21 +98,21 @@ namespace Pronome.Mac.Editor
 			CellTree selectedCells = EditorViewController.Instance.DView.SelectedCells;
 
 			// get current selection range if it's in this row
-			int selectionStart = -1;
-			int rowLengthBefore = Row.Cells.Count;
+			//int selectionStart = -1;
+			//int rowLengthBefore = Row.Cells.Count;
 
 			// get selection indexes if there is a selection in the action's row
 			if (selectedCells.Root != null && selectedCells.Root.Cell.Row == Row)
 			{
 				// find index of first selected cell
-				selectionStart = 0;
-				foreach (Cell c in Row.Cells)
-				{
-					if (c.IsSelected) break;
-					selectionStart++;
-				}
+				//selectionStart = 0;
+				//foreach (Cell c in Row.Cells)
+				//{
+				//	if (c.IsSelected) break;
+				//	selectionStart++;
+				//}
 
-                RightIndexBoundOfTransform = selectionStart + selectedCells.Count - 1;
+                RightIndexBoundOfTransform = selectedCells.Min.Cell.Index + selectedCells.Count - 1;
 			}
 		}
 
@@ -129,14 +129,10 @@ namespace Pronome.Mac.Editor
             if (selectedCells.Root != null && selectedCells.Root.Cell.Row == Row)
 			{
                 // find index of first selected cell
-                selectionStart = 0;
-                foreach (Cell c in Row.Cells)
-                {
-                    if (c.IsSelected) break;
-                    selectionStart++;
-                }
 
-                selectionEnd = selectionStart + selectedCells.Count - 1;
+                selectionStart = selectedCells.Min.Cell.Index;
+
+                selectionEnd = selectedCells.Max.Cell.Index;
 			}
 
 			if (string.IsNullOrEmpty(AfterBeatCode))
@@ -181,21 +177,14 @@ namespace Pronome.Mac.Editor
                 if (selectionStart < 0) selectionStart = 0;
                 if (selectionEnd >= Row.Cells.Count) selectionEnd = Row.Cells.Count - 1;
 
-                int i = 0;
-                // reselect prev selected cells
-                foreach (Cell c in Row.Cells)
-                {
-                    if (i == selectionStart)
-                    {
-                        EditorViewController.Instance.DView.SelectCell(c);
-                    }
-                    else if (i == selectionEnd)
-                    {
-                        EditorViewController.Instance.DView.SelectCell(c, true);
-                    }
+                // make new selection
 
-                    i++;
-                }
+                CellTreeNode startNode = Row.Cells.LookupIndex(selectionStart);
+                CellTreeNode endNode = Row.Cells.LookupIndex(selectionEnd);
+
+                EditorViewController.Instance.DView.SelectCell(startNode.Cell);
+
+                EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
 			}
 		}
 
@@ -216,15 +205,10 @@ namespace Pronome.Mac.Editor
 			// get selection indexes if there is a selection in the action's row
 			if (selectedCells.Root != null && selectedCells.Root.Cell.Row == Row)
 			{
-				// find index of first selected cell
-				selectionStart = 0;
-				foreach (Cell c in Row.Cells)
-				{
-					if (c.IsSelected) break;
-					selectionStart++;
-				}
+                // find index of first selected cell
+                selectionStart = selectedCells.Min.Cell.Index;
 
-				selectionEnd = selectionStart + selectedCells.Count - 1;
+                selectionEnd = selectedCells.Max.Cell.Index;
 			}
 
 			bool selectFromBack = selectionEnd > RightIndexBoundOfTransform;
@@ -260,21 +244,13 @@ namespace Pronome.Mac.Editor
 				if (selectionStart < 0) selectionStart = 0;
 				if (selectionEnd >= Row.Cells.Count) selectionEnd = Row.Cells.Count - 1;
 
-				int i = 0;
-				// reselect prev selected cells
-				foreach (Cell c in Row.Cells)
-				{
-					if (i == selectionStart)
-					{
-						EditorViewController.Instance.DView.SelectCell(c);
-					}
-					else if (i == selectionEnd)
-					{
-						EditorViewController.Instance.DView.SelectCell(c, true);
-					}
+                // make new selection
+                CellTreeNode startNode = Row.Cells.LookupIndex(selectionStart);
+                CellTreeNode endNode = Row.Cells.LookupIndex(selectionEnd);
 
-					i++;
-				}
+                EditorViewController.Instance.DView.SelectCell(startNode.Cell);
+
+                EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
 			}
 		}
 	}
