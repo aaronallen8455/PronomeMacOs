@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Pronome.Mac.Editor.Groups;
 using System.Linq;
+using System.Text;
 
 namespace Pronome.Mac.Editor
 {
@@ -129,6 +130,38 @@ namespace Pronome.Mac.Editor
 			_duration = duration;
 			//_actualDuration = -1; // reevaluate actual duration
 		}
+
+        /// <summary>
+        /// Gets the string value with mult factors applied.
+        /// </summary>
+        /// <returns>The value with mult factors.</returns>
+        public string GetValueWithMultFactors()
+        {
+            string val = Value;
+
+            foreach (Multiply mg in MultGroups)
+            {
+                val = BeatCell.MultiplyTerms(val, mg.FactorValue);
+            }
+
+            return val;
+        }
+
+        /// <summary>
+        /// Divides the given string value by the factors of all nested mult groups.
+        /// This is used to convert a "to scale" value to the actual value.
+        /// </summary>
+        /// <returns>The value divided by mult factors.</returns>
+        /// <param name="value">Value.</param>
+        public string GetValueDividedByMultFactors(string value)
+        {
+            foreach (Multiply mg in MultGroups)
+            {
+                value = BeatCell.DivideTerms(value, mg.FactorValue);
+            }
+
+            return value;
+        }
 
         public void Delete()
         {

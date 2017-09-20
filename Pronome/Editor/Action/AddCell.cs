@@ -509,7 +509,6 @@ namespace Pronome.Mac.Editor.Action
                                     BeatCell.MultiplyTerms(ce.Value, rg.Times - 1))
                                     .Append('+');
                             }
-
                         }
                         // found group with LTM tod mod, add it's LTM but not cell values.
                         if (rg == repWithLtmToMod) repWithLtmToModFound = true;
@@ -540,12 +539,10 @@ namespace Pronome.Mac.Editor.Action
 
                 if (repWithLtmToMod == null)
                 {
-                    //oldValue = below.Value;
                     below.Value = newValue;
                 }
                 else
                 {
-                    //oldValue = repWithLtmToMod.LastTermModifier;
                     repWithLtmToMod.LastTermModifier = BeatCell.Subtract(
                         repWithLtmToMod.LastTermModifier,
                         newValue);

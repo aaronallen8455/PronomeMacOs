@@ -52,97 +52,203 @@ namespace Pronome.Mac
         {
             if (string.IsNullOrEmpty(str)) return 0;
 
-            StringBuilder ops = new StringBuilder();
-            string operators = "";
-            StringBuilder number = new StringBuilder();
-            List<double> numbers = new List<double>();
-            // parse out the numbers and operators
-            for (int i = 0; i < str.Length; i++)
-            {
-                if (str[i] == '+' || str[i] == '*' || str[i] == '/' || (str[i] == '-' && (str[i - 1] != '*' || str[i - 1] != '/')))
-                {
-                    numbers.Add(double.Parse(number.ToString()));
-                    number.Clear();
-                    ops.Append(str[i]);
-                }
-                else if (str[i] == 'x' || str[i] == 'X')
-                {
-                    ops.Append('*');
-                }
-                else
-                {
-                    number.Append(str[i]);
-                }
-            }
-            numbers.Add(double.Parse(number.ToString()));
-            operators = ops.ToString();
+			// holds value that will be added to current value after all mult and div have occurred
+			double accum = 0;
+            // builds up a numeric value from individual chars
+			StringBuilder curNum = new StringBuilder();
+            // the most recently converted (from chars) number and preceding mult/div operations
+			double focusedNum = 0;
+			char curOp = ' ';
+            // true if accum will be added to focusedNum
+			bool willAdd = true;
+			foreach (char c in str)
+			{
+				if (char.IsNumber(c) || c == '.')
+				{
+					curNum.Append(c);
+				}
+				else
+				{
+					double num = double.Parse(curNum.ToString());
 
-            double result = 0;
-            double current = numbers[0];
-            char connector = '+';
-            // perform arithmetic
-            for (int i = 0; i < operators.Length; i++)
-            {
-                char op = operators[i];
-                if (op == '*')
-                {
-                    current *= numbers[i + 1];
-                }
-                else if (op == '/')
-                {
-                    current /= numbers[i + 1];
-                }
-                else
-                {
-                    if (connector == '+')
-                    {
-                        result += current;
-                    }
-                    else if (connector == '-')
-                    {
-                        result -= current;
-                    }
-                    //result += current;
-                    if (i < operators.Length - 1)
-                    {
+                    // perform * / on focused num
+					if (curOp == '*')
+					{
+						focusedNum *= num;
+					}
+					else if (curOp == '/')
+					{
+						focusedNum /= num;
+					}
+					else
+					{
+                        // last op was + or -
+						focusedNum = num;
+					}
 
-                        if (operators[i + 1] == '+' || operators[i + 1] == '-')
-                        {
-                            current = 0;
+					curNum.Clear();
 
-                            if (op == '+')
-                            {
-                                result += numbers[i + 1];
-                            }
-                            else
-                            {
-                                result -= numbers[i + 1];
-                            }
-                        }
-                        else
-                        {
-                            connector = op;
-                            current = numbers[i + 1];
-                        }
-                    }
-                    else
-                    {
-                        current = 0;
+					switch (c)
+					{
+						case '-':
+						case '+':
+                            // we can now apply the waiting +/- operation
+							if (willAdd)
+							{
+								accum += focusedNum;
+							}
+							else
+							{
+								accum -= focusedNum;
+							}
 
-                        if (op == '+')
-                        {
-                            result += numbers[i + 1];
-                        }
-                        else
-                        {
-                            result -= numbers[i + 1];
-                        }
-                    }
-                }
-            }
-            result = connector == '+' ? result + current : result - current;
+							willAdd = c == '+';
+							curOp = c;
+							focusedNum = accum;
+							break;
+						case 'X':
+						case 'x':
+						case '*':
+							curOp = '*';
+							break;
+						case '/':
+							curOp = '/';
+							break;
+					}
+				}
+			}
 
-            return result;
+            // tie up the loose ends
+
+			double lastNum = double.Parse(curNum.ToString());
+
+			switch (curOp)
+			{
+				case '+':
+					accum += lastNum;
+					break;
+				case '-':
+					accum -= lastNum;
+					break;
+				case '*':
+					focusedNum *= lastNum;
+
+					if (willAdd)
+					{
+						accum += focusedNum;
+					}
+					else
+					{
+						accum -= focusedNum;
+					}
+					break;
+				case '/':
+					focusedNum /= lastNum;
+
+					if (willAdd)
+					{
+						accum += focusedNum;
+					}
+					else
+					{
+						accum -= focusedNum;
+					}
+					break;
+			}
+
+			return accum;
+
+            //StringBuilder ops = new StringBuilder();
+            //string operators = "";
+            //StringBuilder number = new StringBuilder();
+            //List<double> numbers = new List<double>();
+            //// parse out the numbers and operators
+            //for (int i = 0; i < str.Length; i++)
+            //{
+            //    if (str[i] == '+' || str[i] == '*' || str[i] == '/' || (str[i] == '-' && (str[i - 1] != '*' || str[i - 1] != '/')))
+            //    {
+            //        numbers.Add(double.Parse(number.ToString()));
+            //        number.Clear();
+            //        ops.Append(str[i]);
+            //    }
+            //    else if (str[i] == 'x' || str[i] == 'X')
+            //    {
+            //        ops.Append('*');
+            //    }
+            //    else
+            //    {
+            //        number.Append(str[i]);
+            //    }
+            //}
+            //numbers.Add(double.Parse(number.ToString()));
+            //operators = ops.ToString();
+			//
+            //double result = 0;
+            //double current = numbers[0];
+            //char connector = '+';
+            //// perform arithmetic
+            //for (int i = 0; i < operators.Length; i++)
+            //{
+            //    char op = operators[i];
+            //    if (op == '*')
+            //    {
+            //        current *= numbers[i + 1];
+            //    }
+            //    else if (op == '/')
+            //    {
+            //        current /= numbers[i + 1];
+            //    }
+            //    else
+            //    {
+            //        if (connector == '+')
+            //        {
+            //            result += current;
+            //        }
+            //        else if (connector == '-')
+            //        {
+            //            result -= current;
+            //        }
+            //        //result += current;
+            //        if (i < operators.Length - 1)
+            //        {
+			//
+            //            if (operators[i + 1] == '+' || operators[i + 1] == '-')
+            //            {
+            //                current = 0;
+			//
+            //                if (op == '+')
+            //                {
+            //                    result += numbers[i + 1];
+            //                }
+            //                else
+            //                {
+            //                    result -= numbers[i + 1];
+            //                }
+            //            }
+            //            else
+            //            {
+            //                connector = op;
+            //                current = numbers[i + 1];
+            //            }
+            //        }
+            //        else
+            //        {
+            //            current = 0;
+			//
+            //            if (op == '+')
+            //            {
+            //                result += numbers[i + 1];
+            //            }
+            //            else
+            //            {
+            //                result -= numbers[i + 1];
+            //            }
+            //        }
+            //    }
+            //}
+            //result = connector == '+' ? result + current : result - current;
+			//
+            //return result;
         }
 
         /// <summary>
@@ -399,6 +505,85 @@ namespace Pronome.Mac
             return string.Join(string.Empty, terms);
         }
 
+        static public string MultiplyTerms(string exp, string factor)
+        {
+            StringBuilder val = new StringBuilder('0');
+
+            string pattern = @"(^|[+\-])[^+\-]+";
+
+            var fmatches = Regex.Matches(factor, pattern);
+
+            foreach (Match em in Regex.Matches(exp, pattern))
+            {
+                foreach (Match fm in fmatches)
+                {
+                    // both negative, make positive
+                    if (em.Value[0] == '-' && fm.Value[0] == '-')
+                    {
+                        val.Append('+').Append(em.Value.Skip(1)).Append('*').Append(fm.Value.Skip(1));
+                    }
+                    else if (em.Value[0] != '-' && fm.Value[0] != '-')
+                    {
+                        // both positive
+                        val.Append('+').Append(em.Value.TrimStart('+')).Append('*').Append(fm.Value.TrimStart('+'));
+                    }
+                    else if (em.Value[0] != '-')
+                    {
+                        // factor is negative
+                        val.Append(fm.Value).Append('*').Append(em.Value.TrimStart('+'));
+                    }
+                    else
+                    {
+                        // exp is negative
+                        val.Append(em.Value).Append('*').Append(fm.Value.TrimStart('+'));
+                    }
+                }
+            }
+
+            return val.ToString();
+        }
+
+        /// <summary>
+        /// Divides the terms.
+        /// </summary>
+        /// <returns>The terms.</returns>
+        /// <param name="exp">Exp.</param>
+        /// <param name="div">Div.</param>
+        static public string DivideTerms (string exp, string div)
+        {
+            StringBuilder val = new StringBuilder('0');
+
+            // need to consolidate the divisor into a single decimal or fraction
+            string simpleDiv = SimplifyValue(div);
+            // if it's a mixed number, make it a single fraction
+            bool divIsFrac = simpleDiv.Contains('/');
+            if (divIsFrac && simpleDiv.Contains('+'))
+            {
+                string[] split = simpleDiv.Split('+');
+                string[] fracSplit = split[1].Split('/');
+                string numerator = Add(fracSplit[0], MultiplyTerms(split[0], fracSplit[1]));
+                // reverse the numerator and denominator b/c we want to multiply with the exp
+                simpleDiv =  fracSplit[1] + '/' + numerator;
+            }
+
+            // split up the terms in exp
+            foreach (Match m in Regex.Matches(exp, @"(^|[+\-])[^+\-]+"))
+            {
+                val.Append(m.Value);
+                if (divIsFrac)
+                {
+                    val.Append('*'); // multiply by inverted fraction
+                }
+                else
+                {
+                    val.Append('/');
+                }
+                val.Append(simpleDiv);
+            }
+
+            return val.ToString();
+        }
+
         /// <summary>
         /// Subtract the right term from the left.
         /// </summary>
@@ -407,12 +592,6 @@ namespace Pronome.Mac
         /// <returns></returns>
         static public string Subtract(string left, string right)
         {
-            //StringBuilder sb = new StringBuilder(right);
-            //for (int i = 0; i < right.Length; i++)
-            //{
-            //    if (right[i] == '+') sb[i] = '-';
-            //    else if (right[i] == '-') sb[i] = '+';
-            //}
             right = Invert(right);
 
             return Add(left, right);
@@ -424,7 +603,7 @@ namespace Pronome.Mac
         }
 
         /// <summary>
-        /// Invert an expression
+        /// Invert an expression, make it negative if positive.
         /// </summary>
         /// <param name="exp"></param>
         /// <returns></returns>
