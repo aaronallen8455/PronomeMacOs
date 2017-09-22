@@ -502,13 +502,30 @@ namespace Pronome.Mac
 
             foreach (KeyValuePair<int, Layer> pair in LayersToChange)
             {
-                long floats = totalFloats;
-
                 Layer l = pair.Value;
                 foreach (IStreamProvider src in l.GetAllStreams())
                 {
-                    //long floats = totalFloats;
+					long floats = totalFloats;
 
+                    if (src.Offset < totalFloats)
+                    {
+                        // turn off byte production to increase efficiency
+						src.ProduceBytes = false;
+						
+						src.IntervalLoop.Enumerator.MoveNext();
+						
+						while (src.IntervalLoop.Enumerator.Current <= floats)
+						{
+							long interval = src.IntervalLoop.Enumerator.Current;
+							
+							src.Read(null, null, (uint)interval, false);
+							
+							floats -= (uint)interval;
+						}
+
+                        src.ProduceBytes = true;
+                    }
+                    // do produce bytes for the last interval
                     while (floats > 0)
                     {
                         uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);

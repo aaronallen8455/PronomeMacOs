@@ -173,22 +173,16 @@ namespace Pronome.Mac.Editor.Action
 
                 while (c != null)
 				{
-                    //if (!string.IsNullOrEmpty(c.Cell.Reference)) // needed in WPF, not Mac
-                    //{
-                    //    c = c.Next();
-                    //    continue;
-                    //}
-
-					val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
+                    val.Append("+0").Append(BeatCell.Invert(c.Cell.GetValueWithMultFactors()));
 					// account for rep groups and their LTMs
 					Dictionary<Repeat, int> ltmTimes = new Dictionary<Repeat, int>();
                     foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
 					{
 						if (repGroups.Contains(rg)) continue;
 
-						foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
+						foreach (Cell ce in rg.Cells)
 						{
-							val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.Value), rg.Times - 1));
+                            val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.GetValueWithMultFactors()), rg.Times - 1));
 						}
 						foreach (KeyValuePair<Repeat, int> kv in ltmTimes)
 						{
@@ -200,9 +194,23 @@ namespace Pronome.Mac.Editor.Action
 					}
 					foreach (KeyValuePair<Repeat, int> kv in ltmTimes)
 					{
+                        Repeat rg = kv.Key;
+                        string multFactor = "1";
+                        // need to account for mult groups that incase the rep group and therefore modify its ltm
+                        foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > rg.Length))
+                        {
+                            multFactor = BeatCell.MultiplyTerms(mg.FactorValue, multFactor);
+                        }
+
 						if (!string.IsNullOrEmpty(kv.Key.LastTermModifier))
 						{
-							val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(kv.Key.LastTermModifier), kv.Value));
+							val.Append("+0").Append(
+                                BeatCell.MultiplyTerms(
+                                    BeatCell.MultiplyTerms(
+                                        multFactor, 
+                                        BeatCell.Invert(kv.Key.LastTermModifier)
+                                    ),
+                                    kv.Value));
 						}
 					}
 
@@ -213,16 +221,24 @@ namespace Pronome.Mac.Editor.Action
 				// if last cell is in a rep group, we need to increase the LTM for that group
 				if (below.RepeatGroups.Any())
 				{
-					oldPrevCellValue = below.RepeatGroups.First.Value.LastTermModifier;
+                    var rg = below.RepeatGroups.First.Value;
+
+					string multFactor = "1";
+                    foreach (Multiply mg in rg.Cells.First.Value.MultGroups.Where(x => x.Length > rg.Length))
+					{
+						multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
+					}
+
+					//oldPrevCellValue = below.RepeatGroups.First.Value.LastTermModifier;
 					// add to the bottom repeat group's LTM
-					below.RepeatGroups.First.Value.LastTermModifier = BeatCell.SimplifyValue(val.ToString());
+                    rg.LastTermModifier = BeatCell.SimplifyValue(BeatCell.DivideTerms(val.ToString(), multFactor));
 				}
 				else
 				{
 					// add to last cell's duration
 					//below.Duration = increment * div - (Row.Cells.Last().Position - Cell.SelectedCells.LastCell.Position);
 					val.Append("+0").Append(below.Value);
-					below.Value = BeatCell.SimplifyValue(val.ToString());
+                    below.Value = BeatCell.SimplifyValue(below.GetValueDividedByMultFactors(val.ToString()));
 				}
 
 				Row.Cells.Insert(cell);
@@ -266,18 +282,20 @@ namespace Pronome.Mac.Editor.Action
 
                 CellTreeNode c = LastSelected;
 
-                while (c != belowNode)
+                // we subtract all values up to the "whitespace" below the new cell
+                while (c != node)
                 {
-                    //if (!string.IsNullOrEmpty(c.Cell.Reference))
-                    //{
-                    //    c = c.Next();
-                    //    continue;
-                    //}
+                    // below is not directly included if we are not adding to an LTM
+                    if (repWithLtmToMod == null && c.Cell == below)
+                    {
+                        break;
+                    }
 
 					// subtract each value from the total
-					val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
+                    val.Append("+0").Append(BeatCell.Invert(c.Cell.GetValueWithMultFactors()));
 					// account for rep group repititions.
 					Dictionary<Repeat, int> ltmTimes = new Dictionary<Repeat, int>();
+
                     foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
 					{
 						if (repGroups.Contains(rg)) continue;
@@ -291,9 +309,9 @@ namespace Pronome.Mac.Editor.Action
 							continue;
 						}
 
-						foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
+						foreach (Cell ce in rg.Cells)
 						{
-							val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.Value), rg.Times - 1));
+                            val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.GetValueWithMultFactors()), rg.Times - 1));
 						}
 						// get times to count LTMs for each rg
 						foreach (KeyValuePair<Repeat, int> kv in ltmTimes)
@@ -301,38 +319,29 @@ namespace Pronome.Mac.Editor.Action
 							ltmTimes[kv.Key] = kv.Value * rg.Times;
 						}
 
-						ltmTimes.Add(rg, 1);
+                        if (rg != repWithLtmToMod)
+                        {
+							ltmTimes.Add(rg, 1);
+                        }
 					}
 					// subtract the LTMs
 					foreach (KeyValuePair<Repeat, int> kv in ltmTimes)
 					{
-						val.Append("+0").Append(
-							BeatCell.MultiplyTerms(
-								BeatCell.Invert(kv.Key.LastTermModifier), kv.Value));
+                        Repeat rg = kv.Key;
+                        string multFactor = "1";
+                        foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > rg.Length))
+                        {
+                            multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
+                        }
+
+                        val.Append("+0").Append(
+                            BeatCell.MultiplyTerms(multFactor,
+						        BeatCell.MultiplyTerms(
+								    BeatCell.Invert(kv.Key.LastTermModifier), kv.Value)));
 					}
 
                     c = c.Next();
                 }
-
-				// if the below cell was a single cell repeat, and we are placing the cell into it's LTM
-				if (repWithLtmToMod != null)
-				{
-					string belowLtm = "";
-					string belowRepValue = "0";
-					foreach (Repeat rg in below.RepeatGroups.Where(x => !repGroups.Contains(x)))
-					{
-						if (!string.IsNullOrEmpty(belowLtm))
-						{
-							val.Append("+0").Append(
-								BeatCell.MultiplyTerms(
-									BeatCell.Invert(belowLtm), rg.Times));
-						}
-
-						belowRepValue = BeatCell.MultiplyTerms(BeatCell.Add(belowRepValue, below.Value), rg.Times);
-					}
-
-					val.Append("+0").Append(BeatCell.Invert(belowRepValue));
-				}
 
 				// get new cells value by subtracting old value of below cell by new value.
 				string newVal = BeatCell.SimplifyValue(val.ToString());
@@ -342,38 +351,29 @@ namespace Pronome.Mac.Editor.Action
 					newVal = "0";
 				}
 
-				cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.Value : repWithLtmToMod.LastTermModifier, newVal);
-
-				// if placing cell on top of another cell, it's not valid.
-				if (cell.Value == string.Empty || newVal == string.Empty)
-				{
-					// remove the cell
-					Row.Cells.Remove(cell);
-					foreach (Repeat rg in cell.RepeatGroups)
-					{
-						rg.Cells.Remove(cell);
-					}
-                    foreach (Multiply mg in cell.MultGroups)
-					{
-						mg.Cells.Remove(cell);
-					}
-					cell = null;
-
-                    throw new System.Exception();
-
-					//return;
-				}
+                // assign the new cell's value
+                cell.Value = 
+                    cell.GetValueDividedByMultFactors(
+                        BeatCell.Subtract(
+                            repWithLtmToMod == null ? below.Value : repWithLtmToMod.LastTermModifier, newVal));
+                cell.Value = BeatCell.SimplifyValue(cell.Value);
 
 				if (repWithLtmToMod == null)
 				{
-					// changing a cell value
-					below.Value = newVal;
+					// change below cell's value
+                    below.Value = below.GetValueDividedByMultFactors(newVal);
+                    below.Value = BeatCell.SimplifyValue(below.Value);
 				}
 				else
 				{
+                    string multFactor = "1";
+                    foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
+                    {
+                        multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
+                    }
+
 					// changing a LTM value
-					//repWithLtmToMod.LastTermModifier = BeatCell.Subtract(repWithLtmToMod.LastTermModifier, newVal);
-					repWithLtmToMod.LastTermModifier = newVal.TrimStart('0');
+                    repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(BeatCell.DivideTerms(newVal, multFactor));
 				}
 			}
 		}
@@ -396,7 +396,7 @@ namespace Pronome.Mac.Editor.Action
 
             while (c != null)
             {
-				val.Append("+0").Append(BeatCell.Invert(c.Cell.Value));
+                val.Append("+0").Append(BeatCell.Invert(c.Cell.GetValueWithMultFactors()));
 				// deal with repeat groups
 				Dictionary<Repeat, int> lcmTimes = new Dictionary<Repeat, int>();
                 foreach (Repeat rg in c.Cell.RepeatGroups.Reverse())
@@ -423,13 +423,22 @@ namespace Pronome.Mac.Editor.Action
 				// subtract the LCMs
 				foreach (KeyValuePair<Repeat, int> kv in lcmTimes)
 				{
-					val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(kv.Key.LastTermModifier), kv.Value));
+                    string multFactor = "1";
+                    foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > kv.Key.Length))
+                    {
+                        multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
+                    }
+
+					val.Append("+0").Append(
+                        BeatCell.MultiplyTerms(
+                            BeatCell.Invert(kv.Key.LastTermModifier), 
+                            BeatCell.MultiplyTerms(multFactor, kv.Value)));
 				}
 
                 c = c.Prev();
             }
 
-			cell.Value = BeatCell.SimplifyValue(val.ToString());
+            cell.Value = BeatCell.SimplifyValue(val.ToString());
 
             cell.Position = FirstSelected.Cell.Position - DrawingView.Instance.GridSpacing * NumIntervals;
             Row.Cells.Insert(cell);
@@ -467,23 +476,26 @@ namespace Pronome.Mac.Editor.Action
                 // get new value string for below
                 StringBuilder val = new StringBuilder();
 
-                bool repWithLtmToModFound = false;
                 HashSet<Repeat> repGroups = new HashSet<Repeat>();
 
                 CellTreeNode c = cellNode.Prev();
 
                 while (c != FirstSelected)
                 {
+                    if (repWithLtmToMod != null && c.Cell == below)
+                    {
+                        c = c.Next();
+                        continue;
+                    }
+
                     if (c == cellNode)
                     {
                         c = c.Next();
                         continue;
                     }
 
-                    if (repWithLtmToMod == null || repWithLtmToModFound)
-                    {
-                        val.Append(c.Cell.Value).Append('+');
-                    }
+                    val.Append(c.Cell.GetValueWithMultFactors()).Append('+');
+
                     // we need to track how many times to multiply each rep group's LTM
                     Dictionary<Repeat, int> ltmFactors = new Dictionary<Repeat, int>();
                     // if there's a rep group, add the repeated sections
@@ -500,18 +512,12 @@ namespace Pronome.Mac.Editor.Action
                             continue;
                         }
 
-                        // don't add anything until after the group with LTM to mod has been found (if were modding a LTM)
-                        if (repWithLtmToMod == null || repWithLtmToModFound)
+                        foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
                         {
-                            foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
-                            {
-                                val.Append('0').Append(
-                                    BeatCell.MultiplyTerms(ce.Value, rg.Times - 1))
-                                    .Append('+');
-                            }
+                            val.Append('0').Append(
+                                BeatCell.MultiplyTerms(ce.GetValueWithMultFactors(), rg.Times - 1))
+                                .Append('+');
                         }
-                        // found group with LTM tod mod, add it's LTM but not cell values.
-                        if (rg == repWithLtmToMod) repWithLtmToModFound = true;
 
                         // increase multiplier of LTMs
                         foreach (KeyValuePair<Repeat, int> kv in ltmFactors)
@@ -523,29 +529,50 @@ namespace Pronome.Mac.Editor.Action
                     // add in all the LTMs from rep groups
                     foreach (KeyValuePair<Repeat, int> kv in ltmFactors)
                     {
+                        string multFactor = "1";
+
+                        foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > kv.Key.Length))
+                        {
+                            multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
+                        }
+
                         val.Append('0')
-                            .Append(BeatCell.MultiplyTerms(kv.Key.LastTermModifier, kv.Value))
+                           .Append(BeatCell.MultiplyTerms(kv.Key.LastTermModifier, BeatCell.MultiplyTerms(multFactor, kv.Value)))
                             .Append('+');
                     }
 
                     c = c.Next();
                 }
 
+                string adjustedLtm = "";
+                string ltmMultFactor = "1";
+                if (repWithLtmToMod != null)
+                {
+                    foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
+                    {
+                        ltmMultFactor = BeatCell.MultiplyTerms(ltmMultFactor, mg.FactorValue);
+                    }
+
+                    adjustedLtm = BeatCell.MultiplyTerms(repWithLtmToMod.LastTermModifier, ltmMultFactor);
+
+                    val.Append(adjustedLtm).Append('+');
+                }
+
                 val.Append('0');
                 val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(DrawingView.Instance.GridSpacingString), NumIntervals));
-                cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.Value : repWithLtmToMod.LastTermModifier, val.ToString());
-                //cell.Value = BeatCell.SimplifyValue(below.Value + '-' + val.ToString());
+
+                cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.GetValueWithMultFactors() : adjustedLtm, val.ToString());
+                cell.Value = cell.GetValueDividedByMultFactors(cell.Value);
+
                 string newValue = BeatCell.SimplifyValue(val.ToString());
 
                 if (repWithLtmToMod == null)
                 {
-                    below.Value = newValue;
+                    below.Value = below.GetValueDividedByMultFactors(newValue);
                 }
                 else
                 {
-                    repWithLtmToMod.LastTermModifier = BeatCell.Subtract(
-                        repWithLtmToMod.LastTermModifier,
-                        newValue);
+                    repWithLtmToMod.LastTermModifier = BeatCell.DivideTerms(newValue, ltmMultFactor);
                 }
             }
         }

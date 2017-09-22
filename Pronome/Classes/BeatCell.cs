@@ -8,18 +8,18 @@ namespace Pronome.Mac
 {
     public class BeatCell
     {
-		#region Public Variables
-		/**<summary>The time length in quarter notes</summary>*/
-		public double Bpm; // value expressed in BPM time.
+        #region Public Variables
+        /**<summary>The time length in quarter notes</summary>*/
+        public double Bpm; // value expressed in BPM time.
 
-		///**<summary>Holds info about the sound source.</summary>*/
+        ///**<summary>Holds info about the sound source.</summary>*/
         public StreamInfoProvider SoundSource;
 
-		/**<summary>The layer that this cell belongs to.</summary>*/
-		public Layer Layer;
+        /**<summary>The layer that this cell belongs to.</summary>*/
+        public Layer Layer;
 
-		/**<summary>The audio source used for this cell.</summary>*/
-		public IStreamProvider AudioSource;
+        /**<summary>The audio source used for this cell.</summary>*/
+        public IStreamProvider AudioSource;
         #endregion
 
         #region Public Properties
@@ -52,203 +52,116 @@ namespace Pronome.Mac
         {
             if (string.IsNullOrEmpty(str)) return 0;
 
-			// holds value that will be added to current value after all mult and div have occurred
-			double accum = 0;
+            // holds value that will be added to current value after all mult and div have occurred
+            double accum = 0;
             // builds up a numeric value from individual chars
-			StringBuilder curNum = new StringBuilder();
+            StringBuilder curNum = new StringBuilder("0");
             // the most recently converted (from chars) number and preceding mult/div operations
-			double focusedNum = 0;
-			char curOp = ' ';
+            double focusedNum = 0;
+            char curOp = ' ';
             // true if accum will be added to focusedNum
-			bool willAdd = true;
-			foreach (char c in str)
-			{
-				if (char.IsNumber(c) || c == '.')
-				{
-					curNum.Append(c);
-				}
-				else
-				{
-					double num = double.Parse(curNum.ToString());
+            bool willAdd = true;
+            foreach (char c in str)
+            {
+                if (char.IsNumber(c) || c == '.')
+                {
+                    curNum.Append(c);
+                }
+                else
+                {
+                    double num = double.Parse(curNum.ToString());
 
                     // perform * / on focused num
-					if (curOp == '*')
-					{
-						focusedNum *= num;
-					}
-					else if (curOp == '/')
-					{
-						focusedNum /= num;
-					}
-					else
-					{
+                    if (curOp == '*')
+                    {
+                        focusedNum *= num;
+                    }
+                    else if (curOp == '/')
+                    {
+                        focusedNum /= num;
+                    }
+                    else
+                    {
                         // last op was + or -
-						focusedNum = num;
-					}
+                        focusedNum = num;
+                    }
 
-					curNum.Clear();
+                    curNum.Clear();
 
-					switch (c)
-					{
-						case '-':
-						case '+':
+                    switch (c)
+                    {
+                        case '-':
+                        case '+':
                             // we can now apply the waiting +/- operation
-							if (willAdd)
-							{
-								accum += focusedNum;
-							}
-							else
-							{
-								accum -= focusedNum;
-							}
+                            if (willAdd)
+                            {
+                                accum += focusedNum;
+                            }
+                            else
+                            {
+                                accum -= focusedNum;
+                            }
 
-							willAdd = c == '+';
-							curOp = c;
-							focusedNum = accum;
-							break;
-						case 'X':
-						case 'x':
-						case '*':
-							curOp = '*';
-							break;
-						case '/':
-							curOp = '/';
-							break;
-					}
-				}
-			}
+                            willAdd = c == '+';
+                            curOp = c;
+                            focusedNum = accum;
+                            break;
+                        case 'X':
+                        case 'x':
+                        case '*':
+                            curOp = '*';
+                            break;
+                        case '/':
+                            curOp = '/';
+                            break;
+                    }
+                }
+            }
 
             // tie up the loose ends
 
-			double lastNum = double.Parse(curNum.ToString());
+            double lastNum = double.Parse(curNum.ToString());
 
-			switch (curOp)
-			{
-				case '+':
-					accum += lastNum;
-					break;
-				case '-':
-					accum -= lastNum;
-					break;
-				case '*':
-					focusedNum *= lastNum;
+            if (curOp == ' ')
+            {
+                return lastNum;
+            }
 
-					if (willAdd)
-					{
-						accum += focusedNum;
-					}
-					else
-					{
-						accum -= focusedNum;
-					}
-					break;
-				case '/':
-					focusedNum /= lastNum;
+            switch (curOp)
+            {
+                case '+':
+                    accum += lastNum;
+                    break;
+                case '-':
+                    accum -= lastNum;
+                    break;
+                case '*':
+                    focusedNum *= lastNum;
 
-					if (willAdd)
-					{
-						accum += focusedNum;
-					}
-					else
-					{
-						accum -= focusedNum;
-					}
-					break;
-			}
+                    if (willAdd)
+                    {
+                        accum += focusedNum;
+                    }
+                    else
+                    {
+                        accum -= focusedNum;
+                    }
+                    break;
+                case '/':
+                    focusedNum /= lastNum;
 
-			return accum;
+                    if (willAdd)
+                    {
+                        accum += focusedNum;
+                    }
+                    else
+                    {
+                        accum -= focusedNum;
+                    }
+                    break;
+            }
 
-            //StringBuilder ops = new StringBuilder();
-            //string operators = "";
-            //StringBuilder number = new StringBuilder();
-            //List<double> numbers = new List<double>();
-            //// parse out the numbers and operators
-            //for (int i = 0; i < str.Length; i++)
-            //{
-            //    if (str[i] == '+' || str[i] == '*' || str[i] == '/' || (str[i] == '-' && (str[i - 1] != '*' || str[i - 1] != '/')))
-            //    {
-            //        numbers.Add(double.Parse(number.ToString()));
-            //        number.Clear();
-            //        ops.Append(str[i]);
-            //    }
-            //    else if (str[i] == 'x' || str[i] == 'X')
-            //    {
-            //        ops.Append('*');
-            //    }
-            //    else
-            //    {
-            //        number.Append(str[i]);
-            //    }
-            //}
-            //numbers.Add(double.Parse(number.ToString()));
-            //operators = ops.ToString();
-			//
-            //double result = 0;
-            //double current = numbers[0];
-            //char connector = '+';
-            //// perform arithmetic
-            //for (int i = 0; i < operators.Length; i++)
-            //{
-            //    char op = operators[i];
-            //    if (op == '*')
-            //    {
-            //        current *= numbers[i + 1];
-            //    }
-            //    else if (op == '/')
-            //    {
-            //        current /= numbers[i + 1];
-            //    }
-            //    else
-            //    {
-            //        if (connector == '+')
-            //        {
-            //            result += current;
-            //        }
-            //        else if (connector == '-')
-            //        {
-            //            result -= current;
-            //        }
-            //        //result += current;
-            //        if (i < operators.Length - 1)
-            //        {
-			//
-            //            if (operators[i + 1] == '+' || operators[i + 1] == '-')
-            //            {
-            //                current = 0;
-			//
-            //                if (op == '+')
-            //                {
-            //                    result += numbers[i + 1];
-            //                }
-            //                else
-            //                {
-            //                    result -= numbers[i + 1];
-            //                }
-            //            }
-            //            else
-            //            {
-            //                connector = op;
-            //                current = numbers[i + 1];
-            //            }
-            //        }
-            //        else
-            //        {
-            //            current = 0;
-			//
-            //            if (op == '+')
-            //            {
-            //                result += numbers[i + 1];
-            //            }
-            //            else
-            //            {
-            //                result -= numbers[i + 1];
-            //            }
-            //        }
-            //    }
-            //}
-            //result = connector == '+' ? result + current : result - current;
-			//
-            //return result;
+            return accum;
         }
 
         /// <summary>
@@ -507,7 +420,7 @@ namespace Pronome.Mac
 
         static public string MultiplyTerms(string exp, string factor)
         {
-            StringBuilder val = new StringBuilder('0');
+            StringBuilder val = new StringBuilder("0");
 
             string pattern = @"(^|[+\-])[^+\-]+";
 

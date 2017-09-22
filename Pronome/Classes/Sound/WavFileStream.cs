@@ -87,19 +87,22 @@ namespace Pronome.Mac
                     }
 				}
 
-                if (_sampleNum < TotalFrames)
+                if (ProduceBytes)
                 {
-                    var input = (float*)Data;
-                    if (writeToBuffer)
-                    {
-						leftBuffer[i] = rightBuffer[i] = input[_sampleNum];
-                    }
-                    _sampleNum++;
-                }
-                else if (writeToBuffer)
-                {
-                    // if end of file reached, fill with silence
-                    leftBuffer[i] = rightBuffer[i] = 0;
+					if (_sampleNum < TotalFrames)
+					{
+						var input = (float*)Data;
+						if (writeToBuffer)
+						{
+							leftBuffer[i] = rightBuffer[i] = input[_sampleNum];
+						}
+						_sampleNum++;
+					}
+					else if (writeToBuffer)
+					{
+						// if end of file reached, fill with silence
+						leftBuffer[i] = rightBuffer[i] = 0;
+					}
                 }
 
                 SampleInterval--;

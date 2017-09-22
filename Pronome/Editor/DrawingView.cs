@@ -255,7 +255,6 @@ namespace Pronome.Mac
             {
                 Rows[i] = new Row(Metronome.Instance.Layers[i]);
             }
-            //Rows = Metronome.Instance.Layers.Select(x => new Row(x)).ToArray();
         }
 
 		#region Public methods
@@ -936,7 +935,7 @@ namespace Pronome.Mac
                             {
                                 if (xPos < rg.Position + rg.Length) break;
 
-                                double range = rg.Position + rg.Length * rg.Times;
+                                double range = rg.Position + rg.Length * rg.Times - pad;
                                 if (rg.Position + rg.Length <= xPos && xPos < range)
                                 {
                                     inGroup = true;

@@ -20,7 +20,7 @@ namespace Pronome.Mac
 		/// <summary>
 		/// The initial offset in samples.
 		/// </summary>
-		protected double InitialOffset;
+		public double InitialOffset;
 
         double OffsetBpm;
 
@@ -42,6 +42,12 @@ namespace Pronome.Mac
         public StreamInfoProvider Info { get => _info; set { _info = value; } }
 
 		public AudioStreamBasicDescription Format { get => _format; }
+
+        /// <summary>
+        /// False if the read method is not producing any output. Used to efficiently progress a stream.
+        /// </summary>
+        /// <value><c>true</c> if producing bytes; otherwise, <c>false</c>.</value>
+        public bool ProduceBytes { get; set; } = true;
 
 		/// <summary>
 		/// Gets or sets the volume.

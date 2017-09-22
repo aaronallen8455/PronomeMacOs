@@ -25,6 +25,8 @@ namespace Pronome.Mac
 
         unsafe void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true);
 
+        bool ProduceBytes { get; set; }
+
         void Dispose();
 
         /// <summary>

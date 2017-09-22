@@ -147,52 +147,58 @@ namespace Pronome.Mac
             {
                 if (SampleInterval == 0)
                 {
-                    double oldFreq = Frequency;
-                    //double oldWavelength = WaveLength;
-
-                    double newFreq = MoveToNextFrequency();
-
-                    // check for random or interval muting
-                    if (!WillMute())
+                    if (ProduceBytes)
                     {
-                        Frequency = newFreq;
-                        if (!oldFreq.Equals(Frequency))
-                        {
-                            WaveLength = Metronome.SampleRate / Frequency;
-                        }
-                        // set the sample index if transitioning from an active note
-                        if (Gain > 0)
-                        {
-                            _sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
-                        }
-                        else
-                        {
-                            _sample = 0;
-                        }
-
-                        Gain = 1; // back to full volume
-
-                        // propagate a change of the gain step
-                        GainStep = NewGainStep;
+						double oldFreq = Frequency;
+						//double oldWavelength = WaveLength;
+						
+						double newFreq = MoveToNextFrequency();
+						
+						// check for random or interval muting
+						if (!WillMute())
+						{
+							Frequency = newFreq;
+							if (!oldFreq.Equals(Frequency))
+							{
+								WaveLength = Metronome.SampleRate / Frequency;
+							}
+							// set the sample index if transitioning from an active note
+							if (Gain > 0)
+							{
+								_sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
+							}
+							else
+							{
+								_sample = 0;
+							}
+							
+							Gain = 1; // back to full volume
+							
+							// propagate a change of the gain step
+							GainStep = NewGainStep;
+						}
                     }
 
                     MoveToNextSampleInterval();
                 }
 
-                if (Gain > 0)
+                if (ProduceBytes)
                 {
-                    sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
-                    _sample++;
-                    Gain -= GainStep;
-
-                    if (writeToBuffer)
-                    {
-						leftBuffer[i] = rightBuffer[i] = sampleValue;
-                    }
-                }
-                else if (writeToBuffer)
-                {
-                    leftBuffer[i] = rightBuffer[i] = 0;
+					if (Gain > 0)
+					{
+						sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
+						_sample++;
+						Gain -= GainStep;
+						
+						if (writeToBuffer)
+						{
+							leftBuffer[i] = rightBuffer[i] = sampleValue;
+						}
+					}
+					else if (writeToBuffer)
+					{
+						leftBuffer[i] = rightBuffer[i] = 0;
+					}
                 }
 
                 SampleInterval--;
