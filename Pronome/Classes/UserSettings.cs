@@ -11,7 +11,6 @@ namespace Pronome.Mac
     /// <summary>
     /// A class used to manage user's settings
     /// </summary>
-    [DataContract]
     public class UserSettings : NSObject
     {
         #region Properties
@@ -129,6 +128,21 @@ namespace Pronome.Mac
 			}
 		}
 
+        /// <summary>
+        /// Indicates it multiply groups are drawn to scale in the editor interface
+        /// </summary>
+        /// <value><c>true</c> if draw mult to scale; otherwise, <c>false</c>.</value>
+        [Export("DrawMultToScale")]
+        public bool DrawMultToScale
+        {
+            get => LoadBool("DrawMultToScale", true);
+            set
+            {
+                WillChangeValue("DrawMultToScale");
+                SaveBool("DrawMultToScale", value, true);
+                DidChangeValue("DrawMultToScale");
+            }
+        }
         #endregion
 
         #region Public fields

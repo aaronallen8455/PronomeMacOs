@@ -7,6 +7,7 @@ using AppKit;
 using Pronome.Mac.Editor;
 using System.Collections.Generic;
 using Pronome.Mac.Editor.Action;
+using System.Linq;
 
 namespace Pronome.Mac
 {
@@ -106,6 +107,12 @@ namespace Pronome.Mac
                     break;
                 case "createMultGroup:":
                     break;
+                case "multGroupDrawToScale:":
+                    // assign state based on user setting
+                    item.State = UserSettings.GetSettings().DrawMultToScale 
+                        ? NSCellStateValue.On 
+                        : NSCellStateValue.Off;
+                    break;
                 case "editMultGroup:":
                     break;
                 case "removeMultGroup:":
@@ -182,6 +189,19 @@ namespace Pronome.Mac
 		{
 
 		}
+
+        [Action("multGroupDrawToScale:")]
+        void MultGroupDrawToScaleToggle(NSMenuItem sender)
+        {
+            // toggle the setting
+            UserSettings.GetSettings().DrawMultToScale = !UserSettings.GetSettings().DrawMultToScale;
+
+			// redraw rows that have mults
+			foreach (Row row in DView.Rows.Where(x => x.MultGroups.Any()))
+			{
+				DView.QueueRowToDraw(row);
+			}
+        }
 
 		[Action("createRef:")]
 		void CreateRef(NSObject sender)

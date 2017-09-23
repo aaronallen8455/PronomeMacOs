@@ -57,7 +57,8 @@ namespace Pronome.Mac
         {
             if (string.IsNullOrEmpty(SavedFileManager.CurrentlyOpenFile))
             {
-                SaveFileAsAction(null);
+                SaveFileAsAction(sender);
+
                 return;
             }
 
@@ -78,6 +79,7 @@ namespace Pronome.Mac
                 {
                     string path = url.Path;
                     SavedFileManager.Save(path);
+                    NSDocumentController.SharedDocumentController.NoteNewRecentDocumentURL(url);
                 }
             }
         }
