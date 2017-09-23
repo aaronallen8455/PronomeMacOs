@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using System.Collections.Generic;
 using AppKit;
 
@@ -74,6 +74,12 @@ namespace Pronome.Mac.Editor
 		/// Used to display action name in undo menu
 		/// </summary>
 		public virtual string HeaderText { get; set; }
+
+        /// <summary>
+        /// True if this action changes the width of the view. Will need to draw the expanded portion if needed.
+        /// </summary>
+        /// <value><c>true</c> if changes view width; otherwise, <c>false</c>.</value>
+        public bool ChangesViewWidth { get; set; }
 
 		/// <summary>
 		/// Code to execute before generating the AfterBeatCode string. Should also dispose of unneeded resources.
@@ -160,9 +166,29 @@ namespace Pronome.Mac.Editor
 				Row.Offset = BeatCell.Parse(AfterOffset);
 			}
 
-            EditorViewController.Instance.DView.QueueRowToDraw(Row);
+            if (ChangesViewWidth)
+            {
+                double maxDur = DrawingView.Instance.Rows.Max(x => x.Duration);
 
-            EditorViewController.Instance.DView.ChangesApplied = false;
+                // change the view's width
+                var curFrame = DrawingView.Instance.Frame;
+                curFrame.Width = (System.nfloat)(maxDur * DrawingView.ScalingFactor + 550);
+                DrawingView.Instance.Frame = curFrame;
+
+                // need to draw the end portion of other rows
+                if (maxDur == Row.Duration)
+                {
+                    DrawingView.Instance.QueueAllRowsToDraw();
+                }
+                else
+                {
+                    ChangesViewWidth = false;
+                }
+            }
+
+			DrawingView.Instance.QueueRowToDraw(Row);
+
+            DrawingView.Instance.ChangesApplied = false;
 			RedrawReferencers();
 
 			if (selectionStart > -1)
@@ -228,6 +254,20 @@ namespace Pronome.Mac.Editor
 				Row.OffsetValue = BeforeOffset;
 				Row.Offset = BeatCell.Parse(BeforeOffset);
 			}
+
+			if (ChangesViewWidth)
+			{
+				double maxDur = DrawingView.Instance.Rows.Max(x => x.Duration);
+
+				// change the view's width
+				var curFrame = DrawingView.Instance.Frame;
+				curFrame.Width = (System.nfloat)(maxDur * DrawingView.ScalingFactor + 550);
+				DrawingView.Instance.Frame = curFrame;
+
+				// need to draw the end portion of other rows
+				DrawingView.Instance.QueueAllRowsToDraw();
+			}
+
             EditorViewController.Instance.DView.ChangesApplied = false;
 
             EditorViewController.Instance.DView.QueueRowToDraw(Row);

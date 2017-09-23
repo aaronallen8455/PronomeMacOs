@@ -478,6 +478,11 @@ namespace Pronome.Mac
                 // reverse the numerator and denominator b/c we want to multiply with the exp
                 simpleDiv =  fracSplit[1] + '/' + numerator;
             }
+            else if (divIsFrac)
+            {
+                string[] fracSplit = simpleDiv.Split('/');
+                simpleDiv = fracSplit[1] + '/' + fracSplit[0];
+            }
 
             // split up the terms in exp
             foreach (Match m in Regex.Matches(exp, @"(^|[+\-])[^+\-]+"))

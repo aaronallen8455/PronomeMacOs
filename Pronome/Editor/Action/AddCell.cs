@@ -242,6 +242,8 @@ namespace Pronome.Mac.Editor.Action
 				}
 
 				Row.Cells.Insert(cell);
+
+                ChangesViewWidth = true;
 			}
 		}
 
@@ -351,29 +353,33 @@ namespace Pronome.Mac.Editor.Action
 					newVal = "0";
 				}
 
-                // assign the new cell's value
-                cell.Value = 
-                    cell.GetValueDividedByMultFactors(
-                        BeatCell.Subtract(
-                            repWithLtmToMod == null ? below.Value : repWithLtmToMod.LastTermModifier, newVal));
-                cell.Value = BeatCell.SimplifyValue(cell.Value);
+				string repLtmMultFactor = "1";
+
+				if (repWithLtmToMod != null)
+                {
+					foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
+					{
+						repLtmMultFactor = BeatCell.MultiplyTerms(repLtmMultFactor, mg.FactorValue);
+					}
+                }
+
+				// assign the new cell's value
+				cell.Value =
+					cell.GetValueDividedByMultFactors(
+						BeatCell.Subtract(
+							repWithLtmToMod == null ? below.GetValueWithMultFactors() : BeatCell.MultiplyTerms(repWithLtmToMod.LastTermModifier, repLtmMultFactor), newVal));
+				cell.Value = BeatCell.SimplifyValue(cell.Value);
 
 				if (repWithLtmToMod == null)
 				{
 					// change below cell's value
-                    below.Value = below.GetValueDividedByMultFactors(newVal);
-                    below.Value = BeatCell.SimplifyValue(below.Value);
+					below.Value = below.GetValueDividedByMultFactors(newVal);
+					below.Value = BeatCell.SimplifyValue(below.Value);
 				}
 				else
 				{
-                    string multFactor = "1";
-                    foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
-                    {
-                        multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
-                    }
-
 					// changing a LTM value
-                    repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(BeatCell.DivideTerms(newVal, multFactor));
+					repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(BeatCell.DivideTerms(newVal, repLtmMultFactor));
 				}
 			}
 		}
@@ -563,16 +569,19 @@ namespace Pronome.Mac.Editor.Action
 
                 cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.GetValueWithMultFactors() : adjustedLtm, val.ToString());
                 cell.Value = cell.GetValueDividedByMultFactors(cell.Value);
+                cell.Value = BeatCell.SimplifyValue(cell.Value);
 
                 string newValue = BeatCell.SimplifyValue(val.ToString());
 
                 if (repWithLtmToMod == null)
                 {
                     below.Value = below.GetValueDividedByMultFactors(newValue);
+                    below.Value = BeatCell.SimplifyValue(below.Value);
                 }
                 else
                 {
                     repWithLtmToMod.LastTermModifier = BeatCell.DivideTerms(newValue, ltmMultFactor);
+                    repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(repWithLtmToMod.LastTermModifier);
                 }
             }
         }
