@@ -196,10 +196,14 @@ namespace Pronome.Mac.Editor.Action
 					{
                         Repeat rg = kv.Key;
                         string multFactor = "1";
-                        // need to account for mult groups that incase the rep group and therefore modify its ltm
-                        foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > rg.Length))
+
+                        if (UserSettings.GetSettings().DrawMultToScale)
                         {
-                            multFactor = BeatCell.MultiplyTerms(mg.FactorValue, multFactor);
+							// need to account for mult groups that incase the rep group and therefore modify its ltm
+							foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > rg.Length))
+							{
+								multFactor = BeatCell.MultiplyTerms(mg.FactorValue, multFactor);
+							}
                         }
 
 						if (!string.IsNullOrEmpty(kv.Key.LastTermModifier))
@@ -223,15 +227,8 @@ namespace Pronome.Mac.Editor.Action
 				{
                     var rg = below.RepeatGroups.First.Value;
 
-					string multFactor = "1";
-                    foreach (Multiply mg in rg.Cells.First.Value.MultGroups.Where(x => x.Length > rg.Length))
-					{
-						multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
-					}
-
-					//oldPrevCellValue = below.RepeatGroups.First.Value.LastTermModifier;
 					// add to the bottom repeat group's LTM
-                    rg.LastTermModifier = BeatCell.SimplifyValue(BeatCell.DivideTerms(val.ToString(), multFactor));
+                    rg.LastTermModifier = BeatCell.SimplifyValue(rg.GetValueDividedByMultFactor(val.ToString()));
 				}
 				else
 				{
@@ -353,21 +350,21 @@ namespace Pronome.Mac.Editor.Action
 					newVal = "0";
 				}
 
-				string repLtmMultFactor = "1";
-
-				if (repWithLtmToMod != null)
-                {
-					foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
-					{
-						repLtmMultFactor = BeatCell.MultiplyTerms(repLtmMultFactor, mg.FactorValue);
-					}
-                }
+				//string repLtmMultFactor = "1";
+				//
+				//if (repWithLtmToMod != null)
+                //{
+				//	foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
+				//	{
+				//		repLtmMultFactor = BeatCell.MultiplyTerms(repLtmMultFactor, mg.FactorValue);
+				//	}
+                //}
 
 				// assign the new cell's value
 				cell.Value =
 					cell.GetValueDividedByMultFactors(
 						BeatCell.Subtract(
-							repWithLtmToMod == null ? below.GetValueWithMultFactors() : BeatCell.MultiplyTerms(repWithLtmToMod.LastTermModifier, repLtmMultFactor), newVal));
+                                repWithLtmToMod == null ? below.GetValueWithMultFactors() : repWithLtmToMod.GetLtmWithMultFactor(), newVal));
 				cell.Value = BeatCell.SimplifyValue(cell.Value);
 
 				if (repWithLtmToMod == null)
@@ -379,7 +376,7 @@ namespace Pronome.Mac.Editor.Action
 				else
 				{
 					// changing a LTM value
-					repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(BeatCell.DivideTerms(newVal, repLtmMultFactor));
+                    repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(repWithLtmToMod.GetValueDividedByMultFactor(newVal));
 				}
 			}
 		}
@@ -437,8 +434,8 @@ namespace Pronome.Mac.Editor.Action
 
 					val.Append("+0").Append(
                         BeatCell.MultiplyTerms(
-                            BeatCell.Invert(kv.Key.LastTermModifier), 
-                            BeatCell.MultiplyTerms(multFactor, kv.Value)));
+                            BeatCell.Invert(kv.Key.GetLtmWithMultFactor()), 
+                            kv.Value));
 				}
 
                 c = c.Prev();
@@ -535,52 +532,52 @@ namespace Pronome.Mac.Editor.Action
                     // add in all the LTMs from rep groups
                     foreach (KeyValuePair<Repeat, int> kv in ltmFactors)
                     {
-                        string multFactor = "1";
-
-                        foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > kv.Key.Length))
-                        {
-                            multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
-                        }
+                        //string multFactor = "1";
+						//
+                        //foreach (Multiply mg in kv.Key.Cells.First.Value.MultGroups.Where(x => x.Length > kv.Key.Length))
+                        //{
+                        //    multFactor = BeatCell.MultiplyTerms(multFactor, mg.FactorValue);
+                        //}
 
                         val.Append('0')
-                           .Append(BeatCell.MultiplyTerms(kv.Key.LastTermModifier, BeatCell.MultiplyTerms(multFactor, kv.Value)))
+                           .Append(BeatCell.MultiplyTerms(kv.Key.GetLtmWithMultFactor(), kv.Value))
                             .Append('+');
                     }
 
                     c = c.Next();
                 }
 
-                string adjustedLtm = "";
-                string ltmMultFactor = "1";
-                if (repWithLtmToMod != null)
-                {
-                    foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
-                    {
-                        ltmMultFactor = BeatCell.MultiplyTerms(ltmMultFactor, mg.FactorValue);
-                    }
-
-                    adjustedLtm = BeatCell.MultiplyTerms(repWithLtmToMod.LastTermModifier, ltmMultFactor);
-
-                    val.Append(adjustedLtm).Append('+');
-                }
+                //string adjustedLtm = "";
+                //string ltmMultFactor = "1";
+                //if (repWithLtmToMod != null)
+                //{
+                //    foreach (Multiply mg in repWithLtmToMod.Cells.First.Value.MultGroups.Where(x => x.Length > repWithLtmToMod.Length))
+                //    {
+                //        ltmMultFactor = BeatCell.MultiplyTerms(ltmMultFactor, mg.FactorValue);
+                //    }
+				//
+                //    adjustedLtm = BeatCell.MultiplyTerms(repWithLtmToMod.LastTermModifier, ltmMultFactor);
+				//
+                //    val.Append(adjustedLtm).Append('+');
+                //}
 
                 val.Append('0');
                 val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(DrawingView.Instance.GridSpacingString), NumIntervals));
 
-                cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.GetValueWithMultFactors() : adjustedLtm, val.ToString());
+                cell.Value = BeatCell.Subtract(repWithLtmToMod == null ? below.GetValueWithMultFactors() : repWithLtmToMod.GetLtmWithMultFactor(), val.ToString());
                 cell.Value = cell.GetValueDividedByMultFactors(cell.Value);
                 cell.Value = BeatCell.SimplifyValue(cell.Value);
 
-                string newValue = BeatCell.SimplifyValue(val.ToString());
+                //string newValue = BeatCell.SimplifyValue(val.ToString());
 
                 if (repWithLtmToMod == null)
                 {
-                    below.Value = below.GetValueDividedByMultFactors(newValue);
+                    below.Value = below.GetValueDividedByMultFactors(val.ToString());//newValue);
                     below.Value = BeatCell.SimplifyValue(below.Value);
                 }
                 else
                 {
-                    repWithLtmToMod.LastTermModifier = BeatCell.DivideTerms(newValue, ltmMultFactor);
+                    repWithLtmToMod.LastTermModifier = repWithLtmToMod.GetValueDividedByMultFactor(val.ToString());// BeatCell.DivideTerms(newValue, ltmMultFactor);
                     repWithLtmToMod.LastTermModifier = BeatCell.SimplifyValue(repWithLtmToMod.LastTermModifier);
                 }
             }
@@ -603,6 +600,10 @@ namespace Pronome.Mac.Editor.Action
             foreach (Multiply mg in below.MultGroups.Where(x => x.Position + x.Length > cell.Position))
             {
                 cell.MultGroups.AddLast(mg);
+                if (UserSettings.GetSettings().DrawMultToScale)
+                {
+                    cell.MultFactor = BeatCell.MultiplyTerms(cell.MultFactor, mg.FactorValue);
+                }
 
                 if (mg.Cells.Last.Value == below)
                 {

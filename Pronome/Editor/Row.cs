@@ -128,6 +128,9 @@ namespace Pronome.Mac.Editor
             OpenMultFactor = new Stack<double>();
             OpenMultFactor.Push(1);
 
+            OpenMultFactorValue = new Stack<string>();
+            OpenMultFactorValue.Push("1");
+
             CellIndex = 0;
             //double pos;
 			(Cells, Duration) = ParseBeat(beatCode);
@@ -136,16 +139,6 @@ namespace Pronome.Mac.Editor
 			BeatCode = beatCode;
 			BeatCodeIsCurrent = true;
 		}
-
-        /// <summary>
-        /// Reparses to represent current state of cell objects.
-        /// </summary>
-        public void Reparse()
-        {
-            string newCode = Stringify();
-
-            FillFromBeatCode(newCode);
-        }
 
 		/// <summary>
 		/// Used in the ParseBeat method to track the currently open, nested repeat groups
@@ -156,6 +149,11 @@ namespace Pronome.Mac.Editor
         /// Used to tack the aggregate multiplication factor.
         /// </summary>
         Stack<double> OpenMultFactor;
+
+        /// <summary>
+        /// Tracks the aggregated mult factor string representation
+        /// </summary>
+        Stack<string> OpenMultFactorValue;
 
         int CellIndex;
 
@@ -242,6 +240,7 @@ namespace Pronome.Mac.Editor
 					}
 					else if (multIndex != -1)
 					{
+                        // open mult group
 						OpenMultGroups.Push(new Multiply() 
                         { 
                             Row = this, 
@@ -252,7 +251,12 @@ namespace Pronome.Mac.Editor
 						// need to subtract repeat groups offset because contents is in new CGLayer starting at 0
 						OpenMultGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
-                        OpenMultFactor.Push(OpenMultFactor.Peek() * OpenMultGroups.Peek().Factor);
+                        // track the factor if we need to scale.
+                        if (UserSettings.GetSettings().DrawMultToScale)
+                        {
+							OpenMultFactor.Push(OpenMultFactor.Peek() * OpenMultGroups.Peek().Factor);
+                            OpenMultFactorValue.Push(BeatCell.MultiplyTerms(OpenMultFactorValue.Peek(), OpenMultGroups.Peek().FactorValue));
+                        }
 
 						chunk = chunk.Remove(multIndex, 1);
 
@@ -296,11 +300,18 @@ namespace Pronome.Mac.Editor
                     // todo: factor in mult groups here
 
                     (CellTree pbCells, double duration) = ResolveReference(refIndex, position);
+
                     // remember the position and duration of the reference
                     ReferencePositionAndDurations.Add((position, duration));
 
-					// progress position
-                    position += duration * OpenMultFactor.Peek();
+                    if (UserSettings.GetSettings().DrawMultToScale)
+                    {
+                        // using mult factors
+                        duration *= OpenMultFactor.Peek();
+                    }
+
+                    // progress position
+                    position += duration;// * OpenMultFactor.Peek();
 					//cell.SetDurationDirectly(duration);
                     bool first = true;
 					foreach (Cell c in pbCells)
@@ -318,6 +329,7 @@ namespace Pronome.Mac.Editor
 				else
 				{
                     cell.Index = CellIndex++;
+                    cell.MultFactor = OpenMultFactorValue.Peek();
 
                     cells.Insert(cell); // can't put referencers in b/c of overlap
 					// get bpm value
@@ -325,7 +337,15 @@ namespace Pronome.Mac.Editor
 					if (!string.IsNullOrEmpty(bpm))
 					{
 						cell.Value = bpm;
-                        cell.SetDurationDirectly(BeatCell.Parse(bpm) * OpenMultFactor.Peek());
+
+                        double duration = BeatCell.Parse(bpm);
+
+                        if (UserSettings.GetSettings().DrawMultToScale)
+                        {
+                            duration *= OpenMultFactor.Peek();
+                        }
+
+                        cell.SetDurationDirectly(duration);
 						// progress position
                         position += cell.Duration;
 					}
@@ -353,7 +373,12 @@ namespace Pronome.Mac.Editor
 					if (multIndex > -1 && (multIndex < repIndex || repIndex == -1))
 					{
                         // close mult group
-                        OpenMultFactor.Pop();
+                        if (UserSettings.GetSettings().DrawMultToScale)
+                        {
+							OpenMultFactor.Pop();
+							OpenMultFactorValue.Pop();
+                        }
+
                         Multiply mg = OpenMultGroups.Pop();
 						//mg.FactorValue = Regex.Match(chunk, @"(?<=})[\d.+\-/*]+").Value;
 						//mg.Factor = BeatCell.Parse(mg.FactorValue);
@@ -396,7 +421,7 @@ namespace Pronome.Mac.Editor
                         cell.GroupActions.AddLast((false, rg));
 
 						// build the group
-                        position = BuildRepeatGroup(rg, OpenMultFactor.Peek(), position);
+                        position = BuildRepeatGroup(rg, OpenMultFactor.Peek(), OpenMultFactorValue.Peek(), position);
 
 						//addedToRepCanvas = true;
 						// move to outer group if exists
@@ -627,93 +652,6 @@ namespace Pronome.Mac.Editor
                     StringifyInnerComponents(result, cell);
                 }
 
-				//// check for open mult group
-                //foreach (Multiply mg in cell.MultGroups)
-				//{
-				//	if (mg.Cells.First.Value == cell)
-				//	{
-				//		//OpenMultGroups.Push(cell.MultGroup);
-				//		result.Append('{');
-				//	}
-				//}
-				//// check for open repeat group
-                //foreach (Repeat rg in cell.RepeatGroups)
-				//{
-				//	if (rg.Cells.First.Value == cell && rg.Cells.Where(x => !x.IsReference).Count() > 1)
-				//	{
-				//		//OpenRepeatGroups.Push(cell.RepeatGroup);
-				//		result.Append('[');
-				//	}
-				//}
-				// get duration or reference ID
-				//if (string.IsNullOrEmpty(cell.Reference))
-				//{
-				//	result.Append(cell.Value);
-				//}
-				//else
-				//{
-				//	result.Append($"${cell.Reference}");
-				//}
-				//// check for source modifier
-				//if (cell.Source != null && cell.Source.Uri != Layer.BaseSourceName)
-				//{
-				//	string source;
-				//	// is pitch or wav?
-				//	if (cell.Source.IsPitch)
-				//	{
-				//		source = cell.Source.Uri;
-				//	}
-				//	else
-				//	{
-                //        if (!cell.Source.IsInternal)
-				//		{
-				//			source = cell.Source.Index.ToString();
-				//		}
-				//		else
-				//		{
-				//			source = cell.Source.Index.ToString();
-				//		}
-				//	}
-				//	result.Append($"@{source}");
-				//}
-				//// check for close repeat group
-                //foreach (Repeat rg in cell.RepeatGroups)
-				//{
-				//	Cell[] cells = rg.Cells.Where(x => !x.IsReference).ToArray();
-				//	if (cells.Last() == cell)
-				//	{
-				//		// is single cell rep?
-				//		if (cells.Length == 1)
-				//		{
-				//			result.Append($"({rg.Times})");
-				//			if (!string.IsNullOrEmpty(rg.LastTermModifier))
-				//			{
-				//				result.Append(rg.LastTermModifier);
-				//			}
-				//		}
-				//		else
-				//		{
-				//			// multi cell
-				//			if (!string.IsNullOrEmpty(rg.LastTermModifier))
-				//			{
-				//				result.Append($"]({rg.Times}){rg.LastTermModifier}");
-				//			}
-				//			else
-				//			{
-				//				result.Append($"]{rg.Times}");
-				//			}
-				//		}
-				//	}
-				//}
-				//// check for close mult group
-                //foreach (Multiply mg in cell.MultGroups)
-				//{
-				//	if (mg.Cells.Last.Value == cell)
-				//	{
-				//		result.Append($"}}{mg.FactorValue}");
-				//	}
-				//}
-				// check if is break point |
 				if (cell.IsBreak)
 				{
 					result.Append('|');
@@ -771,7 +709,7 @@ namespace Pronome.Mac.Editor
         /// </summary>
         /// <param name="rg"></param>
         /// <returns></returns>
-        protected double BuildRepeatGroup(Repeat rg, double multGroupsFactor, double position)
+        protected double BuildRepeatGroup(Repeat rg, double multGroupsFactor, string multGroupFactorValue, double position)
 		{
 			//double position = 0;
 			RepeatGroups.AddLast(rg);
@@ -782,7 +720,15 @@ namespace Pronome.Mac.Editor
                 position += rg.Length;
 			}
 
-            position += BeatCell.Parse(rg.LastTermModifier) * multGroupsFactor; //* EditorWindow.Scale * EditorWindow.BaseFactor;
+            double ltmDur = BeatCell.Parse(rg.LastTermModifier);
+
+            if (UserSettings.GetSettings().DrawMultToScale)
+            {
+                ltmDur *= multGroupsFactor;
+            }
+            rg.MultFactor = multGroupFactorValue;
+
+            position += ltmDur;
 
 			return position;
 		}

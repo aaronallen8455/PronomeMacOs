@@ -697,14 +697,14 @@ namespace Pronome.Mac
             // delete cells
             Row selectedRow = SelectedCells.Root.Cell.Row;
             DeleteSelectedCells();
-            selectedRow.Reparse();
+            selectedRow.Redraw();
             QueueRowToDraw(selectedRow);
             // handle referencers
             if (Row.ReferenceMap.ContainsKey(selectedRow.Index))
             {
 				foreach (int index in Row.ReferenceMap[selectedRow.Index])
 				{
-					Rows[index].Reparse();
+					Rows[index].Redraw();
 					QueueRowToDraw(Rows[index]);
 				}
             }
@@ -779,7 +779,7 @@ namespace Pronome.Mac
 
 					QueueRowToDraw(Rows[_selectRowIndex]);
 				}
-				else if (!shift)
+                else if (!shift && SelectedCells.Root != null)
 				{
 					QueueRowToDraw(SelectedCells.Root.Cell.Row);
 

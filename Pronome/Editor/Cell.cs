@@ -116,6 +116,13 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		public bool IsReference = false;
 
+        /// <summary>
+        /// Aggregation of the mult factors for this cell from mult groups it's a member of
+        /// </summary>
+        public string MultFactor = "1";
+
+        protected string MultipliedValue;
+
 		public Cell(Row row)
 		{
 			Row = row;
@@ -137,14 +144,24 @@ namespace Pronome.Mac.Editor
         /// <returns>The value with mult factors.</returns>
         public string GetValueWithMultFactors()
         {
-            string val = Value;
+            // don't operate if scaling is disabled
+            if (!UserSettings.GetSettings().DrawMultToScale) return Value;
 
-            foreach (Multiply mg in MultGroups)
+            if (string.IsNullOrEmpty(MultipliedValue))
             {
-                val = BeatCell.MultiplyTerms(val, mg.FactorValue);
+                MultipliedValue = BeatCell.MultiplyTerms(Value, MultFactor);
             }
 
-            return val;
+            return MultipliedValue;
+
+            //string val = Value;
+			//
+            //foreach (Multiply mg in MultGroups)
+            //{
+            //    val = BeatCell.MultiplyTerms(val, mg.FactorValue);
+            //}
+			//
+            //return val;
         }
 
         /// <summary>
@@ -155,12 +172,17 @@ namespace Pronome.Mac.Editor
         /// <param name="value">Value.</param>
         public string GetValueDividedByMultFactors(string value)
         {
-            foreach (Multiply mg in MultGroups)
-            {
-                value = BeatCell.DivideTerms(value, mg.FactorValue);
-            }
+            // don't operate if scaling is disabled
+            if (!UserSettings.GetSettings().DrawMultToScale) return value;
 
-            return value;
+            return BeatCell.DivideTerms(value, MultFactor);
+
+            //foreach (Multiply mg in MultGroups)
+            //{
+            //    value = BeatCell.DivideTerms(value, mg.FactorValue);
+            //}
+			//
+            //return value;
         }
 
         public void Delete()

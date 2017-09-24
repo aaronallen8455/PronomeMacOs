@@ -199,6 +199,8 @@ namespace Pronome.Mac
 			// redraw rows that have mults
 			foreach (Row row in DView.Rows.Where(x => x.MultGroups.Any()))
 			{
+                row.Redraw();
+
 				DView.QueueRowToDraw(row);
 			}
         }
