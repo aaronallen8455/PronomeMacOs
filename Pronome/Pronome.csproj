@@ -196,6 +196,11 @@
     <Compile Include="Editor\Action\MoveCells.cs" />
     <Compile Include="Editor\Action\RemoveMultGroup.cs" />
     <Compile Include="Editor\Action\RemoveRepeatGroup.cs" />
+    <Compile Include="Editor\RepeatGroupDialog.cs" />
+    <Compile Include="Editor\RepeatGroupDialog.designer.cs">
+      <DependentUpon>RepeatGroupDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Editor\Action\AddRepeatGroup.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

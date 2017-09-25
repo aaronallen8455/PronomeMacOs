@@ -8,6 +8,7 @@ using Pronome.Mac.Editor;
 using System.Collections.Generic;
 using Pronome.Mac.Editor.Action;
 using System.Linq;
+using Pronome.Mac.Editor.Groups;
 
 namespace Pronome.Mac
 {
@@ -50,9 +51,9 @@ namespace Pronome.Mac
         {
             if (action.CanPerform())
             {
-				action.Redo();
-				UndoStack.Push(action);
-				RedoStack.Clear();
+                action.Redo();
+                UndoStack.Push(action);
+                RedoStack.Clear();
             }
         }
         #endregion
@@ -73,14 +74,14 @@ namespace Pronome.Mac
         /// <returns><c>true</c>, if menu action was validated, <c>false</c> otherwise.</returns>
         /// <param name="item">Item.</param>
 		[Action("validateMenuItem:")]
-		public bool ValidateMenuAction(NSMenuItem item)
-		{
-			string actionName = item.Action.Name;
+        public bool ValidateMenuAction(NSMenuItem item)
+        {
+            string actionName = item.Action.Name;
 
             CellTree selectedCells = DView.SelectedCells;
             bool cellsSelected = DView.SelectedCells.Root != null;
 
-            switch(actionName)
+            switch (actionName)
             {
                 case "undoBeat:":
                     if (UndoStack.Count > 0)
@@ -106,25 +107,41 @@ namespace Pronome.Mac
                     item.Title = "Redo";
                     return false;
                 case "createRepGroup:":
-                    break;
+                    if (cellsSelected)
+                    {
+                        var firstGroup = selectedCells.Min.Cell.RepeatGroups.LastOrDefault();
+                        var lastGroup = selectedCells.Max.Cell.RepeatGroups.LastOrDefault();
+
+                        if (firstGroup == null && lastGroup == null)
+                        {
+                            return true;
+                        }
+
+                        if (firstGroup == lastGroup)
+                        {
+                            // don't create overlapping groups
+                            return firstGroup.Cells.First() != selectedCells.Min.Cell && lastGroup.Cells.Last() != selectedCells.Max.Cell;
+                        }
+                    }
+                    return false;
                 case "editRepGroup:":
                     break;
                 case "removeRepGroup:":
-					if (cellsSelected)
-					{
+                    if (cellsSelected)
+                    {
                         var firstGroups = selectedCells.Min.Cell.RepeatGroups.Where(x => x.Cells.First() == selectedCells.Min.Cell);
 
                         var lastGroups = selectedCells.Max.Cell.RepeatGroups.Where(x => x.Cells.Last() == selectedCells.Max.Cell);
 
-						return firstGroups.Intersect(lastGroups).Any();
-					}
-					return false;
+                        return firstGroups.Intersect(lastGroups).Any();
+                    }
+                    return false;
                 case "createMultGroup:":
                     break;
                 case "multGroupDrawToScale:":
                     // assign state based on user setting
-                    item.State = UserSettings.GetSettings().DrawMultToScale 
-                        ? NSCellStateValue.On 
+                    item.State = UserSettings.GetSettings().DrawMultToScale
+                        ? NSCellStateValue.On
                         : NSCellStateValue.Off;
                     break;
                 case "editMultGroup:":
@@ -136,7 +153,7 @@ namespace Pronome.Mac
 
                         var lastGroups = selectedCells.Max.Cell.MultGroups.Where(x => x.Cells.Last() == selectedCells.Max.Cell);
 
-						return firstGroups.Intersect(lastGroups).Any();
+                        return firstGroups.Intersect(lastGroups).Any();
                     }
                     return false;
                 case "createRef:":
@@ -153,8 +170,8 @@ namespace Pronome.Mac
                     return cellsSelected;
             }
 
-			return true;
-		}
+            return true;
+        }
 
         [Action("undoBeat:")]
         void UndoBeat(NSObject sender)
@@ -176,45 +193,45 @@ namespace Pronome.Mac
             UndoStack.Push(action);
         }
 
-		[Action("createRepGroup:")]
-		void CreateRepGroup(NSObject sender)
-		{
+        [Action("createRepGroup:")]
+        void CreateRepGroup(NSObject sender)
+        {
+            PerformSegue("RepeatGroupSegue", this);
+        }
 
-		}
+        [Action("editRepGroup:")]
+        void EditRepGroup(NSObject sender)
+        {
 
-		[Action("editRepGroup:")]
-		void EditRepGroup(NSObject sender)
-		{
+        }
 
-		}
-
-		[Action("removeRepGroup:")]
-		void RemoveRepGroup(NSObject sender)
-		{
+        [Action("removeRepGroup:")]
+        void RemoveRepGroup(NSObject sender)
+        {
             var action = new RemoveRepeatGroup(DView.SelectedCells);
 
             InitNewAction(action);
-		}
+        }
 
         [Action("createMultGroup:")]
         void CreateMultGroup(NSObject sender)
         {
-            
+
         }
 
-		[Action("editMultGroup:")]
-		void EditMultGroup(NSObject sender)
-		{
+        [Action("editMultGroup:")]
+        void EditMultGroup(NSObject sender)
+        {
 
-		}
+        }
 
-		[Action("removeMultGroup:")]
-		void RemoveMultGroup(NSObject sender)
-		{
+        [Action("removeMultGroup:")]
+        void RemoveMultGroup(NSObject sender)
+        {
             var action = new RemoveMultGroup(DView.SelectedCells);
 
             InitNewAction(action);
-		}
+        }
 
         /// <summary>
         /// Activate or deactivate mult group scaling
@@ -236,13 +253,13 @@ namespace Pronome.Mac
 
                 if (row.MultGroups.Any())
                 {
-					row.Redraw();
+                    row.Redraw();
 
                     DView.QueueRowToDraw(row);
                 }
 
                 if (row.Duration > afterLength) afterLength = row.Duration;
-			}
+            }
             // resize the canvas if necessary
             if (afterLength > beforeLength)
             {
@@ -250,47 +267,70 @@ namespace Pronome.Mac
             }
         }
 
-		[Action("createRef:")]
-		void CreateRef(NSObject sender)
-		{
+        [Action("createRef:")]
+        void CreateRef(NSObject sender)
+        {
 
-		}
+        }
 
-		[Action("editRef:")]
-		void EditRef(NSObject sender)
-		{
+        [Action("editRef:")]
+        void EditRef(NSObject sender)
+        {
 
-		}
+        }
 
-		[Action("removeRef:")]
-		void RemoveRef(NSObject sender)
-		{
+        [Action("removeRef:")]
+        void RemoveRef(NSObject sender)
+        {
 
-		}
+        }
 
-		[Action("moveCellsLeft:")]
-		void MoveCellsLeft(NSObject sender)
-		{
+        [Action("moveCellsLeft:")]
+        void MoveCellsLeft(NSObject sender)
+        {
             var action = new MoveCells(DView.SelectedCells.ToArray(), DView.GridSpacingString, -1);
 
             InitNewAction(action);
-		}
+        }
 
-		[Action("moveCellsRight:")]
-		void MoveCellsRight(NSObject sender)
-		{
-			var action = new MoveCells(DView.SelectedCells.ToArray(), DView.GridSpacingString, 1);
+        [Action("moveCellsRight:")]
+        void MoveCellsRight(NSObject sender)
+        {
+            var action = new MoveCells(DView.SelectedCells.ToArray(), DView.GridSpacingString, 1);
 
-			InitNewAction(action);
-		}
+            InitNewAction(action);
+        }
 
-		[Action("removeCells:")]
-		void RemoveCells(NSObject sender)
-		{
+        [Action("removeCells:")]
+        void RemoveCells(NSObject sender)
+        {
             var action = new RemoveCells(DView.SelectedCells);
 
             InitNewAction(action);
-		}
+        }
+        #endregion
+
+        #region Overrides
+        public override void PrepareForSegue(NSStoryboardSegue segue, NSObject sender)
+        {
+            base.PrepareForSegue(segue, sender);
+
+            switch (segue.Identifier)
+            {
+                case "RepeatGroupSegue":
+                    var sheet = segue.DestinationController as RepeatGroupDialog;
+                    sheet.Presentor = this;
+
+                    Repeat rg = new Repeat();
+                    sheet.Group = rg;
+
+                    sheet.Accepted += (s, e) => {
+                        
+                    };
+
+                    break;
+            }
+        }
         #endregion
     }
 }
