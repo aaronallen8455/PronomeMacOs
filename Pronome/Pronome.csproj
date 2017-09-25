@@ -193,6 +193,9 @@
     <Compile Include="Editor\Action\PasteCells.cs" />
     <Compile Include="Editor\Action\CellDuration.cs" />
     <Compile Include="Editor\Action\AddCell.cs" />
+    <Compile Include="Editor\Action\MoveCells.cs" />
+    <Compile Include="Editor\Action\RemoveMultGroup.cs" />
+    <Compile Include="Editor\Action\RemoveRepeatGroup.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

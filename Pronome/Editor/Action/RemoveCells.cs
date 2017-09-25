@@ -234,6 +234,7 @@ namespace Pronome.Mac.Editor.Action
                 var next = StartNode.Next();
                 Row.Cells.Remove(StartNode);
                 if (StartNode == EndNode) break;
+                if (next == null) break;
                 StartNode = next;
             } 
 
@@ -262,5 +263,10 @@ namespace Pronome.Mac.Editor.Action
 				Row.OffsetValue = BeatCell.Add(Row.OffsetValue, BeatCodeDuration);
 			}
 		}
+
+        public override bool CanPerform()
+        {
+            return true;
+        }
 	}
 }

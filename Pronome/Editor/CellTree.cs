@@ -387,11 +387,11 @@ namespace Pronome.Mac.Editor
         /// <returns>The up.</returns>
         /// <param name="value">Value.</param>
         /// <param name="useThickness">If set to <c>true</c> use thickness.</param>
-		public CellTreeNode Lookup(double value, bool useThickness = true)
+        public CellTreeNode Lookup(double value, bool useThickness = true, double thickness = DrawingView.CellWidth)
 		{
 			CellTreeNode node = Root;
 
-            double thickness = DrawingView.CellWidth / DrawingView.ScalingFactor;
+            thickness /= DrawingView.ScalingFactor;
 
 			while (node != null)
 			{

@@ -272,6 +272,19 @@ namespace Pronome.Mac
 			SelectionAnchor = null;
 		}
 
+        /// <summary>
+        /// Resizes the frame to match the given BPM length, then draw all rows.
+        /// </summary>
+        /// <param name="bpmLength">Bpm length.</param>
+        public void ResizeFrame(double bpmLength)
+        {
+            var frame = Frame;
+            frame.Width = (nfloat)(bpmLength * ScalingFactor + 550);
+            Frame = frame;
+
+            QueueAllRowsToDraw();
+        }
+
 		/// <summary>
 		/// Performs actions on cell selection based on a targeted cell.
 		/// </summary>
@@ -905,52 +918,56 @@ namespace Pronome.Mac
                         CellTreeNode endNode = row.Cells.Lookup(end);
                         CellTreeNode startNode = row.Cells.Lookup(start);
 
-                        double pad = Math.Min(CellWidth / ScalingFactor / 2, GridSpacing * .125);
-                        double x = -1;
-                        double mod = -1;
-                        bool aboveSelection = false;
+						var action = new AddCell(xPos, row, startNode, endNode);
 
-                        if (end < xPos)
-                        {
-                            x = xPos - end;
-                            mod = x % GridSpacing;
-                            aboveSelection = true;
-                        }
-                        else if(start > xPos)
-                        {
-                            x = start - xPos;
-                            mod = x % GridSpacing;
-                        }
+						EditorViewController.InitNewAction(action);
 
-						// see if it registers as a hit
-                        if (x >= 0 && (mod <= pad || mod >= GridSpacing - pad))
-						{
-                            // check if it's inside the ghost zone of a rep group
-                            int div = (int)Math.Round(x / GridSpacing);
-                            // bpm position within row
-                            xPos = aboveSelection ? end + div * GridSpacing : start - div * GridSpacing;
-                            //Repeat rg = row.RepeatGroups.Where(x => x.P)
-                            bool inGroup = false;
-                            foreach (Repeat rg in row.RepeatGroups)
-                            {
-                                if (xPos < rg.Position + rg.Length) break;
-
-                                double range = rg.Position + rg.Length * rg.Times - pad;
-                                if (rg.Position + rg.Length <= xPos && xPos < range)
-                                {
-                                    inGroup = true;
-                                    break;
-                                }
-                            }
-
-							// check if inside a reference
-                            if (!inGroup) //&& row.ReferencePositionAndDurations.Any(p => p.position <= xPos && xPos < p.position + p.duration))
-                            {
-                                var action = new AddCell(div, aboveSelection, xPos, row, startNode, endNode);
-
-                                EditorViewController.InitNewAction(action);
-                            }
-						}
+                        //double pad = Math.Min(CellWidth / ScalingFactor / 2, GridSpacing * .125);
+                        //double x = -1;
+                        //double mod = -1;
+                        //bool aboveSelection = false;
+						//
+                        //if (end < xPos)
+                        //{
+                        //    x = xPos - end;
+                        //    mod = x % GridSpacing;
+                        //    aboveSelection = true;
+                        //}
+                        //else if(start > xPos)
+                        //{
+                        //    x = start - xPos;
+                        //    mod = x % GridSpacing;
+                        //}
+						//
+						//// see if it registers as a hit
+                        //if (x >= 0 && (mod <= pad || mod >= GridSpacing - pad))
+						//{
+                        //    // check if it's inside the ghost zone of a rep group
+                        //    int div = (int)Math.Round(x / GridSpacing);
+                        //    // bpm position within row
+                        //    xPos = aboveSelection ? end + div * GridSpacing : start - div * GridSpacing;
+                        //    //Repeat rg = row.RepeatGroups.Where(x => x.P)
+                        //    bool inGroup = false;
+                        //    foreach (Repeat rg in row.RepeatGroups)
+                        //    {
+                        //        if (xPos < rg.Position + rg.Length) break;
+						//
+                        //        double range = rg.Position + rg.Length * rg.Times - pad;
+                        //        if (rg.Position + rg.Length <= xPos && xPos < range)
+                        //        {
+                        //            inGroup = true;
+                        //            break;
+                        //        }
+                        //    }
+						//
+						//	// check if inside a reference
+                        //    if (!inGroup) //&& row.ReferencePositionAndDurations.Any(p => p.position <= xPos && xPos < p.position + p.duration))
+                        //    {
+                        //        var action = new AddCell(div, aboveSelection, xPos, row, startNode, endNode);
+						//
+                        //        EditorViewController.InitNewAction(action);
+                        //    }
+						//}
 					}
 				}
 			}

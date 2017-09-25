@@ -13,6 +13,8 @@ namespace Pronome.Mac.Editor
 		/// String describing the action
 		/// </summary>
 		string HeaderText { get; }
+
+        bool CanPerform();
 	}
 
 	public abstract class AbstractAction
@@ -208,10 +210,13 @@ namespace Pronome.Mac.Editor
                 CellTreeNode startNode = Row.Cells.LookupIndex(selectionStart);
                 CellTreeNode endNode = Row.Cells.LookupIndex(selectionEnd);
 
-                EditorViewController.Instance.DView.SelectCell(startNode.Cell);
-                if (startNode != endNode)
+                if (startNode != null && endNode != null)
                 {
-					EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
+					EditorViewController.Instance.DView.SelectCell(startNode.Cell);
+					if (startNode != endNode)
+					{
+						EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
+					}
                 }
 			}
 		}
@@ -259,13 +264,7 @@ namespace Pronome.Mac.Editor
 			{
 				double maxDur = DrawingView.Instance.Rows.Max(x => x.Duration);
 
-				// change the view's width
-				var curFrame = DrawingView.Instance.Frame;
-				curFrame.Width = (System.nfloat)(maxDur * DrawingView.ScalingFactor + 550);
-				DrawingView.Instance.Frame = curFrame;
-
-				// need to draw the end portion of other rows
-				DrawingView.Instance.QueueAllRowsToDraw();
+                DrawingView.Instance.ResizeFrame(maxDur);
 			}
 
             EditorViewController.Instance.DView.ChangesApplied = false;
@@ -295,6 +294,8 @@ namespace Pronome.Mac.Editor
                 EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
 			}
 		}
+
+        public abstract bool CanPerform();
 	}
 
 	/// <summary>

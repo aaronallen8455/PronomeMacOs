@@ -149,5 +149,10 @@ namespace Pronome.Mac.Editor.Action
 
 			Cells = null;
 		}
+
+        public override bool CanPerform()
+        {
+            return true;
+        }
 	}
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+
 namespace Pronome.Mac.Editor.Action
 {
 	public class CellDuration : AbstractBeatCodeAction
@@ -27,5 +29,10 @@ namespace Pronome.Mac.Editor.Action
 
 			Cells = null;
 		}
+
+        public override bool CanPerform()
+        {
+            return true;
+        }
 	}
 }

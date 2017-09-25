@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Pronome.Mac.Editor.Groups;
 using System.Linq;
+using System;
 
 namespace Pronome.Mac.Editor.Action
 {
@@ -31,12 +32,12 @@ namespace Pronome.Mac.Editor.Action
 		/// </summary>
 		public const float GridProx = .15f;
 
-		public AddCell(int div, bool aboveSelection, double position, Row row, CellTreeNode firstSelect, CellTreeNode lastSelect) : base(row, "Add Cell")
+		public AddCell(double position, Row row, CellTreeNode firstSelect, CellTreeNode lastSelect) : base(row, "Add Cell")
 		{
             FirstSelected = firstSelect;
             LastSelected = lastSelect;
-            NumIntervals = div;
-            AboveSelection = aboveSelection;
+            //NumIntervals = div;
+            //AboveSelection = aboveSelection;
             Position = position;
 		}
 
@@ -72,6 +73,65 @@ namespace Pronome.Mac.Editor.Action
             FirstSelected = null;
             LastSelected = null;
 		}
+
+        /// <summary>
+        /// Checks if action can be performed. Changes 'Position' from click location to new cell location. Sets AboveSelection, and NumIntervals.
+        /// </summary>
+        /// <returns><c>true</c>, if perform was caned, <c>false</c> otherwise.</returns>
+        public override bool CanPerform()
+        {
+            // try to create new cell
+            // see if clicked on a grid line (within a pad amount)
+            double gridSpacing = DrawingView.Instance.GridSpacing;
+
+            double pad = Math.Min(DrawingView.CellWidth / DrawingView.ScalingFactor / 2, gridSpacing * .125);
+			double x = -1;
+			double mod = -1;
+			//bool aboveSelection = false;
+
+            if (LastSelected.Cell.Position < Position)
+			{
+                x = Position - LastSelected.Cell.Position;
+                mod = x % gridSpacing;
+				AboveSelection = true;
+			}
+            else if (FirstSelected.Cell.Position > Position)
+			{
+                x = FirstSelected.Cell.Position - Position;
+                mod = x % gridSpacing;
+			}
+
+			// see if it registers as a hit
+            if (x >= 0 && (mod <= pad || mod >= gridSpacing - pad))
+			{
+				// check if it's inside the ghost zone of a rep group
+                NumIntervals = (int)Math.Round(x / gridSpacing);
+				// bpm position within row
+                Position = AboveSelection 
+                    ? LastSelected.Cell.Position + NumIntervals * gridSpacing 
+                    : FirstSelected.Cell.Position - NumIntervals * gridSpacing;
+				//Repeat rg = row.RepeatGroups.Where(x => x.P)
+				bool inGroup = false;
+				foreach (Repeat rg in Row.RepeatGroups)
+				{
+                    if (Position < rg.Position + rg.Length) break;
+
+					double range = rg.Position + rg.Length * rg.Times - pad;
+                    if (rg.Position + rg.Length <= Position && Position < range)
+					{
+						inGroup = true;
+						break;
+					}
+				}
+
+				// check if inside a reference
+				if (!inGroup) //&& row.ReferencePositionAndDurations.Any(p => p.position <= xPos && xPos < p.position + p.duration))
+				{
+                    return true;
+				}
+			}
+            return false;
+        }
 
 		/**
          * In order to have mult group resizing:

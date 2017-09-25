@@ -48,9 +48,12 @@ namespace Pronome.Mac
         #region Public static methods
         public static void InitNewAction(IEditorAction action)
         {
-            action.Redo();
-            UndoStack.Push(action);
-            RedoStack.Clear();
+            if (action.CanPerform())
+            {
+				action.Redo();
+				UndoStack.Push(action);
+				RedoStack.Clear();
+            }
         }
         #endregion
 
@@ -73,6 +76,9 @@ namespace Pronome.Mac
 		public bool ValidateMenuAction(NSMenuItem item)
 		{
 			string actionName = item.Action.Name;
+
+            CellTree selectedCells = DView.SelectedCells;
+            bool cellsSelected = DView.SelectedCells.Root != null;
 
             switch(actionName)
             {
@@ -104,7 +110,15 @@ namespace Pronome.Mac
                 case "editRepGroup:":
                     break;
                 case "removeRepGroup:":
-                    break;
+					if (cellsSelected)
+					{
+                        var firstGroups = selectedCells.Min.Cell.RepeatGroups.Where(x => x.Cells.First() == selectedCells.Min.Cell);
+
+                        var lastGroups = selectedCells.Max.Cell.RepeatGroups.Where(x => x.Cells.Last() == selectedCells.Max.Cell);
+
+						return firstGroups.Intersect(lastGroups).Any();
+					}
+					return false;
                 case "createMultGroup:":
                     break;
                 case "multGroupDrawToScale:":
@@ -116,7 +130,15 @@ namespace Pronome.Mac
                 case "editMultGroup:":
                     break;
                 case "removeMultGroup:":
-                    break;
+                    if (cellsSelected)
+                    {
+                        var firstGroups = selectedCells.Min.Cell.MultGroups.Where(x => x.Cells.First() == selectedCells.Min.Cell);
+
+                        var lastGroups = selectedCells.Max.Cell.MultGroups.Where(x => x.Cells.Last() == selectedCells.Max.Cell);
+
+						return firstGroups.Intersect(lastGroups).Any();
+                    }
+                    return false;
                 case "createRef:":
                     break;
                 case "editRef:":
@@ -124,11 +146,11 @@ namespace Pronome.Mac
                 case "removeRef:":
                     break;
                 case "moveCellsLeft:":
-                    break;
+                    return cellsSelected;
                 case "moveCellsRight:":
-                    break;
+                    return cellsSelected;
                 case "removeCells:":
-                    return DView.SelectedCells.Root != null;
+                    return cellsSelected;
             }
 
 			return true;
@@ -169,7 +191,9 @@ namespace Pronome.Mac
 		[Action("removeRepGroup:")]
 		void RemoveRepGroup(NSObject sender)
 		{
+            var action = new RemoveRepeatGroup(DView.SelectedCells);
 
+            InitNewAction(action);
 		}
 
         [Action("createMultGroup:")]
@@ -187,22 +211,43 @@ namespace Pronome.Mac
 		[Action("removeMultGroup:")]
 		void RemoveMultGroup(NSObject sender)
 		{
+            var action = new RemoveMultGroup(DView.SelectedCells);
 
+            InitNewAction(action);
 		}
 
+        /// <summary>
+        /// Activate or deactivate mult group scaling
+        /// </summary>
+        /// <param name="sender">Sender.</param>
         [Action("multGroupDrawToScale:")]
         void MultGroupDrawToScaleToggle(NSMenuItem sender)
         {
             // toggle the setting
             UserSettings.GetSettings().DrawMultToScale = !UserSettings.GetSettings().DrawMultToScale;
 
-			// redraw rows that have mults
-			foreach (Row row in DView.Rows.Where(x => x.MultGroups.Any()))
-			{
-                row.Redraw();
+            // see if view needs to be resized
+            double beforeLength = 0;
+            double afterLength = 0;
+            // redraw rows that have mults
+            foreach (Row row in DView.Rows)
+            {
+                if (row.Duration > beforeLength) beforeLength = row.Duration;
 
-				DView.QueueRowToDraw(row);
+                if (row.MultGroups.Any())
+                {
+					row.Redraw();
+
+                    DView.QueueRowToDraw(row);
+                }
+
+                if (row.Duration > afterLength) afterLength = row.Duration;
 			}
+            // resize the canvas if necessary
+            if (afterLength > beforeLength)
+            {
+                DView.ResizeFrame(afterLength);
+            }
         }
 
 		[Action("createRef:")]
@@ -226,13 +271,17 @@ namespace Pronome.Mac
 		[Action("moveCellsLeft:")]
 		void MoveCellsLeft(NSObject sender)
 		{
+            var action = new MoveCells(DView.SelectedCells.ToArray(), DView.GridSpacingString, -1);
 
+            InitNewAction(action);
 		}
 
 		[Action("moveCellsRight:")]
 		void MoveCellsRight(NSObject sender)
 		{
+			var action = new MoveCells(DView.SelectedCells.ToArray(), DView.GridSpacingString, 1);
 
+			InitNewAction(action);
 		}
 
 		[Action("removeCells:")]
