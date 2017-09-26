@@ -346,6 +346,7 @@
                     <connections>
                         <outlet property="DrawingView" destination="uxV-Hh-Q4s" id="37Z-lG-VAp"/>
                         <segue destination="Dov-ng-S8r" kind="sheet" identifier="RepeatGroupSegue" id="a4p-ZY-GJn"/>
+                        <segue destination="Sjr-CW-mbO" kind="sheet" identifier="MultGroupSegue" id="aEO-B5-UGG"/>
                     </connections>
                 </viewController>
                 <customObject id="gMV-MS-acH" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
@@ -353,10 +354,10 @@
             </objects>
             <point key="canvasLocation" x="-811" y="-337"/>
         </scene>
-        <!--Create Repeat Group-->
+        <!--Repeat Group Editor-->
         <scene sceneID="Nic-09-okv">
             <objects>
-                <viewController title="Create Repeat Group" id="Dov-ng-S8r" customClass="RepeatGroupDialog" sceneMemberID="viewController">
+                <viewController title="Repeat Group Editor" id="Dov-ng-S8r" customClass="RepeatGroupDialog" sceneMemberID="viewController">
                     <view key="view" id="X3d-WI-rK1">
                         <rect key="frame" x="0.0" y="0.0" width="341" height="274"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -373,15 +374,6 @@
                                 <connections>
                                     <binding destination="Dov-ng-S8r" name="value" keyPath="self.Ltm" id="SFI-04-LEM"/>
                                 </connections>
-                            </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bW9-dg-I2H">
-                                <rect key="frame" x="103" y="237" width="162" height="17"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Repeat Group Attributes" id="CGF-WJ-7gI">
-                                    <font key="font" metaFont="systemBold"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
                             </textField>
                             <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ujN-db-0yD">
                                 <rect key="frame" x="201" y="168" width="38" height="22"/>
@@ -460,12 +452,100 @@ Gw
                                     <action selector="CancelAction:" target="Dov-ng-S8r" id="DED-Hj-8eW"/>
                                 </connections>
                             </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bW9-dg-I2H">
+                                <rect key="frame" x="89" y="237" width="162" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Repeat Group Attributes" id="CGF-WJ-7gI">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                     </view>
                 </viewController>
                 <customObject id="4B8-k8-f5W" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1484" y="-155"/>
+        </scene>
+        <!--Multiply Group Editor-->
+        <scene sceneID="I3L-VY-CrE">
+            <objects>
+                <viewController title="Multiply Group Editor" id="Sjr-CW-mbO" customClass="MultGroupDialog" sceneMemberID="viewController">
+                    <view key="view" id="xpq-B5-mZq">
+                        <rect key="frame" x="0.0" y="0.0" width="294" height="212"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="b23-Fc-wCk">
+                                <rect key="frame" x="12" y="111" width="264" height="56"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Enter a beatcode expression for the factor that each group member's duration will be multiplied by." id="MwH-Gz-I9Z">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Psr-gs-6be">
+                                <rect key="frame" x="134" y="84" width="43" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Factor" id="uD0-gH-gsY">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="X7S-B9-W6q">
+                                <rect key="frame" x="183" y="81" width="46" height="22"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="RTk-PM-WqG">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="Sjr-CW-mbO" name="value" keyPath="self.Factor" id="yuG-lq-PPt"/>
+                                </connections>
+                            </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HHv-Ag-SDo">
+                                <rect key="frame" x="223" y="13" width="57" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Ok" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="QJE-BW-DMl">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="AcceptAction:" target="Sjr-CW-mbO" id="nmw-sg-PHq"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KmZ-yy-RDP">
+                                <rect key="frame" x="141" y="13" width="82" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="8Nm-2O-9iS">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="CancelAction:" target="Sjr-CW-mbO" id="VKI-0K-wdT"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KvD-fV-f0f">
+                                <rect key="frame" x="91" y="175" width="129" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Enter the Multiplier" id="HbX-p4-DTs">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                    </view>
+                </viewController>
+                <customObject id="HIs-3M-I4E" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1243" y="205"/>
         </scene>
         <!--Application-->
         <scene sceneID="JPo-4y-FX3">

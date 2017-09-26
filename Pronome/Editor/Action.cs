@@ -173,14 +173,15 @@ namespace Pronome.Mac.Editor
                 double maxDur = DrawingView.Instance.Rows.Max(x => x.Duration);
 
                 // change the view's width
-                var curFrame = DrawingView.Instance.Frame;
-                curFrame.Width = (System.nfloat)(maxDur * DrawingView.ScalingFactor + 550);
-                DrawingView.Instance.Frame = curFrame;
+                //var curFrame = DrawingView.Instance.Frame;
+                //curFrame.Width = (System.nfloat)(maxDur * DrawingView.ScalingFactor + 550);
+                //DrawingView.Instance.Frame = curFrame;
 
                 // need to draw the end portion of other rows
                 if (maxDur == Row.Duration)
                 {
-                    DrawingView.Instance.QueueAllRowsToDraw();
+					DrawingView.Instance.ResizeFrame(maxDur);
+                    //DrawingView.Instance.QueueAllRowsToDraw();
                 }
                 else
                 {

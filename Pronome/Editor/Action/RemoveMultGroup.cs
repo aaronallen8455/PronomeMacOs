@@ -27,6 +27,8 @@ namespace Pronome.Mac.Editor.Action
             Group.Cells.First.Value.GroupActions.Remove((true, Group));
             Group.Cells.Last.Value.GroupActions.Remove((false, Group));
 
+            ChangesViewWidth = true;
+
 			Group = null;
             Cells = null;
 		}

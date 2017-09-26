@@ -201,6 +201,14 @@
       <DependentUpon>RepeatGroupDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Editor\Action\AddRepeatGroup.cs" />
+    <Compile Include="Editor\Action\EditRepeatGroup.cs" />
+    <Compile Include="Editor\MultGroupDialog.cs" />
+    <Compile Include="Editor\MultGroupDialog.designer.cs">
+      <DependentUpon>MultGroupDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Editor\Action\AbstractAddGroup.cs" />
+    <Compile Include="Editor\Action\AddMultGroup.cs" />
+    <Compile Include="Editor\Action\EditMultGroup.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

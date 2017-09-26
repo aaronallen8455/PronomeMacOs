@@ -26,7 +26,8 @@ namespace Pronome.Mac
                 if (value > 1 && value <= 500)
                 {
                     _times = value;
-                    Group.Times = (int)_times;
+                    if (Group != null)
+                        Group.Times = (int)_times;
                 }
                 DidChangeValue("Times");
             }
@@ -40,10 +41,11 @@ namespace Pronome.Mac
             set
             {
                 WillChangeValue("Ltm");
-                if (BeatCell.TryParse(value, out double bpm))
+                if (string.IsNullOrEmpty(value) || BeatCell.ValidateExpression(value))
                 {
                     _ltm = value;
-                    Group.LastTermModifier = value;
+                    if (Group != null)
+                        Group.LastTermModifier = value;
                 }
                 DidChangeValue("Ltm");
             }

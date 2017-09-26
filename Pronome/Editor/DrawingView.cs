@@ -248,9 +248,11 @@ namespace Pronome.Mac
         public DrawingView(IntPtr handle) : base(handle)
         {
             Instance = this;
+            // if beat editor was being used when opened, apply changes by losing focus
+			NSApplication.SharedApplication.MainWindow.MakeFirstResponder(null);
 
-            // instantiate the rows
-            Rows = new Row[Metronome.Instance.Layers.Count];
+			// instantiate the rows
+			Rows = new Row[Metronome.Instance.Layers.Count];
             for (int i = 0; i < Rows.Length; i++)
             {
                 Rows[i] = new Row(Metronome.Instance.Layers[i]);

@@ -31,6 +31,11 @@ namespace Pronome.Mac
         public static Stack<IEditorAction> RedoStack = new Stack<IEditorAction>(50);
         #endregion
 
+        #region private fields
+        private Repeat RepGroupToEdit;
+        private Multiply MultGroupToEdit;
+        #endregion
+
         #region Computed Properties
         [Export("DView")]
         public DrawingView DView
@@ -120,12 +125,30 @@ namespace Pronome.Mac
                         if (firstGroup == lastGroup)
                         {
                             // don't create overlapping groups
-                            return firstGroup.Cells.First() != selectedCells.Min.Cell && lastGroup.Cells.Last() != selectedCells.Max.Cell;
+                            return firstGroup.Cells.First() != selectedCells.Min.Cell || lastGroup.Cells.Last() != selectedCells.Max.Cell;
                         }
                     }
+
                     return false;
+
                 case "editRepGroup:":
-                    break;
+                    if (cellsSelected)
+                    {
+						Cell first = selectedCells.Min.Cell;
+						Cell last = selectedCells.Max.Cell;
+						foreach ((bool b, AbstractGroup g) in first.GroupActions.Where(x => x.Item2.GetType() == typeof(Repeat)))
+						{
+							if (last.GroupActions.Contains((false, g)))
+							{
+                                // just get the group to edit here so we don't have to find it again later.
+                                RepGroupToEdit = g as Repeat;
+								return true;
+							}
+						}
+                        
+                    }
+
+                    return false;
                 case "removeRepGroup:":
                     if (cellsSelected)
                     {
@@ -137,7 +160,25 @@ namespace Pronome.Mac
                     }
                     return false;
                 case "createMultGroup:":
-                    break;
+					if (cellsSelected)
+					{
+                        var firstGroup = selectedCells.Min.Cell.MultGroups.LastOrDefault();
+                        var lastGroup = selectedCells.Max.Cell.MultGroups.LastOrDefault();
+
+						if (firstGroup == null && lastGroup == null)
+						{
+							return true;
+						}
+
+						if (firstGroup == lastGroup)
+						{
+							// don't create overlapping groups
+							return firstGroup.Cells.First() != selectedCells.Min.Cell || lastGroup.Cells.Last() != selectedCells.Max.Cell;
+						}
+					}
+
+					return false;
+
                 case "multGroupDrawToScale:":
                     // assign state based on user setting
                     item.State = UserSettings.GetSettings().DrawMultToScale
@@ -145,7 +186,23 @@ namespace Pronome.Mac
                         : NSCellStateValue.Off;
                     break;
                 case "editMultGroup:":
-                    break;
+					if (cellsSelected)
+					{
+						Cell first = selectedCells.Min.Cell;
+						Cell last = selectedCells.Max.Cell;
+                        foreach ((bool b, AbstractGroup g) in first.GroupActions.Where(x => x.Item2.GetType() == typeof(Multiply)))
+						{
+							if (last.GroupActions.Contains((false, g)))
+							{
+								// just get the group to edit here so we don't have to find it again later.
+                                MultGroupToEdit = g as Multiply;
+								return true;
+							}
+						}
+
+					}
+
+					return false;
                 case "removeMultGroup:":
                     if (cellsSelected)
                     {
@@ -196,13 +253,14 @@ namespace Pronome.Mac
         [Action("createRepGroup:")]
         void CreateRepGroup(NSObject sender)
         {
+            RepGroupToEdit = null;
             PerformSegue("RepeatGroupSegue", this);
         }
 
         [Action("editRepGroup:")]
         void EditRepGroup(NSObject sender)
         {
-
+            PerformSegue("RepeatGroupSegue", this);
         }
 
         [Action("removeRepGroup:")]
@@ -216,14 +274,15 @@ namespace Pronome.Mac
         [Action("createMultGroup:")]
         void CreateMultGroup(NSObject sender)
         {
-
+            MultGroupToEdit = null;
+            PerformSegue("MultGroupSegue", this);
         }
 
         [Action("editMultGroup:")]
         void EditMultGroup(NSObject sender)
         {
-
-        }
+			PerformSegue("MultGroupSegue", this);
+		}
 
         [Action("removeMultGroup:")]
         void RemoveMultGroup(NSObject sender)
@@ -321,16 +380,71 @@ namespace Pronome.Mac
                     var sheet = segue.DestinationController as RepeatGroupDialog;
                     sheet.Presentor = this;
 
-                    Repeat rg = new Repeat();
-                    sheet.Group = rg;
+                    //int oldTimes = 2;
+                    //string oldLtm = "";
+                    if (RepGroupToEdit != null)
+                    {
+                        sheet.Ltm = RepGroupToEdit.LastTermModifier;
+                        sheet.Times = RepGroupToEdit.Times;
+                    }
+                    else
+                    {
+                        // pass in the group that will be configured
+                        sheet.Group = new Repeat() { Times = 2, LastTermModifier = "" };
+                    }
 
                     sheet.Accepted += (s, e) => {
-                        
-                    };
+						AbstractBeatCodeAction action;
 
+                        if (RepGroupToEdit != null)
+                        {
+                            action = new EditRepeatGroup(RepGroupToEdit, sheet.Ltm, (int)sheet.Times);
+                        }
+                        else
+                        {
+							// adding the new group
+							action = new AddRepeatGroup(sheet.Group, DView.SelectedCells);
+                        }
+
+						InitNewAction(action);
+                    };
+                    //RepGroupToEdit = null;
+
+                    sheet.Dispose();
+                    break;
+                case "MultGroupSegue":
+                    var multSheet = segue.DestinationController as MultGroupDialog;
+                    multSheet.Presentor = this;
+
+                    if (MultGroupToEdit != null)
+                    {
+                        multSheet.Factor = MultGroupToEdit.FactorValue;
+                    }
+                    else
+                    {
+                        multSheet.Group = new Multiply() { FactorValue = "1" };
+                    }
+
+                    multSheet.Accepted += (s, e) => {
+                        AbstractBeatCodeAction action;
+
+                        if (MultGroupToEdit != null)
+                        {
+                            // edit
+                            action = new EditMultGroup(MultGroupToEdit, multSheet.Factor);
+                        }
+                        else
+                        {
+                            // create new
+                            action = new AddMultGroup(multSheet.Group, DView.SelectedCells);
+                        }
+
+                        InitNewAction(action);
+                    };
                     break;
             }
         }
+
         #endregion
     }
 }
