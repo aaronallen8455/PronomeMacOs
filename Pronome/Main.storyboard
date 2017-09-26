@@ -347,12 +347,109 @@
                         <outlet property="DrawingView" destination="uxV-Hh-Q4s" id="37Z-lG-VAp"/>
                         <segue destination="Dov-ng-S8r" kind="sheet" identifier="RepeatGroupSegue" id="a4p-ZY-GJn"/>
                         <segue destination="Sjr-CW-mbO" kind="sheet" identifier="MultGroupSegue" id="aEO-B5-UGG"/>
+                        <segue destination="1Vj-an-Bay" kind="sheet" identifier="ReferenceSegue" id="QyW-ac-sqB"/>
                     </connections>
                 </viewController>
                 <customObject id="gMV-MS-acH" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
                 <userDefaultsController representsSharedInstance="YES" id="FQt-K7-wda"/>
             </objects>
             <point key="canvasLocation" x="-811" y="-337"/>
+        </scene>
+        <!--Reference Editor-->
+        <scene sceneID="6HH-LT-W6O">
+            <objects>
+                <viewController title="Reference Editor" id="1Vj-an-Bay" customClass="ReferenceDialog" sceneMemberID="viewController">
+                    <view key="view" id="z2Y-J7-XJz">
+                        <rect key="frame" x="0.0" y="0.0" width="215" height="168"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GIz-h6-ebW">
+                                <rect key="frame" x="61" y="131" width="92" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Which Layer?" id="zJe-Cm-4hY">
+                                    <font key="font" metaFont="systemBold"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vkO-xk-jMn">
+                                <rect key="frame" x="18" y="106" width="179" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Select the layer to reference." id="rSM-T2-vKD">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0bn-vl-NcK">
+                                <rect key="frame" x="144" y="13" width="57" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Ok" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="aG1-GZ-XPd">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="AcceptAction:" target="1Vj-an-Bay" id="BaP-Ix-5HC"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Ub1-As-sbp">
+                                <rect key="frame" x="62" y="13" width="82" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Cancel" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="UPr-Fv-Z1S">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="CancelAction:" target="1Vj-an-Bay" id="vmf-HQ-TRK"/>
+                                </connections>
+                            </button>
+                            <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hpX-1n-vTw">
+                                <rect key="frame" x="73" y="70" width="76" height="26"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="4Ti-G0-kuS" id="wZF-sf-OcA">
+                                    <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="menu"/>
+                                    <menu key="menu" id="xEq-lU-0el">
+                                        <items>
+                                            <menuItem title="Item 1" state="on" id="4Ti-G0-kuS"/>
+                                            <menuItem title="Item 2" id="vj7-8V-bMp"/>
+                                            <menuItem title="Item 3" id="gMh-vi-dkq"/>
+                                        </items>
+                                    </menu>
+                                </popUpButtonCell>
+                                <connections>
+                                    <binding destination="gbz-Yf-LVG" name="contentObjects" keyPath="arrangedObjects" previousBinding="v9j-9f-XN3" id="MQB-cj-ic8"/>
+                                    <binding destination="gbz-Yf-LVG" name="content" keyPath="arrangedObjects" id="v9j-9f-XN3"/>
+                                    <binding destination="gbz-Yf-LVG" name="contentValues" keyPath="arrangedObjects.Index" previousBinding="MQB-cj-ic8" id="IpB-5H-hz9"/>
+                                    <binding destination="1Vj-an-Bay" name="selectedValue" keyPath="self.Index" previousBinding="IpB-5H-hz9" id="Hd3-Kg-aoD"/>
+                                </connections>
+                            </popUpButton>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uwQ-2D-gg6">
+                                <rect key="frame" x="34" y="76" width="38" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Layer" id="CzM-1O-CMn">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                    </view>
+                </viewController>
+                <customObject id="aqk-bX-GxR" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <arrayController id="gbz-Yf-LVG">
+                    <declaredKeys>
+                        <string>Index</string>
+                    </declaredKeys>
+                    <connections>
+                        <binding destination="1Vj-an-Bay" name="contentArray" keyPath="self.layerArray" id="VPv-Pc-URK"/>
+                    </connections>
+                </arrayController>
+            </objects>
+            <point key="canvasLocation" x="-1319" y="188"/>
         </scene>
         <!--Repeat Group Editor-->
         <scene sceneID="Nic-09-okv">
@@ -466,7 +563,7 @@ Gw
                 </viewController>
                 <customObject id="4B8-k8-f5W" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1484" y="-155"/>
+            <point key="canvasLocation" x="-993" y="241"/>
         </scene>
         <!--Multiply Group Editor-->
         <scene sceneID="I3L-VY-CrE">
@@ -545,7 +642,7 @@ Gw
                 </viewController>
                 <customObject id="HIs-3M-I4E" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1243" y="205"/>
+            <point key="canvasLocation" x="-642" y="210"/>
         </scene>
         <!--Application-->
         <scene sceneID="JPo-4y-FX3">

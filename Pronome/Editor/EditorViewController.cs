@@ -34,6 +34,7 @@ namespace Pronome.Mac
         #region private fields
         private Repeat RepGroupToEdit;
         private Multiply MultGroupToEdit;
+        private Cell RefToEdit;
         #endregion
 
         #region Computed Properties
@@ -214,11 +215,16 @@ namespace Pronome.Mac
                     }
                     return false;
                 case "createRef:":
-                    break;
+                    return cellsSelected && selectedCells.Count == 1;
                 case "editRef:":
-                    break;
+                    if (cellsSelected && selectedCells.Count == 1 && !string.IsNullOrEmpty(selectedCells.Root.Cell.Reference))
+                    {
+                        RefToEdit = selectedCells.Root.Cell;
+                        return true;
+                    }
+                    return false;
                 case "removeRef:":
-                    break;
+                    return cellsSelected && selectedCells.Count == 1 && !string.IsNullOrEmpty(selectedCells.Root.Cell.Reference);
                 case "moveCellsLeft:":
                     return cellsSelected;
                 case "moveCellsRight:":
@@ -329,19 +335,22 @@ namespace Pronome.Mac
         [Action("createRef:")]
         void CreateRef(NSObject sender)
         {
-
+            RefToEdit = null;
+            PerformSegue("ReferenceSegue", this);
         }
 
         [Action("editRef:")]
         void EditRef(NSObject sender)
         {
-
+            PerformSegue("ReferenceSegue", this);
         }
 
         [Action("removeRef:")]
         void RemoveRef(NSObject sender)
         {
+            var action = new RemoveReference(DView.SelectedCells.Root.Cell);
 
+            InitNewAction(action);
         }
 
         [Action("moveCellsLeft:")]
@@ -441,6 +450,31 @@ namespace Pronome.Mac
 
                         InitNewAction(action);
                     };
+                    break;
+                case "ReferenceSegue":
+                    var refSheet = segue.DestinationController as ReferenceDialog;
+                    refSheet.Presentor = this;
+
+                    if (RefToEdit != null)
+                    {
+                        refSheet.Index = RefToEdit.Reference;
+                    }
+
+                    refSheet.Accepted += (s, e) => {
+                        AbstractBeatCodeAction action;
+
+                        if (RefToEdit != null)
+                        {
+                            action = new AddEditReference(RefToEdit, refSheet.Index);
+                        }
+                        else
+                        {
+                            action = new AddEditReference(DView.SelectedCells.Root.Cell, refSheet.Index);
+                        }
+
+                        InitNewAction(action);
+                    };
+
                     break;
             }
         }

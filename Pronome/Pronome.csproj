@@ -209,6 +209,12 @@
     <Compile Include="Editor\Action\AbstractAddGroup.cs" />
     <Compile Include="Editor\Action\AddMultGroup.cs" />
     <Compile Include="Editor\Action\EditMultGroup.cs" />
+    <Compile Include="Editor\ReferenceDialog.cs" />
+    <Compile Include="Editor\ReferenceDialog.designer.cs">
+      <DependentUpon>ReferenceDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Editor\Action\AddEditReference.cs" />
+    <Compile Include="Editor\Action\RemoveReference.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
