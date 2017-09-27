@@ -20,6 +20,24 @@ namespace Pronome.Mac
 
 		[Action ("ApplyChangesAction:")]
 		partial void ApplyChangesAction (Foundation.NSObject sender);
+
+		[Action ("EighthPresetAction:")]
+		partial void EighthPresetAction (Foundation.NSObject sender);
+
+		[Action ("EighthTripletPresetAction:")]
+		partial void EighthTripletPresetAction (Foundation.NSObject sender);
+
+		[Action ("QuarterPresetAction:")]
+		partial void QuarterPresetAction (Foundation.NSObject sender);
+
+		[Action ("QuarterTripletPresetAction:")]
+		partial void QuarterTripletPresetAction (Foundation.NSObject sender);
+
+		[Action ("SixteenthPresetAction:")]
+		partial void SixteenthPresetAction (Foundation.NSObject sender);
+
+		[Action ("SixteenthTripletPresetAction:")]
+		partial void SixteenthTripletPresetAction (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

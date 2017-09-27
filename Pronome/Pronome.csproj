@@ -66,6 +66,18 @@
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-512.png" />
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\AppIcon-512%402x.png" />
     <ImageAsset Include="Assets.xcassets\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\EighthTriplet.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\EighthTriplet.imageset\eighthtrip.png" />
+    <ImageAsset Include="Assets.xcassets\Eighth.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Eighth.imageset\eightnote.png" />
+    <ImageAsset Include="Assets.xcassets\Quarter.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Quarter.imageset\quarternote.png" />
+    <ImageAsset Include="Assets.xcassets\QuarterTriplet.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\QuarterTriplet.imageset\quartertrip.png" />
+    <ImageAsset Include="Assets.xcassets\Sixteenth.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\Sixteenth.imageset\sixnote.png" />
+    <ImageAsset Include="Assets.xcassets\SixteenthTriplet.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\SixteenthTriplet.imageset\sixtrip.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -80,6 +92,12 @@
     <Folder Include="Editor\" />
     <Folder Include="Editor\Groups\" />
     <Folder Include="Editor\Action\" />
+    <Folder Include="Assets.xcassets\EighthTriplet.imageset\" />
+    <Folder Include="Assets.xcassets\Eighth.imageset\" />
+    <Folder Include="Assets.xcassets\Quarter.imageset\" />
+    <Folder Include="Assets.xcassets\QuarterTriplet.imageset\" />
+    <Folder Include="Assets.xcassets\Sixteenth.imageset\" />
+    <Folder Include="Assets.xcassets\SixteenthTriplet.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />

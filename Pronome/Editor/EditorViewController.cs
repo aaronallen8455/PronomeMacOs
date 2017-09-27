@@ -83,6 +83,36 @@ namespace Pronome.Mac
             DView.ChangesApplied = true;
         }
 
+        partial void QuarterPresetAction(NSObject sender)
+        {
+            DView.GridSpacingString = "1";
+        }
+
+        partial void QuarterTripletPresetAction(NSObject sender)
+        {
+            DView.GridSpacingString = "2/3";
+        }
+
+        partial void EighthPresetAction(NSObject sender)
+        {
+            DView.GridSpacingString = ".5";
+        }
+
+        partial void EighthTripletPresetAction(NSObject sender)
+        {
+            DView.GridSpacingString = "1/3";
+        }
+
+        partial void SixteenthPresetAction(NSObject sender)
+        {
+            DView.GridSpacingString = ".25";
+        }
+
+        partial void SixteenthTripletPresetAction(NSObject sender)
+        {
+            DView.GridSpacingString = "1/6";
+        }
+
         /// <summary>
         /// Enable or disable the various menu items
         /// </summary>

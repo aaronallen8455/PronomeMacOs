@@ -201,8 +201,8 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </comboBoxCell>
                                 <connections>
-                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.SelectionExists" id="uhh-3o-E53"/>
                                     <binding destination="Dnq-3n-e4D" name="value" keyPath="self.DView.SelectedSource" id="RPD-Gu-g7d"/>
+                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.SelectionExists" id="uhh-3o-E53"/>
                                 </connections>
                             </comboBox>
                             <comboBox verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="taV-cH-Xzt">
@@ -230,50 +230,68 @@
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hsU-uV-PXw">
                                 <rect key="frame" x="10" y="355" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAdvanced" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="yZm-fA-cxn">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="Quarter" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="yZm-fA-cxn">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="QuarterPresetAction:" target="Dnq-3n-e4D" id="qTd-vD-K4a"/>
+                                </connections>
                             </button>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="6IR-ZZ-1C8">
                                 <rect key="frame" x="50" y="355" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAdvanced" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="Gmr-0A-D5P">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="Eighth" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="Gmr-0A-D5P">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="EighthPresetAction:" target="Dnq-3n-e4D" id="y4r-Hp-MCL"/>
+                                </connections>
                             </button>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Q4L-n1-71S">
                                 <rect key="frame" x="90" y="355" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAdvanced" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="4AI-wt-Wvg">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="Sixteenth" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="4AI-wt-Wvg">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="SixteenthPresetAction:" target="Dnq-3n-e4D" id="5sj-HS-lXh"/>
+                                </connections>
                             </button>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="166-Dm-o31">
                                 <rect key="frame" x="130" y="355" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAdvanced" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="lZf-dE-5JR">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="QuarterTriplet" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="lZf-dE-5JR">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="QuarterTripletPresetAction:" target="Dnq-3n-e4D" id="1wl-Hj-S3F"/>
+                                </connections>
                             </button>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="A2d-Ja-8f1">
                                 <rect key="frame" x="170" y="355" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAdvanced" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="lal-86-GZy">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="EighthTriplet" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="lal-86-GZy">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="EighthTripletPresetAction:" target="Dnq-3n-e4D" id="J1h-eV-Lp4"/>
+                                </connections>
                             </button>
                             <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="HzG-Wc-tY3">
                                 <rect key="frame" x="210" y="355" width="30" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSAdvanced" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="5by-xA-mqC">
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="SixteenthTriplet" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="5by-xA-mqC">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
+                                <connections>
+                                    <action selector="SixteenthTripletPresetAction:" target="Dnq-3n-e4D" id="3rG-0c-c6Z"/>
+                                </connections>
                             </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="33T-1h-TD2">
                                 <rect key="frame" x="11" y="417" width="70" height="13"/>
@@ -320,13 +338,13 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
-                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.SelectionExists" id="qMK-b0-LMV"/>
                                     <binding destination="Dnq-3n-e4D" name="hidden" keyPath="self.DView.PitchSource" previousBinding="qMK-b0-LMV" id="WpH-p5-5Hc">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSIsNil</string>
                                         </dictionary>
                                     </binding>
                                     <binding destination="Dnq-3n-e4D" name="value" keyPath="self.DView.PitchSource" id="vu4-uk-Wer"/>
+                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.SelectionExists" id="qMK-b0-LMV"/>
                                 </connections>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mtn-3v-Jpd">
@@ -2114,10 +2132,16 @@ IA
         </scene>
     </scenes>
     <resources>
+        <image name="Eighth" width="39" height="39"/>
+        <image name="EighthTriplet" width="39" height="39"/>
         <image name="NSAdvanced" width="32" height="32"/>
         <image name="NSComputer" width="32" height="32"/>
         <image name="NSMultipleDocuments" width="32" height="32"/>
         <image name="NSPreferencesGeneral" width="32" height="32"/>
         <image name="NSUser" width="32" height="32"/>
+        <image name="Quarter" width="39" height="39"/>
+        <image name="QuarterTriplet" width="39" height="39"/>
+        <image name="Sixteenth" width="39" height="39"/>
+        <image name="SixteenthTriplet" width="39" height="39"/>
     </resources>
 </document>
