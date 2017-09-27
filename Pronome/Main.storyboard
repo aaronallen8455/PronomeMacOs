@@ -195,16 +195,15 @@
                             <comboBox verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AAG-PO-4LO">
                                 <rect key="frame" x="223" y="390" width="99" height="26"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" completes="NO" numberOfVisibleItems="5" id="Gbj-Z8-dV3">
+                                <comboBoxCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" drawsBackground="YES" completes="NO" usesDataSource="YES" numberOfVisibleItems="5" id="Gbj-Z8-dV3">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <objectValues>
-                                        <string>Item 1</string>
-                                        <string>Item 2</string>
-                                        <string>Item 3</string>
-                                    </objectValues>
                                 </comboBoxCell>
+                                <connections>
+                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.SelectionExists" id="uhh-3o-E53"/>
+                                    <binding destination="Dnq-3n-e4D" name="value" keyPath="self.DView.SelectedSource" id="RPD-Gu-g7d"/>
+                                </connections>
                             </comboBox>
                             <comboBox verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="taV-cH-Xzt">
                                 <rect key="frame" x="11" y="10" width="72" height="26"/>
@@ -315,11 +314,20 @@
                             <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="DnH-Mk-SFd">
                                 <rect key="frame" x="330" y="393" width="59" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="21J-bZ-24x">
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" title="Pitch Field" drawsBackground="YES" id="21J-bZ-24x">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
+                                <connections>
+                                    <binding destination="Dnq-3n-e4D" name="enabled" keyPath="self.DView.SelectionExists" id="qMK-b0-LMV"/>
+                                    <binding destination="Dnq-3n-e4D" name="hidden" keyPath="self.DView.PitchSource" previousBinding="qMK-b0-LMV" id="WpH-p5-5Hc">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSIsNil</string>
+                                        </dictionary>
+                                    </binding>
+                                    <binding destination="Dnq-3n-e4D" name="value" keyPath="self.DView.PitchSource" id="vu4-uk-Wer"/>
+                                </connections>
                             </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mtn-3v-Jpd">
                                 <rect key="frame" x="346" y="417" width="27" height="13"/>
@@ -329,6 +337,13 @@
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
+                                <connections>
+                                    <binding destination="Dnq-3n-e4D" name="hidden" keyPath="self.DView.PitchSource" id="skT-uQ-6jw">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSIsNil</string>
+                                        </dictionary>
+                                    </binding>
+                                </connections>
                             </textField>
                         </subviews>
                         <constraints>
@@ -345,6 +360,7 @@
                     </view>
                     <connections>
                         <outlet property="DrawingView" destination="uxV-Hh-Q4s" id="37Z-lG-VAp"/>
+                        <outlet property="SourceSelector" destination="AAG-PO-4LO" id="k1B-L5-avs"/>
                         <segue destination="Dov-ng-S8r" kind="sheet" identifier="RepeatGroupSegue" id="a4p-ZY-GJn"/>
                         <segue destination="Sjr-CW-mbO" kind="sheet" identifier="MultGroupSegue" id="aEO-B5-UGG"/>
                         <segue destination="1Vj-an-Bay" kind="sheet" identifier="ReferenceSegue" id="QyW-ac-sqB"/>

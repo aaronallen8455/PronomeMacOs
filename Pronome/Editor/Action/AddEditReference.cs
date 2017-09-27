@@ -16,6 +16,7 @@ namespace Pronome.Mac.Editor.Action
         protected override void Transformation()
         {
             Cell.Reference = Index;
+            ChangesViewWidth = true;
         }
 
         public override bool CanPerform()

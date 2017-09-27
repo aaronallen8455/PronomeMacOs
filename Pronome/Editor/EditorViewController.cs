@@ -71,6 +71,15 @@ namespace Pronome.Mac
         /// <param name="sender">Sender.</param>
         partial void ApplyChangesAction(NSObject sender)
         {
+            // apply the changes
+            foreach (Row row in DView.Rows)
+            {
+                if (!row.BeatCodeIsCurrent) row.UpdateBeatCode(); // probably not used
+                Metronome.Instance.Layers[row.Index].SetBeatCode(row.BeatCode);
+                // need to apply color to the beat code.
+                Metronome.Instance.Layers[row.Index].Controller.HighlightBeatCodeSyntax();
+            }
+
             DView.ChangesApplied = true;
         }
 
@@ -479,6 +488,35 @@ namespace Pronome.Mac
             }
         }
 
+        public override void AwakeFromNib()
+        {
+            SourceSelector.DataSource = new SourceSelectorDataSource(SourceSelector);
+			SourceSelector.VisibleItems = 10;
+
+			// autoselect the first source
+			SourceSelector.StringValue =
+				(NSString)SourceSelector.DataSource.ObjectValueForItem(SourceSelector, 0);
+
+			// Epand the selector to show full items, not truncated
+			var cell = SourceSelector.Cell;
+			var frame = SourceSelector.Frame;
+			bool open = false;
+			SourceSelector.WillPopUp += (sender, e) => {
+				if (!open)
+				{
+					SourceSelector.SetFrameSize(new CoreGraphics.CGSize(220, 23));
+					// force it to close then reopen to apply frame size to list
+					cell.AccessibilityExpanded = false;
+					cell.AccessibilityExpanded = true;
+					open = true;
+				}
+			};
+
+			SourceSelector.WillDismiss += (sender, e) => {
+				SourceSelector.Frame = frame;
+				open = false;
+			};
+        }
         #endregion
     }
 }

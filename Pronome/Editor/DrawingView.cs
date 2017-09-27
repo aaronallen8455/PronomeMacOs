@@ -161,6 +161,80 @@ namespace Pronome.Mac
             }
         }
 
+        [Export("SelectedSource")]
+        public string SelectedSource
+        {
+            get
+            {
+                if (SelectionExists)
+                {
+                    // check if all selected have the same source
+                    var src = SelectedCells.Root.Cell.Source;
+
+                    foreach (Cell c in SelectedCells)
+                    {
+                        if (c.Source != src) return null;
+                    }
+
+                    if (src == null) return SelectedCells.Root.Cell.Row.Layer.BaseStreamInfo.ToString();
+                    return src.ToString();
+                }
+                return null;
+            }
+
+            set
+            {
+                WillChangeValue("SelectedSource");
+                WillChangeValue("PitchSource");
+
+                StreamInfoProvider src = StreamInfoProvider.GetFromToString(value);
+
+                foreach (Cell c in SelectedCells)
+                {
+                    if (c.Source != src)
+                    {
+                        ChangesApplied = false;
+						c.Source = src;
+                    }
+                }
+
+                DidChangeValue("SelectedSource");
+                DidChangeValue("PitchSource");
+            }
+        }
+
+        [Export("PitchSource")]
+        public string PitchSource
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(SelectedSource))
+                {
+                    var src = SelectedCells.Root.Cell.Source ?? SelectedCells.Root.Cell.Row.Layer.BaseStreamInfo;
+                    if (src.IsPitch)
+                    {
+                        return src.Uri;
+                    }
+                }
+                return null;
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+					WillChangeValue("PitchSource");
+                    var src = StreamInfoProvider.GetFromPitch(value);
+
+                    foreach (Cell c in SelectedCells)
+                    {
+                        c.Source = src;
+                    }
+					DidChangeValue("PitchSource");
+                }
+            }
+        }
+
+
         /// <summary>
         /// True if a selection is made.
         /// </summary>
@@ -253,10 +327,14 @@ namespace Pronome.Mac
 
 			// instantiate the rows
 			Rows = new Row[Metronome.Instance.Layers.Count];
+            double maxDur = 0;
             for (int i = 0; i < Rows.Length; i++)
             {
                 Rows[i] = new Row(Metronome.Instance.Layers[i]);
+                if (Rows[i].Duration > maxDur) maxDur = Rows[i].Duration;
             }
+
+            ResizeFrame(maxDur);
         }
 
 		#region Public methods
@@ -265,6 +343,11 @@ namespace Pronome.Mac
 		/// </summary>
 		public void DeselectCells()
 		{
+            WillChangeValue("Duration");
+            WillChangeValue("SelectionExists");
+            WillChangeValue("SelectedSource");
+            WillChangeValue("PitchSource");
+
 			foreach (Cell c in SelectedCells)
 			{
 				c.IsSelected = false;
@@ -272,6 +355,11 @@ namespace Pronome.Mac
 
 			SelectedCells.Clear();
 			SelectionAnchor = null;
+
+            DidChangeValue("Duration");
+            DidChangeValue("SelectionExists");
+            DidChangeValue("SelectedSource");
+            DidChangeValue("PitchSource");
 		}
 
         /// <summary>
@@ -295,6 +383,9 @@ namespace Pronome.Mac
 		public void SelectCell(Cell cell, bool extendSelection = false)
 		{
 			WillChangeValue("Duration");
+            WillChangeValue("SelectionExists");
+            WillChangeValue("SelectedSource");
+            WillChangeValue("PitchSource");
 
 			// is there an existing selection?
 			if (SelectedCells.Root != null)
@@ -437,6 +528,9 @@ namespace Pronome.Mac
 			}
 
 			DidChangeValue("Duration");
+            DidChangeValue("SelectionExists");
+            DidChangeValue("SelectedSource");
+            DidChangeValue("PitchSource");
 		}
 
 		/// <summary>
@@ -450,7 +544,7 @@ namespace Pronome.Mac
 				{
 					cell.Delete();
 				}
-
+		
 				DeselectCells();
 			}
 		}
@@ -711,18 +805,22 @@ namespace Pronome.Mac
 
             // delete cells
             Row selectedRow = SelectedCells.Root.Cell.Row;
-            DeleteSelectedCells();
-            selectedRow.Redraw();
-            QueueRowToDraw(selectedRow);
-            // handle referencers
-            if (Row.ReferenceMap.ContainsKey(selectedRow.Index))
-            {
-				foreach (int index in Row.ReferenceMap[selectedRow.Index])
-				{
-					Rows[index].Redraw();
-					QueueRowToDraw(Rows[index]);
-				}
-            }
+
+            var action = new RemoveCells(SelectedCells);
+
+            EditorViewController.InitNewAction(action);
+            //DeleteSelectedCells();
+            //selectedRow.Redraw();
+            //QueueRowToDraw(selectedRow);
+            //// handle referencers
+            //if (Row.ReferenceMap.ContainsKey(selectedRow.Index))
+            //{
+			//	foreach (int index in Row.ReferenceMap[selectedRow.Index])
+			//	{
+			//		Rows[index].Redraw();
+			//		QueueRowToDraw(Rows[index]);
+			//	}
+            //}
         }
 
         /// <summary>

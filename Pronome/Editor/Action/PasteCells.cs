@@ -45,6 +45,8 @@ namespace Pronome.Mac.Editor.Action
 					n.Cell.Position += selDuration - duration;
                     n = n.Next();
 				}
+
+                ChangesViewWidth = true;
 			}
 
 			// add any applicable groups to the new cells

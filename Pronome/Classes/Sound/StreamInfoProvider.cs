@@ -172,7 +172,8 @@ namespace Pronome.Mac
         /// <param name="uri">URI.</param>
         public static bool IsPitchUri(string uri)
         {
-            return !uri.Contains(".wav");
+            return Regex.IsMatch(uri, @"^\d+$|^\d+\.\d*$|^[A-Ga-g][b#]?\d{1,2}$");
+            //return !uri.Contains(".wav");
         }
 
         /// <summary>
@@ -191,7 +192,11 @@ namespace Pronome.Mac
         /// <param name="uri">URI.</param>
         static public StreamInfoProvider GetFromPitch(string uri)
         {
-            return new StreamInfoProvider(-1, uri, "Pitch");
+            if (IsPitchUri(uri))
+            {
+				return new StreamInfoProvider(-1, uri, "Pitch");
+            }
+            return GetDefault();
         }
 
         /// <summary>

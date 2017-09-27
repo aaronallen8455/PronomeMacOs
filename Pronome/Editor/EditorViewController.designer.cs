@@ -9,21 +9,29 @@ using System.CodeDom.Compiler;
 
 namespace Pronome.Mac
 {
-    [Register ("EditorViewController")]
-    partial class EditorViewController
-    {
-        [Outlet]
-        Pronome.Mac.DrawingView DrawingView { get; set; }
+	[Register ("EditorViewController")]
+	partial class EditorViewController
+	{
+		[Outlet]
+		Pronome.Mac.DrawingView DrawingView { get; set; }
 
-        [Action ("ApplyChangesAction:")]
-        partial void ApplyChangesAction (Foundation.NSObject sender);
-        
-        void ReleaseDesignerOutlets ()
-        {
-            if (DrawingView != null) {
-                DrawingView.Dispose ();
-                DrawingView = null;
-            }
-        }
-    }
+		[Outlet]
+		AppKit.NSComboBox SourceSelector { get; set; }
+
+		[Action ("ApplyChangesAction:")]
+		partial void ApplyChangesAction (Foundation.NSObject sender);
+		
+		void ReleaseDesignerOutlets ()
+		{
+			if (DrawingView != null) {
+				DrawingView.Dispose ();
+				DrawingView = null;
+			}
+
+			if (SourceSelector != null) {
+				SourceSelector.Dispose ();
+				SourceSelector = null;
+			}
+		}
+	}
 }

@@ -19,6 +19,7 @@ namespace Pronome.Mac.Editor.Action
         {
             Group.FactorValue = Factor;
             Group.Factor = BeatCell.Parse(Factor);
+            ChangesViewWidth = true;
         }
 
         public override bool CanPerform()

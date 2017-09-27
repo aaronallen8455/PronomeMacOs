@@ -535,34 +535,6 @@ namespace Pronome.Mac.Editor
             yield break;
         }
 
-        //public CellTreeNode GetMin()
-        //{
-        //    CellTreeNode node = Root;
-		//
-        //    if (node == null) return null;
-		//
-        //    while (node.Left != null)
-        //    {
-        //        node = node.Left;
-        //    }
-		//
-        //    return node;
-        //}
-
-        //public CellTreeNode GetMax()
-        //{
-        //    CellTreeNode node = Root;
-		//
-        //    if (node == null) return null;
-		//
-        //    while (node.Right != null)
-        //    {
-        //        node = node.Right;
-        //    }
-		//
-        //    return node;
-        //}
-
         /// <summary>
         /// Convert to an array of cells
         /// </summary>

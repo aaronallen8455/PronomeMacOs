@@ -77,6 +77,11 @@ namespace Pronome.Mac.Editor.Action
 
 				if (ShiftingRight)
 				{
+                    if (Cells.Last() == Row.Cells.Max.Cell)
+                    {
+						ChangesViewWidth = true;
+                    }
+
 					if (useLeftGroup)
 					{
 						// add to LTM

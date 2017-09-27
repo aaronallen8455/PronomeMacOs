@@ -126,9 +126,6 @@ namespace Pronome.Mac
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-
-			//Metronome.LayerAdded -= HighlightBeatCodeSyntax;
-			//Metronome.LayerRemoved -= HighlightBeatCodeSyntax;
         }
         #endregion
 

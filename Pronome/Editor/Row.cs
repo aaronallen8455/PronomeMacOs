@@ -459,7 +459,7 @@ namespace Pronome.Mac.Editor
 		{
 			// get beat code from the layer, or from the row if available
 			string beat;
-            if (DrawingView.Instance.Rows.Length > refIndex)
+            if (Index > refIndex)
 			{
                 beat = DrawingView.Instance.Rows[refIndex].BeatCode;
 			}
@@ -513,7 +513,7 @@ namespace Pronome.Mac.Editor
 			{
 				c.IsReference = true;
 				c.Position += position;
-				
+                				
 				// reposition groups
                 foreach (Repeat rg in c.RepeatGroups)
 				{
@@ -625,7 +625,7 @@ namespace Pronome.Mac.Editor
                                 // multi cell
                                 if (!string.IsNullOrEmpty(rg.LastTermModifier))
                                 {
-                                    result.Append($"({rg.Times.ToString()}){rg.LastTermModifier})");
+                                    result.Append($"({rg.Times.ToString()}){rg.LastTermModifier}");
                                 }
                                 else
                                 {
