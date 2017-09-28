@@ -31,10 +31,22 @@ namespace Pronome.Mac
         public static Stack<IEditorAction> RedoStack = new Stack<IEditorAction>(50);
         #endregion
 
+        #region Public fields
+        /// <summary>
+        /// True if a dialog sheet is currently open and all other interactions should be disabled.
+        /// </summary>
+        public bool SheetIsOpen;
+        #endregion
+
         #region private fields
         private Repeat RepGroupToEdit;
         private Multiply MultGroupToEdit;
         private Cell RefToEdit;
+
+        /// <summary>
+        /// Prevents the view from being redrawn when beatcode changes due to change apply
+        /// </summary>
+        bool JustAppliedChanges;
         #endregion
 
         #region Computed Properties
@@ -71,6 +83,7 @@ namespace Pronome.Mac
         /// <param name="sender">Sender.</param>
         partial void ApplyChangesAction(NSObject sender)
         {
+            JustAppliedChanges = true;
             // apply the changes
             foreach (Row row in DView.Rows)
             {
@@ -425,6 +438,8 @@ namespace Pronome.Mac
             switch (segue.Identifier)
             {
                 case "RepeatGroupSegue":
+                    SheetIsOpen = true;
+
                     var sheet = segue.DestinationController as RepeatGroupDialog;
                     sheet.Presentor = this;
 
@@ -455,12 +470,19 @@ namespace Pronome.Mac
                         }
 
 						InitNewAction(action);
+
+                        SheetIsOpen = false;
                     };
-                    //RepGroupToEdit = null;
+
+                    sheet.Canceled += (s, e) => {
+                        SheetIsOpen = false;
+                    };
 
                     sheet.Dispose();
                     break;
                 case "MultGroupSegue":
+                    SheetIsOpen = true;
+
                     var multSheet = segue.DestinationController as MultGroupDialog;
                     multSheet.Presentor = this;
 
@@ -488,9 +510,17 @@ namespace Pronome.Mac
                         }
 
                         InitNewAction(action);
+
+                        SheetIsOpen = false;
+                    };
+
+                    multSheet.Canceled += (s, e) => {
+                        SheetIsOpen = false;
                     };
                     break;
                 case "ReferenceSegue":
+                    SheetIsOpen = true;
+
                     var refSheet = segue.DestinationController as ReferenceDialog;
                     refSheet.Presentor = this;
 
@@ -512,6 +542,12 @@ namespace Pronome.Mac
                         }
 
                         InitNewAction(action);
+
+                        SheetIsOpen = false;
+                    };
+
+                    refSheet.Canceled += (s, e) => {
+                        SheetIsOpen = false;
                     };
 
                     break;
@@ -547,6 +583,33 @@ namespace Pronome.Mac
 				open = false;
 			};
         }
+
+        public override void ViewWillDisappear()
+        {
+            base.ViewWillDisappear();
+
+            Metronome.Instance.BeatChanged -= Instance_BeatChanged;
+        }
+		
+        public override void ViewWillAppear()
+        {
+            base.ViewWillAppear();
+
+			Metronome.Instance.BeatChanged -= Instance_BeatChanged;
+			Metronome.Instance.BeatChanged += Instance_BeatChanged;
+        }
         #endregion
+
+        void Instance_BeatChanged(object sender, EventArgs e)
+        {
+            if (!JustAppliedChanges)
+            {
+				DView.DeselectCells();
+				DView.InitRows();
+				UndoStack.Clear();
+            }
+            else
+                JustAppliedChanges = false;
+        }
     }
 }

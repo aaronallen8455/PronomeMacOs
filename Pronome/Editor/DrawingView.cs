@@ -318,30 +318,39 @@ namespace Pronome.Mac
         /// </summary>
         protected LinkedList<Cell> ClipBoard;
         #endregion
-
+        #region Constructor
         public DrawingView(IntPtr handle) : base(handle)
         {
             Instance = this;
             // if beat editor was being used when opened, apply changes by losing focus
 			NSApplication.SharedApplication.MainWindow.MakeFirstResponder(null);
 
-			// instantiate the rows
-			Rows = new Row[Metronome.Instance.Layers.Count];
-            double maxDur = 0;
-            for (int i = 0; i < Rows.Length; i++)
-            {
-                Rows[i] = new Row(Metronome.Instance.Layers[i]);
-                if (Rows[i].Duration > maxDur) maxDur = Rows[i].Duration;
-            }
-
-            ResizeFrame(maxDur);
+            InitRows(false); // don't need to draw here because view will redraw afterwards regardless
         }
+        #endregion
+        #region Public methods
+        /// <summary>
+        /// Builds the row objects from the current metronome state
+        /// </summary>
+        public void InitRows(bool queueDraw = true)
+        {
+			Rows = new Row[Metronome.Instance.Layers.Count];
+			double maxDur = 0;
+			for (int i = 0; i < Rows.Length; i++)
+			{
+				Rows[i] = new Row(Metronome.Instance.Layers[i]);
+				if (Rows[i].Duration > maxDur) maxDur = Rows[i].Duration;
+			}
 
-		#region Public methods
-		/// <summary>
-		/// Clears the current selection. Does not redraw rows.
-		/// </summary>
-		public void DeselectCells()
+            ResizeFrame(maxDur, queueDraw);
+
+            //QueueAllRowsToDraw();
+		}
+
+        /// <summary>
+        /// Clears the current selection. Does not redraw rows.
+        /// </summary>
+        public void DeselectCells()
 		{
             WillChangeValue("Duration");
             WillChangeValue("SelectionExists");
@@ -366,13 +375,16 @@ namespace Pronome.Mac
         /// Resizes the frame to match the given BPM length, then draw all rows.
         /// </summary>
         /// <param name="bpmLength">Bpm length.</param>
-        public void ResizeFrame(double bpmLength)
+        public void ResizeFrame(double bpmLength, bool queueDraw = true)
         {
             var frame = Frame;
             frame.Width = (nfloat)(bpmLength * ScalingFactor + 550);
             Frame = frame;
 
-            QueueAllRowsToDraw();
+            if (queueDraw)
+            {
+				QueueAllRowsToDraw();
+            }
         }
 
 		/// <summary>
@@ -951,6 +963,9 @@ namespace Pronome.Mac
         /// <param name="isRightButton">If set to <c>true</c> is right button.</param>
 		private void ClickHandler(NSEvent theEvent, bool isRightButton = false)
 		{
+            // don't allow editing while a sheet is open
+            if (EditorViewController.Instance.SheetIsOpen) return;
+
 			// get coordinates of mouse
 			var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
 

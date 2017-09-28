@@ -45,7 +45,7 @@ namespace Pronome.Mac.Editor.Action
 		{
             if (AboveSelection)
             {
-                if (Position > Row.Cells.Max.Cell.Position + Row.Cells.Max.Cell.Duration)
+                if (Position >= Row.Cells.Max.Cell.Position + Row.Cells.Max.Cell.Duration)
                 {
                     // add above row
                     AddCellAboveRow();

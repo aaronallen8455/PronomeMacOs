@@ -34,6 +34,8 @@ namespace Pronome.Mac.Editor
 				}
 				foreach (int rowIndex in Row.ReferenceMap[Row.Index])
 				{
+                    if (rowIndex == Row.Index) continue;
+
                     Row r = EditorViewController.Instance.DView.Rows[rowIndex];
 
 					// deselect if in row
@@ -180,7 +182,7 @@ namespace Pronome.Mac.Editor
                 // need to draw the end portion of other rows
                 if (maxDur == Row.Duration)
                 {
-					DrawingView.Instance.ResizeFrame(maxDur);
+					DrawingView.Instance.ResizeFrame(maxDur, false);
                     //DrawingView.Instance.QueueAllRowsToDraw();
                 }
                 else
@@ -265,7 +267,7 @@ namespace Pronome.Mac.Editor
 			{
 				double maxDur = DrawingView.Instance.Rows.Max(x => x.Duration);
 
-                DrawingView.Instance.ResizeFrame(maxDur);
+                DrawingView.Instance.ResizeFrame(maxDur, false);
 			}
 
             EditorViewController.Instance.DView.ChangesApplied = false;
@@ -292,7 +294,10 @@ namespace Pronome.Mac.Editor
 
                 EditorViewController.Instance.DView.SelectCell(startNode.Cell);
 
-                EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
+                if (startNode != endNode)
+                {
+					EditorViewController.Instance.DView.SelectCell(endNode.Cell, true);
+                }
 			}
 		}
 

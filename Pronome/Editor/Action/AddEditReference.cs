@@ -17,6 +17,10 @@ namespace Pronome.Mac.Editor.Action
         {
             Cell.Reference = Index;
             ChangesViewWidth = true;
+            if (Index == (Row.Index + 1).ToString())
+            {
+				Row.UpdateBeatCode();
+            }
         }
 
         public override bool CanPerform()

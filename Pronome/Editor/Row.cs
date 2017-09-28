@@ -131,6 +131,8 @@ namespace Pronome.Mac.Editor
             OpenMultFactorValue = new Stack<string>();
             OpenMultFactorValue.Push("1");
 
+            ReferencePositionAndDurations.Clear();
+
             CellIndex = 0;
             //double pos;
 			(Cells, Duration) = ParseBeat(beatCode);
@@ -459,14 +461,24 @@ namespace Pronome.Mac.Editor
 		{
 			// get beat code from the layer, or from the row if available
 			string beat;
-            if (Index > refIndex)
-			{
+            //if (Index > refIndex)
+			//{
+            //    beat = DrawingView.Instance.Rows[refIndex].BeatCode;
+			//}
+			//else
+			//{
+            //    beat = Metronome.Instance.Layers[refIndex].ParsedString;
+			//}
+
+            if (DrawingView.Instance.Rows[refIndex] != null)
+            {
                 beat = DrawingView.Instance.Rows[refIndex].BeatCode;
-			}
-			else
-			{
+            }
+            else
+            {
                 beat = Metronome.Instance.Layers[refIndex].ParsedString;
-			}
+            }
+
 			// remove comments
 			beat = Regex.Replace(beat, @"!.*?!", "");
 			// remove whitespace
