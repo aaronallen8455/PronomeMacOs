@@ -14,6 +14,12 @@ namespace Pronome.Mac
         float Pan { get; set; }
 
         /// <summary>
+        /// True if sound is muted or not part of a solo group. Used to keep mixer synced.
+        /// </summary>
+        /// <value><c>true</c> if is muted; otherwise, <c>false</c>.</value>
+        bool IsMuted { get; set; }
+
+        /// <summary>
         /// Gets or sets the offset in samples.
         /// </summary>
         /// <value>The offset.</value>

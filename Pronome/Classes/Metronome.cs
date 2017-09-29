@@ -295,19 +295,13 @@ namespace Pronome.Mac
         {
             if (PlayState != PlayStates.Playing)
             {
-				Mixer.Start();
+                Mixer.Start();
 
                 var prevState = PlayState;
 
                 PlayState = PlayStates.Playing;
 
                 IsPlaying = true;
-
-                //if (prevState == PlayStates.Stopped)
-                //{
-                //    _animationTimer.Reset();
-                //    ElapsedBpm = 0;
-                //}
 
                 OnStarted(new StartedEventArgs(prevState));
 
@@ -479,6 +473,9 @@ namespace Pronome.Mac
             LayersToChange.Add(Layers.IndexOf(layer), copyLayer);
 
             copyLayer.ProcessBeat(layer.ParsedString);
+
+            // transfer muting
+            //foreach (IStreamProvider src in copyLayer.GetAllStreams())
 
             var t = new Thread(() =>
             {

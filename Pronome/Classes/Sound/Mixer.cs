@@ -17,6 +17,8 @@ namespace Pronome.Mac
         /// </summary>
         protected AUGraph Graph;
 
+        protected AudioUnit.AudioUnit Output;
+
         /// <summary>
         /// Collection of streams to read from.
         /// </summary>
@@ -292,6 +294,15 @@ namespace Pronome.Mac
 
             if (inputNum > -1)
             {
+                if (isOn)
+                {
+                    stream.IsMuted = false;
+                }
+                else
+                {
+                    stream.IsMuted = true;
+                }
+
                 if (MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerEnable, Convert.ToSingle(isOn), AudioUnitScopeType.Input, (uint)inputNum) != AudioUnitStatus.OK)
                 {
                     throw new ApplicationException();
@@ -329,7 +340,7 @@ namespace Pronome.Mac
         /// <param name="value">Value.</param>
 		public void SetOutputVolume(float value)
 		{
-            if (MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerVolume, value, AudioUnitScopeType.Output) != AudioUnitStatus.OK)
+            if (Output.SetParameter(AudioUnitParameterType.HALOutputVolume, value, AudioUnitScopeType.Output) != AudioUnitStatus.OK)
 				throw new ApplicationException();
 		}
 
@@ -414,6 +425,7 @@ namespace Pronome.Mac
 
             Graph.SetNodeInputCallback(outputNode, 0, OutputRenderDelegate);
 
+            Output = Graph.GetNodeInfo(outputNode);
             //MixerNode = Graph.GetNodeInfo(mixerNode);
             // must set ouput volume because it defaults to 0
             MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerVolume, 1, AudioUnitScopeType.Output, 0);
@@ -521,20 +533,6 @@ namespace Pronome.Mac
 
             var e = MixerNode.Render(ref actionFlags, timeStamp, busNumber, numberFrames, data);
 
-            // call the animation process
-            //if (animThrottle == 0)
-            //{
-			//	AppKit.NSApplication.SharedApplication.BeginInvokeOnMainThread(() =>
-			//	{
-			//		AnimationHelper.RequestDraw(cycle);
-			//	});
-            //    animThrottle = 1;
-            //}
-            //else 
-            //{
-            //    animThrottle--;
-            //}
-
             cycle++;
 
 			// check for a queued layer change
@@ -557,12 +555,14 @@ namespace Pronome.Mac
 					Layer real = Metronome.Instance.Layers[pair.Key];
 
 					int numberRemoved = 0;
+                    bool isMuted = false;
 					// remove old sources
 					foreach (IStreamProvider src in real.GetAllStreams())
 					{
-						Metronome.Instance.RemoveAudioSource(src);
+                        RemoveStream(src);
 						src.Dispose();
 						numberRemoved++;
+                        isMuted = src.IsMuted;
 					}
 
 					// transfer sources to real layer
@@ -574,6 +574,7 @@ namespace Pronome.Mac
 
 					foreach (IStreamProvider src in real.GetAllStreams().OrderBy(x => x.Info.HiHatStatus != StreamInfoProvider.HiHatStatuses.Down))
 					{
+                        src.IsMuted = isMuted;
 						src.Layer = real;
 						if (numberRemoved <= 0)
 						{
@@ -583,7 +584,8 @@ namespace Pronome.Mac
 						else
 						{
 							Streams.Add(src);
-						}
+
+                        }
 
 						numberRemoved--;
 					}
@@ -593,6 +595,19 @@ namespace Pronome.Mac
 					copy.PitchSource = null;
 					copy.Beat = null;
 					Metronome.Instance.Layers.Remove(copy);
+
+                    foreach (IStreamProvider src in Streams)
+                    {
+						// keep muting consistent when shuffling buffer indexs
+						if (src.IsMuted)
+						{
+							EnableInput(src, false);
+						}
+						else
+						{
+							EnableInput(src, true);
+						}
+                    }
 				}
 
 				Metronome.Instance.LayersToChange.Clear();

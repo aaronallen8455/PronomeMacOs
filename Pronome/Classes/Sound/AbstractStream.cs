@@ -49,6 +49,8 @@ namespace Pronome.Mac
         /// <value><c>true</c> if producing bytes; otherwise, <c>false</c>.</value>
         public bool ProduceBytes { get; set; } = true;
 
+        public bool IsMuted { get; set; }
+
 		/// <summary>
 		/// Gets or sets the volume.
 		/// </summary>
