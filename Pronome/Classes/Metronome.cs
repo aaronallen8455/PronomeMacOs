@@ -504,20 +504,17 @@ namespace Pronome.Mac
                 {
 					long floats = totalFloats;
 
-                    if (src.Offset < totalFloats)
+					long interval = (long)src.Offset + 1;
+                    if (interval < totalFloats)
                     {
                         // turn off byte production to increase efficiency
-						src.ProduceBytes = false;
-						
-						src.IntervalLoop.Enumerator.MoveNext();
-						
-						while (src.IntervalLoop.Enumerator.Current <= floats)
+                        src.ProduceBytes = false;
+
+						while (interval <= floats)
 						{
-							long interval = src.IntervalLoop.Enumerator.Current;
-							
-							src.Read(null, null, (uint)interval, false);
-							
-							floats -= (uint)interval;
+                            src.Read(null, null, (uint)interval, false);
+                            floats -= (uint)interval;
+							interval = src.IntervalLoop.Enumerator.Current;
 						}
 
                         src.ProduceBytes = true;

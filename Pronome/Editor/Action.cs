@@ -182,8 +182,7 @@ namespace Pronome.Mac.Editor
                 // need to draw the end portion of other rows
                 if (maxDur == Row.Duration)
                 {
-					DrawingView.Instance.ResizeFrame(maxDur, false);
-                    //DrawingView.Instance.QueueAllRowsToDraw();
+					DrawingView.Instance.ResizeFrame(maxDur);
                 }
                 else
                 {

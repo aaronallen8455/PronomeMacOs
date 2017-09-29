@@ -233,7 +233,12 @@ namespace Pronome.Mac
         [Export("Pitch")]
         public string PitchInput
         {
-            get => _pitchInput;
+            get 
+            {
+                // if empty b/c switch from a wav, display the default A4 pitch
+                if (string.IsNullOrEmpty(_pitchInput)) return "A4";
+                return _pitchInput;
+            }
             set
             {
                 WillChangeValue("Pitch");

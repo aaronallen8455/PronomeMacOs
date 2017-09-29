@@ -578,6 +578,8 @@ namespace Pronome.Mac
 		/// <param name="row">Row.</param>
 		public void QueueRowToDraw(Row row)
 		{
+            if (RowsToDraw.Contains(row)) return;
+
 			RowsToDraw.Enqueue(row);
 
 			foreach (Row r in RowsToDraw)
