@@ -418,10 +418,7 @@ namespace Pronome.Mac
             // if no layers, clear the currently opened file field
             SavedFileManager.CurrentlyOpenFile = null;
 
-			//if (PlayState == PlayStates.Stopped)
-			//{
-				OnBeatChanged(new EventArgs());
-			//}
+			OnBeatChanged(new EventArgs());
         }
 
         /// <summary>
@@ -468,6 +465,7 @@ namespace Pronome.Mac
                 (float)layer.Pan,
                 (float)layer.Volume
             );
+
             copyLayer.OffsetBpm = layer.OffsetBpm;
 
             LayersToChange.Add(Layers.IndexOf(layer), copyLayer);
@@ -505,20 +503,20 @@ namespace Pronome.Mac
 					long floats = totalFloats;
 
 					long interval = (long)src.Offset + 1;
-                    if (interval < totalFloats)
-                    {
-                        // turn off byte production to increase efficiency
-                        src.ProduceBytes = false;
-
-						while (interval <= floats)
-						{
-                            src.Read(null, null, (uint)interval, false);
-                            floats -= (uint)interval;
-							interval = src.IntervalLoop.Enumerator.Current;
-						}
-
-                        src.ProduceBytes = true;
-                    }
+                    //if (interval < totalFloats)
+                    //{
+                    //    // turn off byte production to increase efficiency
+                    //    src.ProduceBytes = false;
+					//
+					//	while (interval <= floats)
+					//	{
+                    //        src.Read(null, null, (uint)interval, false);
+                    //        floats -= (uint)interval;
+					//		interval = src.IntervalLoop.Enumerator.Current;
+					//	}
+					//
+                    //    src.ProduceBytes = true;
+                    //}
                     // do produce bytes for the last interval
                     while (floats > 0)
                     {

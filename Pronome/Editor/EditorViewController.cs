@@ -88,9 +88,12 @@ namespace Pronome.Mac
             foreach (Row row in DView.Rows)
             {
                 if (!row.BeatCodeIsCurrent) row.UpdateBeatCode(); // probably not used
-                Metronome.Instance.Layers[row.Index].SetBeatCode(row.BeatCode);
-                // need to apply color to the beat code.
-                Metronome.Instance.Layers[row.Index].Controller.HighlightBeatCodeSyntax();
+                if (row.BeatCode != Metronome.Instance.Layers[row.Index].BeatCode.Value)
+                {
+					Metronome.Instance.Layers[row.Index].SetBeatCode(row.BeatCode);
+					// need to apply color to the beat code.
+					Metronome.Instance.Layers[row.Index].Controller.HighlightBeatCodeSyntax();
+                }
             }
 
             DView.ChangesApplied = true;

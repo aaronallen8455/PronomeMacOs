@@ -119,6 +119,7 @@ namespace Pronome.Mac
                 {
                     SetPan(src, src.Pan);
                     SetInputVolume(src, (float)src.Volume);
+                    EnableInput(src, !src.IsMuted);
                 }
             }
 
@@ -570,6 +571,8 @@ namespace Pronome.Mac
 					real.BaseAudioSource = copy.BaseAudioSource;
 					real.PitchSource = copy.PitchSource;
 					real.BaseSourceName = copy.BaseSourceName;
+                    real.HasHiHatOpen = copy.HasHiHatOpen;
+                    real.HasHiHatClosed = copy.HasHiHatClosed;
 					real.Beat = copy.Beat;
 
 					foreach (IStreamProvider src in real.GetAllStreams().OrderBy(x => x.Info.HiHatStatus != StreamInfoProvider.HiHatStatuses.Down))

@@ -38,8 +38,8 @@ namespace Pronome.Mac.Editor.Action
             //Row = cells.Root.Cell.Row;
             //PreviousCellValue = previousCellValue;
             //Index = cells[0].Row.Cells.IndexOf(cells[0]);
-            StartNode = Row.Cells.Lookup(cells.Min.Cell.Position);
-            EndNode = cells.Max;
+            StartNode = Row.Cells.LookupIndex(cells.Min.Cell.Index);
+            EndNode = Row.Cells.LookupIndex(cells.Max.Cell.Index);
 
 			StringBuilder duration = new StringBuilder();
 			// find all groups that are encompassed by the selection
@@ -229,15 +229,13 @@ namespace Pronome.Mac.Editor.Action
 			}
 
             // remove cells from tree
-            while (true)
+            while (StartNode != null)
             {
                 var next = StartNode.Next();
                 Row.Cells.Remove(StartNode);
                 if (StartNode == EndNode) break;
-                if (next == null) break;
                 StartNode = next;
-            } 
-
+            }
 			//foreach (CellTreeNode c in Row.Cells.GetRange(StartNode.Cell.Position, EndNode.Cell.Position))
 			//{
 			//	Row.Cells.Remove(c);

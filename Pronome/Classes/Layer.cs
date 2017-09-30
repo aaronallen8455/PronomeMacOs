@@ -1201,6 +1201,12 @@ namespace Pronome.Mac
         public void Cleanup()
         {
             Beat = null;
+            // close the solo group if this was the last one
+            if (IsSoloed) 
+            {
+                IsSoloed = false;
+                UpdateMuting();
+            }
 
             Controller = null;
             foreach (IStreamProvider src in GetAllStreams())

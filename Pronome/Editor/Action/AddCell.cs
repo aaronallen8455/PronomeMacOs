@@ -45,7 +45,7 @@ namespace Pronome.Mac.Editor.Action
 		{
             if (AboveSelection)
             {
-                if (Position >= Row.Cells.Max.Cell.Position + Row.Cells.Max.Cell.Duration)
+                if (Position + 1e-9 >= Row.Cells.Max.Cell.Position + Row.Cells.Max.Cell.Duration)
                 {
                     // add above row
                     AddCellAboveRow();
@@ -80,11 +80,12 @@ namespace Pronome.Mac.Editor.Action
         /// <returns><c>true</c>, if perform was caned, <c>false</c> otherwise.</returns>
         public override bool CanPerform()
         {
+            if (Row != DrawingView.Instance.SelectedCells.Root.Cell.Row) return false;
             // try to create new cell
             // see if clicked on a grid line (within a pad amount)
             double gridSpacing = DrawingView.Instance.GridSpacing;
 
-            double pad = Math.Min(DrawingView.CellWidth / DrawingView.ScalingFactor / 2, gridSpacing * .125);
+            double pad = Math.Max(DrawingView.CellWidth / DrawingView.ScalingFactor / 2, gridSpacing * .125);
 			double x = -1;
 			double mod = -1;
 			//bool aboveSelection = false;

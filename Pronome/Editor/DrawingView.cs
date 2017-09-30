@@ -198,6 +198,8 @@ namespace Pronome.Mac
                     }
                 }
 
+                SelectedCells.Root.Cell.Row.UpdateBeatCode();
+
                 DidChangeValue("SelectedSource");
                 DidChangeValue("PitchSource");
             }
