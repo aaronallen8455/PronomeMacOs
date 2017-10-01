@@ -323,6 +323,7 @@ namespace Pronome.Mac.Editor
                             c.SetDurationDirectly(duration);
                             c.Reference = cell.Reference;
                             c.IsReference = false;
+                            c.GroupActions = cell.GroupActions;
                             first = false;
                         }
                         cells.Insert(c);
@@ -461,14 +462,6 @@ namespace Pronome.Mac.Editor
 		{
 			// get beat code from the layer, or from the row if available
 			string beat;
-            //if (Index > refIndex)
-			//{
-            //    beat = DrawingView.Instance.Rows[refIndex].BeatCode;
-			//}
-			//else
-			//{
-            //    beat = Metronome.Instance.Layers[refIndex].ParsedString;
-			//}
 
             if (DrawingView.Instance.Rows[refIndex] != null)
             {
@@ -703,14 +696,7 @@ namespace Pronome.Mac.Editor
                 }
                 else
                 {
-                    if (!cell.Source.IsInternal)
-                    {
-                        source = cell.Source.Index.ToString();
-                    }
-                    else
-                    {
-                        source = cell.Source.Index.ToString();
-                    }
+                    source = cell.Source.Index.ToString();
                 }
                 result.Append($"@{source}");
             }
