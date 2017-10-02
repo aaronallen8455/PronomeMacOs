@@ -545,7 +545,7 @@ namespace Pronome.Mac
         /**<summary>Sum up all the Bpm values for beat cells.</summary>*/
         public double GetTotalBpmValue()
         {
-            return Beat.Select(x => x.Bpm).Sum();
+            return Beat.Sum(x => x.Bpm);
         }
 
         /// <summary>

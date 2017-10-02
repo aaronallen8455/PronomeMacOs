@@ -498,26 +498,47 @@ namespace Pronome.Mac
             foreach (KeyValuePair<int, Layer> pair in LayersToChange)
             {
                 Layer l = pair.Value;
+
+                double x = l.GetTotalBpmValue();
+                // don't run extraneous samples
+                double bytesToRun = totalFloats % ConvertBpmToSamples(l.GetTotalBpmValue());
+
                 foreach (IStreamProvider src in l.GetAllStreams())
                 {
+                    // Need to deal with interval muting when compressing
+                    //long floats;
+					//
+                    //if (totalFloats > src.InitialOffset)
+                    //{
+                    //    // compress the number of samples to run
+                    //    floats = (long)(bytesToRun + src.InitialOffset);
+					//
+                    //    l.SampleRemainder += bytesToRun + src.InitialOffset - floats;
+                    //}
+                    //else
+                    //{
+                    //    floats = totalFloats;
+                    //}
+
 					long floats = totalFloats;
 
-					long interval = (long)src.Offset + 1;
-                    //if (interval < totalFloats)
-                    //{
-                    //    // turn off byte production to increase efficiency
-                    //    src.ProduceBytes = false;
-					//
-					//	while (interval <= floats)
-					//	{
-                    //        src.Read(null, null, (uint)interval, false);
-                    //        floats -= (uint)interval;
-					//		interval = src.IntervalLoop.Enumerator.Current;
-					//	}
-					//
-                    //    src.ProduceBytes = true;
-                    //}
+                    long interval = (long)src.InitialOffset + 1;
+                    if (interval < totalFloats)
+                    {
+                        // turn off byte production to increase efficiency
+                        src.ProduceBytes = false;
+                    
+                    	while (interval <= floats)
+                    	{
+                            src.Read(null, null, (uint)interval, false);
+                            floats -= (uint)interval;
+                    		interval = src.IntervalLoop.Enumerator.Current;
+                    	}
+                    
+                        src.ProduceBytes = true;
+                    }
                     // do produce bytes for the last interval
+                    //src.ProduceBytes = false;
                     while (floats > 0)
                     {
                         uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);
@@ -526,6 +547,7 @@ namespace Pronome.Mac
 
                         floats -= uint.MaxValue;
                     }
+                    //src.ProduceBytes = true;
                 }
             }
         }

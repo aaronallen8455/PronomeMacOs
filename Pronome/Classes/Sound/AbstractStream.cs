@@ -20,7 +20,7 @@ namespace Pronome.Mac
 		/// <summary>
 		/// The initial offset in samples.
 		/// </summary>
-		public double InitialOffset;
+        public double InitialOffset { get; set; }
 
         double OffsetBpm;
 

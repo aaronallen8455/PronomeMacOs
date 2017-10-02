@@ -147,8 +147,8 @@ namespace Pronome.Mac
             {
                 if (SampleInterval == 0)
                 {
-                    if (ProduceBytes)
-                    {
+                    //if (ProduceBytes)
+                    //{
 						double oldFreq = Frequency;
 						//double oldWavelength = WaveLength;
 						
@@ -177,7 +177,7 @@ namespace Pronome.Mac
 							// propagate a change of the gain step
 							GainStep = NewGainStep;
 						}
-                    }
+                    //}
 
                     MoveToNextSampleInterval();
                 }

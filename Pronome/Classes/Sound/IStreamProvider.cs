@@ -20,10 +20,16 @@ namespace Pronome.Mac
         bool IsMuted { get; set; }
 
         /// <summary>
-        /// Gets or sets the offset in samples.
+        /// Gets or sets the offset in bpm.
         /// </summary>
         /// <value>The offset.</value>
         double Offset { get; set; }
+
+        /// <summary>
+        /// Gets or sets the initial offset in samples.
+        /// </summary>
+        /// <value>The initial offset.</value>
+        double InitialOffset { get; set; }
 
         SampleIntervalLoop IntervalLoop { get; set; }
 
