@@ -344,9 +344,9 @@ namespace Pronome.Mac
 				if (Rows[i].Duration > maxDur) maxDur = Rows[i].Duration;
 			}
 
-            ResizeFrame(maxDur, queueDraw);
+            NeedsDisplay = true;
 
-            //QueueAllRowsToDraw();
+            ResizeFrame(maxDur, queueDraw); // resize frame and draw all rows
 		}
 
         /// <summary>
@@ -379,13 +379,16 @@ namespace Pronome.Mac
         /// <param name="bpmLength">Bpm length.</param>
         public void ResizeFrame(double bpmLength, bool queueDraw = true)
         {
+
             var frame = Frame;
             frame.Width = (nfloat)(bpmLength * ScalingFactor + 550);
+            frame.Height = (nfloat)Math.Max(Bounds.Height, (RowSpacing + RowHeight) * Rows.Length + RowSpacing);
+            //frame.Height = (RowSpacing + RowHeight) * Rows.Length + RowSpacing;
             Frame = frame;
-
             if (queueDraw)
             {
 				QueueAllRowsToDraw();
+                //NeedsDisplay = true;
             }
         }
 
@@ -686,24 +689,9 @@ namespace Pronome.Mac
             base.DrawRect(dirtyRect);
 
 			using (CGContext ctx = NSGraphicsContext.CurrentContext.CGContext)
-			{
-                // draw measure lines
-                ctx.SetStrokeColor(MeasureLineColor);
-                ctx.SetLineWidth(1);
-                double xPos = PaddingLeft;
-                ctx.MoveTo((int)xPos, 0);
-                double spacing = MeasureSize * ScalingFactor;
-                while (xPos <= Frame.Width)
-                {
-                    int x = (int)xPos;
-                    ctx.MoveTo(x, 0);
+            {
+                DrawMeasureLines(ctx);
 
-                    ctx.AddLineToPoint(x, Frame.Height);
-
-                    xPos += spacing;
-                }
-                ctx.StrokePath();
-                
                 if (!RowsToDraw.Any())
                 {
                     // draw all rows if initializing or changing window size.
@@ -715,24 +703,45 @@ namespace Pronome.Mac
                 else
                 {
                     // draw just the rows in the queue
-					while (RowsToDraw.TryDequeue(out Row row))
-					{
-						DrawRow(row, ctx);
-					}
+                    while (RowsToDraw.TryDequeue(out Row row))
+                    {
+                        DrawRow(row, ctx);
+                    }
                 }
 
-				// draw grid lines if there's a selection
-				if (SelectedCells.Root != null)
+                // draw grid lines if there's a selection
+                if (SelectedCells.Root != null)
                 {
                     DrawGridLines(ctx);
                 }
             }
         }
 
+        private void DrawMeasureLines(CGContext ctx)
+        {
+            // draw measure lines
+            ctx.SetStrokeColor(MeasureLineColor);
+            ctx.SetLineWidth(1);
+            double xPos = PaddingLeft;
+            ctx.MoveTo((int)xPos, 0);
+            double spacing = MeasureSize * ScalingFactor;
+            while (xPos <= Frame.Width)
+            {
+                int x = (int)xPos;
+                ctx.MoveTo(x, 0);
+
+                ctx.AddLineToPoint(x, Frame.Height);
+
+                xPos += spacing;
+            }
+            ctx.StrokePath();
+        }
+
         public override void ViewDidMoveToWindow()
         {
             base.ViewDidMoveToWindow();
-
+            // scroll to top because default is at bottom
+            ScrollPoint(new CGPoint(0, Bounds.Height));
             // add the tracking area, for mouse move events
             AddTrackingRect(Frame, this, IntPtr.Zero, false);
         }

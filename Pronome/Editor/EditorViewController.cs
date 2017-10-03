@@ -64,6 +64,13 @@ namespace Pronome.Mac
         }
         #endregion
 
+        #region Public methods
+        public void ApplyChangesAction()
+        {
+            ApplyChangesAction(null);
+        }
+        #endregion
+
         #region Public static methods
         public static void InitNewAction(IEditorAction action)
         {
@@ -570,6 +577,7 @@ namespace Pronome.Mac
 			var cell = SourceSelector.Cell;
 			var frame = SourceSelector.Frame;
 			bool open = false;
+
 			SourceSelector.WillPopUp += (sender, e) => {
 				if (!open)
 				{
@@ -592,6 +600,7 @@ namespace Pronome.Mac
             base.ViewWillDisappear();
 
             Metronome.Instance.BeatChanged -= Instance_BeatChanged;
+            Metronome.Instance.LayerRemoved -= Instance_BeatChanged;
         }
 		
         public override void ViewWillAppear()
@@ -600,6 +609,11 @@ namespace Pronome.Mac
 
 			Metronome.Instance.BeatChanged -= Instance_BeatChanged;
 			Metronome.Instance.BeatChanged += Instance_BeatChanged;
+            Metronome.Instance.LayerRemoved -= Instance_BeatChanged;
+            Metronome.Instance.LayerRemoved += Instance_BeatChanged;
+
+			// attach delegate which shows close confirmation dialog
+			View.Window.Delegate = new EditorWindowDelegate(View.Window);
         }
         #endregion
 

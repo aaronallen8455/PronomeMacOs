@@ -233,6 +233,7 @@
     </Compile>
     <Compile Include="Editor\Action\AddEditReference.cs" />
     <Compile Include="Editor\Action\RemoveReference.cs" />
+    <Compile Include="Editor\EditorWindowDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

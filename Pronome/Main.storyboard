@@ -98,7 +98,7 @@
                 </windowController>
                 <customObject id="b5M-iz-PwU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-549" y="-749"/>
+            <point key="canvasLocation" x="-461" y="-825"/>
         </scene>
         <!--Editor View Controller-->
         <scene sceneID="dYi-37-caz">
@@ -115,7 +115,7 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <view fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="uxV-Hh-Q4s" customClass="DrawingView">
-                                            <rect key="frame" x="0.0" y="0.0" width="800" height="276"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="800" height="275"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         </view>
                                     </subviews>
