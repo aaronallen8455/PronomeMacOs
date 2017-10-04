@@ -138,8 +138,15 @@ namespace Pronome.Mac.Editor.Action
 
         public override bool CanPerform()
         {
+            var prev = Row.Cells.LookupIndex(Cells.First().Index).Prev();
+
+            // can't move if directly above a reference.
+            if (!string.IsNullOrEmpty(prev.Cell.Reference) && !prev.Cell.IsSelected)
+            {
+                return false;
+            }
+
 			double increment = BeatCell.Parse(Increment) * Times;
-			//double pad = ShiftingRight ? .01 : -.01;
 
             if (ShiftingRight)
             {
@@ -155,7 +162,6 @@ namespace Pronome.Mac.Editor.Action
                 return Row.Offset >= increment;
             }
 
-            var prev = Row.Cells.LookupIndex(Cells.First().Index).Prev();
 
             return prev.Cell.Position < Cells[0].Position - increment;
         }

@@ -305,6 +305,9 @@ namespace Pronome.Mac
         private int SelectBoxLowerBound;
         private int _selectRowIndex;
 
+        private bool IsDraggingCell;
+        private bool CellWasDragged; // true if the cells were moved by the drag action
+
         /// <summary>
         /// The spacing of the grid lines in BPM
         /// </summary>
@@ -604,20 +607,67 @@ namespace Pronome.Mac
         /// <param name="theEvent">The event.</param>
         public override void MouseDown(NSEvent theEvent)
         {
+            if (EditorViewController.Instance.SheetIsOpen) return;
+            // start cell drag if a cells selected
+
             base.MouseDown(theEvent);
 
-            ClickHandler(theEvent);
-        }
+            if (theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ControlKeyMask))
+            {
+                // ctrl is pressed, drawing select box
+                StartSelectBoxHandler(theEvent);
+                return;
+            }
+
+            if (SelectedCells.Root != null)
+            {
+				var pos = ConvertPointFromView(theEvent.LocationInWindow, null);
+
+                // check y range
+                Row row = SelectedCells.Root.Cell.Row;
+                double rowY = GetYPositionOfRow(row);
+                double xPos = ConvertPixelsToBpm(pos.X, row);
+
+                // check if over a selected ref
+                var refs = row.ReferencePositionAndDurations.Where(x => x.position <= xPos && x.position + x.duration >= xPos);
+                if (refs.Any())
+                {
+                    (double position, double duration) = refs.First();
+
+                    if (SelectedCells.TryFind(position, out Cell cell))
+                    {
+                        // start dragging a reference
+                        IsDraggingCell = true;
+                        CellWasDragged = false;
+                    }
+                }
+                else if (pos.Y >= rowY + CellHeightPad && pos.Y <= rowY + RowHeight - CellHeightPad)
+                {
+                    // check if we're over a cell and that it is in selection group
+
+                    if (SelectedCells.TryFind(ConvertPixelsToBpm(pos.X, row), out Cell cell))
+                    {
+                        // start dragging
+                        IsDraggingCell = true;
+                        CellWasDragged = false;
+                    }
+                }
+            }
+		}
 
         public override void RightMouseDown(NSEvent theEvent)
         {
+            // start selection box
+
             base.RightMouseDown(theEvent);
 
-            ClickHandler(theEvent, true);
+            StartSelectBoxHandler(theEvent, true);
         }
 
         public override void MouseDragged(NSEvent theEvent)
         {
+            // draw selection box
+            // drag cell
             base.MouseDragged(theEvent);
 
             DragHandler(theEvent);
@@ -625,6 +675,7 @@ namespace Pronome.Mac
 
         public override void RightMouseDragged(NSEvent theEvent)
         {
+            // draw selection box
             base.RightMouseDragged(theEvent);
 
             DragHandler(theEvent);
@@ -632,6 +683,10 @@ namespace Pronome.Mac
 
         public override void MouseUp(NSEvent theEvent)
         {
+            // end selection box
+            // end cell dragging
+            // toggle cell selection if over a cell
+
             base.MouseUp(theEvent);
 
             MouseUpHandler(theEvent);
@@ -639,9 +694,11 @@ namespace Pronome.Mac
 
         public override void RightMouseUp(NSEvent theEvent)
         {
+            // end selection box
+
             base.RightMouseUp(theEvent);
 
-            MouseUpHandler(theEvent);
+            MouseUpHandler(theEvent, true);
         }
 
         public override void MouseMoved(NSEvent theEvent)
@@ -889,13 +946,14 @@ namespace Pronome.Mac
         /// Check what elements are under the select box and perform necessary actions.
         /// </summary>
         /// <param name="theEvent">The event.</param>
-		private void MouseUpHandler(NSEvent theEvent)
+		private void MouseUpHandler(NSEvent theEvent, bool isRightButton = false)
 		{
-			if (!SelectBoxOrigin.IsEmpty)
-			{
-				// handle selection
-				var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+			var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+
+            if (!SelectBoxOrigin.IsEmpty)
+            {
 				double start = ConvertPixelsToBpm(Math.Min(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
+                // handle selection
 				double end = ConvertPixelsToBpm(Math.Max(SelectBoxOrigin.X, loc.X), Rows[_selectRowIndex]);
 
 				// check if extending current selection
@@ -904,12 +962,20 @@ namespace Pronome.Mac
 				var startNode = Rows[_selectRowIndex].Cells.FindAboveOrEqualTo(start, true);
 				var endNode = Rows[_selectRowIndex].Cells.FindBelowOrEqualTo(end);
 
+                // check for ref
+                var refs = Rows[_selectRowIndex].ReferencePositionAndDurations.Where(x => x.position <= start && start < x.position + x.duration);
+                CellTreeNode refNode = null;
+                if (refs.Any())
+                {
+                    refNode = Rows[_selectRowIndex].Cells.Lookup(refs.First().position);
+                }
+
 				if (startNode != null && startNode.Cell.Position <= endNode.Cell.Position)
 				{
 					// perform selection
-					SelectCell(startNode.Cell, shift);
+                    SelectCell(refNode?.Cell ?? startNode.Cell, shift);
 
-					if (startNode != endNode)
+					if (refNode != null || startNode != endNode)
 					{
 						SelectCell(endNode.Cell, true);
 					}
@@ -923,11 +989,85 @@ namespace Pronome.Mac
                     DeselectCells();
 				}
 
-
 				SelectBox.RemoveFromSuperLayer();
 				SelectBox.Dispose();
 				SelectBoxOrigin = CGPoint.Empty;
 			}
+            else if (IsDraggingCell)
+            {
+                // end cell drag
+                IsDraggingCell = false;
+                CellWasDragged = false;
+            }
+            else if (!CellWasDragged) // don't deselect/add cell if coming off a drag
+            {
+				// try to select cell
+
+				// determine which row was clicked in
+				int offset = (int)(Frame.Height - loc.Y - RowSpacing);
+				int rowIndex = offset / (RowSpacing + RowHeight);
+
+                // see if it's inside the row (not in spacing)
+                if (rowIndex < Rows.Length)
+                {
+                    var ypos = GetYPositionOfRow(Rows[rowIndex]);
+
+					if (!isRightButton && loc.Y >= ypos && loc.Y <= ypos + RowHeight)
+					{
+						Row row = Rows[rowIndex];
+						double xPos = ConvertPixelsToBpm(loc.X, row);
+						
+						// cell range
+						if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
+						{
+							// see if a reference is being selected
+							var reference = row.ReferencePositionAndDurations.Where(p => p.position <= xPos && xPos < p.position + p.duration);
+							
+							Cell cell = null;
+							
+							if (reference.Any())
+							{
+								(double pos, double dur) = reference.FirstOrDefault();
+								cell = row.Cells.Lookup(pos, false).Cell;
+								//SelectCell(rcell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+								//QueueRowToDraw(row);
+								//return;
+							}
+							else if (row.Cells.TryFind(xPos, out Cell rcell))
+							{
+								cell = rcell;
+								// perform selection actions
+								//return;
+							}
+							
+							if (cell != null)
+							{
+								SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
+								QueueRowToDraw(row);
+							}
+						}
+						
+						// check if a cell was clicked
+						if (SelectedCells.Root != null)
+						{
+							// try to create new cell
+							// see if clicked on a grid line (within a pad amount)
+							
+							//double end = ConvertBpmToPixels(SelectedCells.GetMax().Cell.Position, row);
+							double end = SelectedCells.Max.Cell.Position;
+							double start = SelectedCells.Min.Cell.Position;
+							
+							// get selection bounds within the row's cells
+							CellTreeNode endNode = row.Cells.Lookup(end);
+							CellTreeNode startNode = row.Cells.Lookup(start);
+							
+							var action = new AddCell(xPos, row, startNode, endNode);
+							
+							EditorViewController.InitNewAction(action);
+						}
+					}
+                }
+            }
 		}
 
         /// <summary>
@@ -966,6 +1106,32 @@ namespace Pronome.Mac
 					SelectBox.Path = path;
 				}
 			}
+            else if (IsDraggingCell)
+            {
+                var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
+                double xPos = ConvertPixelsToBpm(loc.X, SelectedCells.Root.Cell.Row);
+
+                var startPos = SelectedCells.Min.Cell.Position;
+                var endPos = SelectedCells.Max.Cell.Position;
+                //double spacing = ConvertBpmToPixels(GridSpacing, SelectedCells.Root.Cell.Row);
+
+                if (xPos >= endPos + GridSpacing)
+                {
+                    // dragging cell to right
+                    var action = new MoveCells(SelectedCells.ToArray(), GridSpacingString, (int)((xPos - endPos) / GridSpacing));
+                    EditorViewController.InitNewAction(action);
+
+                    CellWasDragged = true;
+                }
+                else if (xPos <= startPos - GridSpacing)
+                {
+                    // dragging cell to left
+                    var action = new MoveCells(SelectedCells.ToArray(), GridSpacingString, (int)(-(startPos - xPos) / GridSpacing));
+                    EditorViewController.InitNewAction(action);
+
+                    CellWasDragged = true;
+                }
+            }
 		}
 
         /// <summary>
@@ -973,7 +1139,7 @@ namespace Pronome.Mac
         /// </summary>
         /// <param name="theEvent">The event.</param>
         /// <param name="isRightButton">If set to <c>true</c> is right button.</param>
-		private void ClickHandler(NSEvent theEvent, bool isRightButton = false)
+		private void StartSelectBoxHandler(NSEvent theEvent, bool isRightButton = false)
 		{
             // don't allow editing while a sheet is open
             if (EditorViewController.Instance.SheetIsOpen) return;
@@ -998,103 +1164,6 @@ namespace Pronome.Mac
 						_selectRowIndex = rowIndex;
 						InitSelectBox(loc, ypos + RowHeight, ypos);
 						return;
-					}
-				}
-
-				// see if click is in y range
-				if (!isRightButton && loc.Y >= ypos && loc.Y <= ypos + RowHeight)
-				{
-                    Row row = Rows[rowIndex];
-                    double xPos = ConvertPixelsToBpm(loc.X, row);
-
-                    // cell range
-                    if (loc.Y >= ypos + CellHeightPad && loc.Y <= ypos + RowHeight - CellHeightPad)
-                    {
-                        // see if a reference is being selected
-                        var reference = row.ReferencePositionAndDurations.Where(p => p.position <= xPos && xPos < p.position + p.duration);
-
-                        if (reference.Any())
-						{
-                            (double pos, double dur) = reference.FirstOrDefault();
-                            Cell rcell = row.Cells.Lookup(pos, false).Cell;
-                            SelectCell(rcell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
-                            QueueRowToDraw(row);
-                            return;
-						}
-
-                        if (row.Cells.TryFind(xPos, out Cell cell))
-                        {
-                            // perform selection actions
-                            SelectCell(cell, theEvent.ModifierFlags.HasFlag(NSEventModifierMask.ShiftKeyMask));
-                            QueueRowToDraw(row);
-                            return;
-                        }
-                    }
-
-					// check if a cell was clicked
-					if (SelectedCells.Root != null)
-					{
-                        // try to create new cell
-                        // see if clicked on a grid line (within a pad amount)
-
-                        //double end = ConvertBpmToPixels(SelectedCells.GetMax().Cell.Position, row);
-                        double end = SelectedCells.Max.Cell.Position;
-                        double start = SelectedCells.Min.Cell.Position;
-
-                        // get selection bounds within the row's cells
-                        CellTreeNode endNode = row.Cells.Lookup(end);
-                        CellTreeNode startNode = row.Cells.Lookup(start);
-
-						var action = new AddCell(xPos, row, startNode, endNode);
-
-						EditorViewController.InitNewAction(action);
-
-                        //double pad = Math.Min(CellWidth / ScalingFactor / 2, GridSpacing * .125);
-                        //double x = -1;
-                        //double mod = -1;
-                        //bool aboveSelection = false;
-						//
-                        //if (end < xPos)
-                        //{
-                        //    x = xPos - end;
-                        //    mod = x % GridSpacing;
-                        //    aboveSelection = true;
-                        //}
-                        //else if(start > xPos)
-                        //{
-                        //    x = start - xPos;
-                        //    mod = x % GridSpacing;
-                        //}
-						//
-						//// see if it registers as a hit
-                        //if (x >= 0 && (mod <= pad || mod >= GridSpacing - pad))
-						//{
-                        //    // check if it's inside the ghost zone of a rep group
-                        //    int div = (int)Math.Round(x / GridSpacing);
-                        //    // bpm position within row
-                        //    xPos = aboveSelection ? end + div * GridSpacing : start - div * GridSpacing;
-                        //    //Repeat rg = row.RepeatGroups.Where(x => x.P)
-                        //    bool inGroup = false;
-                        //    foreach (Repeat rg in row.RepeatGroups)
-                        //    {
-                        //        if (xPos < rg.Position + rg.Length) break;
-						//
-                        //        double range = rg.Position + rg.Length * rg.Times - pad;
-                        //        if (rg.Position + rg.Length <= xPos && xPos < range)
-                        //        {
-                        //            inGroup = true;
-                        //            break;
-                        //        }
-                        //    }
-						//
-						//	// check if inside a reference
-                        //    if (!inGroup) //&& row.ReferencePositionAndDurations.Any(p => p.position <= xPos && xPos < p.position + p.duration))
-                        //    {
-                        //        var action = new AddCell(div, aboveSelection, xPos, row, startNode, endNode);
-						//
-                        //        EditorViewController.InitNewAction(action);
-                        //    }
-						//}
 					}
 				}
 			}
