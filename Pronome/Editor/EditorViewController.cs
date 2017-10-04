@@ -600,7 +600,7 @@ namespace Pronome.Mac
             base.ViewWillDisappear();
 
             Metronome.Instance.BeatChanged -= Instance_BeatChanged;
-            Metronome.Instance.LayerRemoved -= Instance_BeatChanged;
+            //Metronome.Instance.LayerRemoved -= Instance_BeatChanged;
         }
 		
         public override void ViewWillAppear()
@@ -609,8 +609,8 @@ namespace Pronome.Mac
 
 			Metronome.Instance.BeatChanged -= Instance_BeatChanged;
 			Metronome.Instance.BeatChanged += Instance_BeatChanged;
-            Metronome.Instance.LayerRemoved -= Instance_BeatChanged;
-            Metronome.Instance.LayerRemoved += Instance_BeatChanged;
+            //Metronome.Instance.LayerRemoved -= Instance_BeatChanged;
+            //Metronome.Instance.LayerRemoved += Instance_BeatChanged;
 
 			// attach delegate which shows close confirmation dialog
 			View.Window.Delegate = new EditorWindowDelegate(View.Window);

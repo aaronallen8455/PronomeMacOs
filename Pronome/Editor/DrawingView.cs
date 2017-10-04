@@ -344,9 +344,9 @@ namespace Pronome.Mac
 				if (Rows[i].Duration > maxDur) maxDur = Rows[i].Duration;
 			}
 
-            NeedsDisplay = true;
 
             ResizeFrame(maxDur, queueDraw); // resize frame and draw all rows
+			//NeedsDisplay = true;
 		}
 
         /// <summary>
@@ -381,9 +381,8 @@ namespace Pronome.Mac
         {
 
             var frame = Frame;
-            frame.Width = (nfloat)(bpmLength * ScalingFactor + 550);
-            frame.Height = (nfloat)Math.Max(Bounds.Height, (RowSpacing + RowHeight) * Rows.Length + RowSpacing);
-            //frame.Height = (RowSpacing + RowHeight) * Rows.Length + RowSpacing;
+            frame.Width = (nfloat)Math.Max(Superview.Bounds.Width, bpmLength * ScalingFactor + 550);
+            frame.Height = (nfloat)Math.Max(Superview.Bounds.Height, (RowSpacing + RowHeight) * Rows.Length + RowSpacing);
             Frame = frame;
             if (queueDraw)
             {

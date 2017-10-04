@@ -268,15 +268,18 @@ namespace Pronome.Mac.Editor
 
                 DrawingView.Instance.ResizeFrame(maxDur, false);
 			}
+            else
+            {
+				EditorViewController.Instance.DView.QueueRowToDraw(Row);
+				
+				RedrawReferencers();
+            }
 
             EditorViewController.Instance.DView.ChangesApplied = false;
 
-            // would be nice to only draw individual cells, but seems to be a problem
-            DrawingView.Instance.NeedsDisplay = true;
+            // would be nice to only draw individual rows, but seems to be a problem
+            //DrawingView.Instance.NeedsDisplay = true;
 
-            //EditorViewController.Instance.DView.QueueRowToDraw(Row);
-
-			//RedrawReferencers();
 
 			if (selectionStart > -1)
 			{

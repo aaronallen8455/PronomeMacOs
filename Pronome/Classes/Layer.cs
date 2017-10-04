@@ -61,6 +61,10 @@ namespace Pronome.Mac
         public LayerItemController Controller;
         #endregion
 
+        #region Protected Properties
+
+        #endregion
+
         #region Databound Properties
         NSAttributedString _beatCode;
         /// <summary>
@@ -366,7 +370,12 @@ namespace Pronome.Mac
 
             if (BaseStreamInfo.IsPitch && Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {
-                PitchInput = BaseStreamInfo.Uri;
+                WillChangeValue("Pitch");
+                _pitchInput = BaseStreamInfo.Uri;
+                DidChangeValue("Pitch");
+                //NewlyCreated = true;
+                //PitchInput = BaseStreamInfo.Uri;
+                //NewlyCreated = false;
             }
 
         }
