@@ -78,6 +78,12 @@
     <ImageAsset Include="Assets.xcassets\Sixteenth.imageset\sixnote.png" />
     <ImageAsset Include="Assets.xcassets\SixteenthTriplet.imageset\Contents.json" />
     <ImageAsset Include="Assets.xcassets\SixteenthTriplet.imageset\sixtrip.png" />
+    <ImageAsset Include="Assets.xcassets\PlayButton.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\PauseButton.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\PauseButton.imageset\pauseButton.png" />
+    <ImageAsset Include="Assets.xcassets\StopButton.imageset\Contents.json" />
+    <ImageAsset Include="Assets.xcassets\StopButton.imageset\stopButton.png" />
+    <ImageAsset Include="Assets.xcassets\PlayButton.imageset\playButton.png" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
@@ -98,6 +104,9 @@
     <Folder Include="Assets.xcassets\QuarterTriplet.imageset\" />
     <Folder Include="Assets.xcassets\Sixteenth.imageset\" />
     <Folder Include="Assets.xcassets\SixteenthTriplet.imageset\" />
+    <Folder Include="Assets.xcassets\PlayButton.imageset\" />
+    <Folder Include="Assets.xcassets\PauseButton.imageset\" />
+    <Folder Include="Assets.xcassets\StopButton.imageset\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -234,6 +243,10 @@
     <Compile Include="Editor\Action\AddEditReference.cs" />
     <Compile Include="Editor\Action\RemoveReference.cs" />
     <Compile Include="Editor\EditorWindowDelegate.cs" />
+    <Compile Include="CustomSlider.cs" />
+    <Compile Include="CustomSlider.designer.cs">
+      <DependentUpon>CustomSlider.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

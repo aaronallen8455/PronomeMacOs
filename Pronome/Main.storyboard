@@ -1975,8 +1975,8 @@ Gw
                         <rect key="frame" x="0.0" y="0.0" width="670" height="650"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="nvd-4v-4sq">
-                                <rect key="frame" x="14" y="48" width="104" height="32"/>
+                            <button verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nvd-4v-4sq">
+                                <rect key="frame" x="14" y="31" width="104" height="32"/>
                                 <buttonCell key="cell" type="push" title="New Layer" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="wXN-uf-6LI">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -1985,33 +1985,9 @@ Gw
                                     <action selector="NewLayerAction:" target="59N-8S-Y2z" id="q9s-AV-mXY"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="d60-Oe-h4N">
-                                <rect key="frame" x="118" y="48" width="66" height="32"/>
-                                <buttonCell key="cell" type="push" title="Play" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Nl2-1E-dzb">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent" base64-UTF8="YES">
-IA
-</string>
-                                    <modifierMask key="keyEquivalentModifierMask" shift="YES"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="PlayButtonAction:" target="59N-8S-Y2z" id="wZv-gT-wMk"/>
-                                </connections>
-                            </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="y5z-i4-6tX">
-                                <rect key="frame" x="185" y="48" width="77" height="32"/>
-                                <buttonCell key="cell" type="push" title="Pause" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="wuo-wK-BeF">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="PauseButtonAction:" target="59N-8S-Y2z" id="y7b-fo-tDV"/>
-                                </connections>
-                            </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cGr-DM-aS1">
-                                <rect key="frame" x="265" y="48" width="69" height="32"/>
-                                <buttonCell key="cell" type="push" title="Stop" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="BMA-84-fYV">
+                            <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cGr-DM-aS1">
+                                <rect key="frame" x="277" y="20" width="57" height="58"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="StopButton" imagePosition="overlaps" alignment="center" enabled="NO" imageScaling="proportionallyDown" inset="2" id="BMA-84-fYV">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                     <string key="keyEquivalent" base64-UTF8="YES">
@@ -2023,8 +1999,8 @@ IA
                                     <action selector="StopButtonAction:" target="59N-8S-Y2z" id="qQ9-xp-sFU"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="hfs-Vt-f3T">
-                                <rect key="frame" x="14" y="15" width="82" height="32"/>
+                            <button verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hfs-Vt-f3T">
+                                <rect key="frame" x="359" y="32" width="82" height="32"/>
                                 <buttonCell key="cell" type="push" title="Tempo" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="sLp-Er-LgA">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -2034,7 +2010,7 @@ IA
                                 </connections>
                             </button>
                             <textField verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0we-qS-jA1">
-                                <rect key="frame" x="114" y="21" width="65" height="22"/>
+                                <rect key="frame" x="457" y="39" width="51" height="22"/>
                                 <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="J9v-bW-Ot1">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -2044,15 +2020,15 @@ IA
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Tempo" id="0nO-zB-axl"/>
                                 </connections>
                             </textField>
-                            <slider verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="C13-Fr-Cfx">
-                                <rect key="frame" x="244" y="24" width="96" height="19"/>
+                            <slider verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="C13-Fr-Cfx" customClass="CustomSlider">
+                                <rect key="frame" x="536" y="42" width="96" height="19"/>
                                 <sliderCell key="cell" continuous="YES" state="on" alignment="left" maxValue="1" doubleValue="1" tickMarkPosition="above" sliderType="linear" id="b7f-4O-8Kb"/>
                                 <connections>
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Volume" id="qsf-Iw-dlk"/>
                                 </connections>
                             </slider>
-                            <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Tt0-PW-axu">
-                                <rect key="frame" x="95" y="18" width="19" height="27"/>
+                            <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Tt0-PW-axu">
+                                <rect key="frame" x="438" y="36" width="19" height="27"/>
                                 <stepperCell key="cell" continuous="YES" alignment="left" minValue="1" maxValue="10000" doubleValue="1" id="jqS-IT-TuB"/>
                                 <connections>
                                     <binding destination="59N-8S-Y2z" name="value" keyPath="self.Metronome.Tempo" id="rLF-ct-8tG"/>
@@ -2092,29 +2068,54 @@ IA
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d60-Oe-h4N">
+                                <rect key="frame" x="143" y="20" width="57" height="58"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="PlayButton" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="Nl2-1E-dzb">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+IA
+</string>
+                                    <modifierMask key="keyEquivalentModifierMask" shift="YES"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="PlayButtonAction:" target="59N-8S-Y2z" id="wZv-gT-wMk"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y5z-i4-6tX">
+                                <rect key="frame" x="210" y="20" width="57" height="58"/>
+                                <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="PauseButton" imagePosition="overlaps" alignment="center" enabled="NO" imageScaling="proportionallyDown" inset="2" id="wuo-wK-BeF">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="PauseButtonAction:" target="59N-8S-Y2z" id="y7b-fo-tDV"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="pWO-MD-PqW">
+                                <rect key="frame" x="557" y="62" width="54" height="11"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Master Vol." id="kIm-No-930">
+                                    <font key="font" metaFont="miniSystem"/>
+                                    <color key="textColor" red="1" green="1" blue="1" alpha="0.84999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
                         </subviews>
                         <constraints>
-                            <constraint firstAttribute="bottom" secondItem="0we-qS-jA1" secondAttribute="bottom" constant="21" id="3RU-Ff-ixH"/>
-                            <constraint firstAttribute="bottom" secondItem="Tt0-PW-axu" secondAttribute="bottom" constant="20" id="4gP-Gi-BA7"/>
-                            <constraint firstItem="0we-qS-jA1" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="114" id="6Cv-XZ-w5P"/>
-                            <constraint firstItem="cGr-DM-aS1" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="271" id="7a5-tw-TL7"/>
-                            <constraint firstItem="hfs-Vt-f3T" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="20" id="8lc-Hx-ClL"/>
+                            <constraint firstAttribute="bottom" secondItem="hfs-Vt-f3T" secondAttribute="bottom" constant="39" id="4Z9-Zr-Z9n"/>
                             <constraint firstItem="E8B-1s-p1d" firstAttribute="top" secondItem="esz-vR-dpk" secondAttribute="top" constant="91" id="BDj-oX-XLQ"/>
-                            <constraint firstItem="d60-Oe-h4N" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="124" id="BPz-pT-Ufx"/>
-                            <constraint firstAttribute="bottom" secondItem="hfs-Vt-f3T" secondAttribute="bottom" constant="22" id="Drx-3a-wI1"/>
-                            <constraint firstItem="nvd-4v-4sq" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="20" id="Dsq-eO-Wgo"/>
-                            <constraint firstItem="Tt0-PW-axu" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="98" id="E2o-sv-PJ4"/>
+                            <constraint firstAttribute="bottom" secondItem="d60-Oe-h4N" secondAttribute="bottom" constant="20" id="DQZ-k4-51O"/>
+                            <constraint firstAttribute="bottom" secondItem="0we-qS-jA1" secondAttribute="bottom" constant="39" id="GuS-sE-bhh"/>
                             <constraint firstAttribute="bottom" secondItem="E8B-1s-p1d" secondAttribute="bottom" constant="100" id="I0I-HP-xYA"/>
-                            <constraint firstAttribute="bottom" secondItem="cGr-DM-aS1" secondAttribute="bottom" constant="55" id="L7b-gQ-255"/>
-                            <constraint firstItem="C13-Fr-Cfx" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="246" id="TWX-eh-6aj"/>
-                            <constraint firstAttribute="bottom" secondItem="C13-Fr-Cfx" secondAttribute="bottom" constant="26" id="VKv-m9-X3u"/>
-                            <constraint firstAttribute="bottom" secondItem="nvd-4v-4sq" secondAttribute="bottom" constant="55" id="cMh-zd-ujs"/>
+                            <constraint firstAttribute="bottom" secondItem="Tt0-PW-axu" secondAttribute="bottom" constant="38" id="RSX-YT-l5i"/>
+                            <constraint firstAttribute="bottom" secondItem="nvd-4v-4sq" secondAttribute="bottom" constant="38" id="TUL-9Y-MvN"/>
+                            <constraint firstAttribute="bottom" secondItem="y5z-i4-6tX" secondAttribute="bottom" constant="20" id="aWc-xi-RcX"/>
                             <constraint firstAttribute="trailing" secondItem="E8B-1s-p1d" secondAttribute="trailing" id="hg6-tM-E85"/>
-                            <constraint firstItem="y5z-i4-6tX" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" constant="191" id="hj9-Z1-jvo"/>
-                            <constraint firstAttribute="bottom" secondItem="d60-Oe-h4N" secondAttribute="bottom" constant="55" id="iBV-Qn-pTj"/>
+                            <constraint firstAttribute="bottom" secondItem="C13-Fr-Cfx" secondAttribute="bottom" constant="44" id="nal-Td-L3H"/>
+                            <constraint firstAttribute="bottom" secondItem="pWO-MD-PqW" secondAttribute="bottom" constant="62" id="oP4-Bx-voG"/>
                             <constraint firstItem="hWq-5G-5pm" firstAttribute="top" secondItem="esz-vR-dpk" secondAttribute="top" constant="20" id="u35-DV-8BC"/>
-                            <constraint firstAttribute="bottom" secondItem="y5z-i4-6tX" secondAttribute="bottom" constant="55" id="wwj-HM-9Xy"/>
                             <constraint firstItem="hWq-5G-5pm" firstAttribute="centerX" secondItem="esz-vR-dpk" secondAttribute="centerX" id="xXq-Da-apb"/>
+                            <constraint firstAttribute="bottom" secondItem="cGr-DM-aS1" secondAttribute="bottom" constant="20" id="xnY-ah-zR4"/>
                             <constraint firstItem="E8B-1s-p1d" firstAttribute="leading" secondItem="esz-vR-dpk" secondAttribute="leading" id="zUB-Fq-ndI"/>
                         </constraints>
                     </view>
@@ -2139,9 +2140,12 @@ IA
         <image name="NSMultipleDocuments" width="32" height="32"/>
         <image name="NSPreferencesGeneral" width="32" height="32"/>
         <image name="NSUser" width="32" height="32"/>
+        <image name="PauseButton" width="80" height="81"/>
+        <image name="PlayButton" width="80" height="81"/>
         <image name="Quarter" width="39" height="39"/>
         <image name="QuarterTriplet" width="39" height="39"/>
         <image name="Sixteenth" width="39" height="39"/>
         <image name="SixteenthTriplet" width="39" height="39"/>
+        <image name="StopButton" width="80" height="81"/>
     </resources>
 </document>
