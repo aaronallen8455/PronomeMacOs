@@ -101,7 +101,7 @@ namespace Pronome.Mac
             set
             {
                 WillChangeValue("MeasureSizeString");
-                if (BeatCell.TryParse(value, out double bpm) && bpm > 0)
+                if (BeatCell.TryParse(value, out double bpm) && bpm >= 0 && bpm <= 500)
                 {
                     MeasureSize = bpm;
                     _measureSizeString = value;
@@ -305,7 +305,7 @@ namespace Pronome.Mac
         private int SelectBoxLowerBound;
         private int _selectRowIndex;
 
-        private bool IsDraggingCell;
+        private double CellDragAnchor = -1;
         private bool CellWasDragged; // true if the cells were moved by the drag action
 
         /// <summary>
@@ -637,7 +637,7 @@ namespace Pronome.Mac
                     if (SelectedCells.TryFind(position, out Cell cell))
                     {
                         // start dragging a reference
-                        IsDraggingCell = true;
+                        CellDragAnchor = xPos;
                         CellWasDragged = false;
                     }
                 }
@@ -648,7 +648,7 @@ namespace Pronome.Mac
                     if (SelectedCells.TryFind(ConvertPixelsToBpm(pos.X, row), out Cell cell))
                     {
                         // start dragging
-                        IsDraggingCell = true;
+                        CellDragAnchor = xPos;
                         CellWasDragged = false;
                     }
                 }
@@ -775,6 +775,7 @@ namespace Pronome.Mac
 
         private void DrawMeasureLines(CGContext ctx)
         {
+            if (MeasureSize <= .1) return;
             // draw measure lines
             ctx.SetStrokeColor(MeasureLineColor);
             ctx.SetLineWidth(1);
@@ -993,10 +994,10 @@ namespace Pronome.Mac
 				SelectBox.Dispose();
 				SelectBoxOrigin = CGPoint.Empty;
 			}
-            else if (IsDraggingCell)
+            else if (CellDragAnchor >= 0)
             {
                 // end cell drag
-                IsDraggingCell = false;
+                CellDragAnchor = -1;
                 CellWasDragged = false;
             }
             else if (!CellWasDragged) // don't deselect/add cell if coming off a drag
@@ -1106,7 +1107,7 @@ namespace Pronome.Mac
 					SelectBox.Path = path;
 				}
 			}
-            else if (IsDraggingCell)
+            else if (CellDragAnchor >= 0)
             {
                 var loc = ConvertPointFromView(theEvent.LocationInWindow, null);
                 double xPos = ConvertPixelsToBpm(loc.X, SelectedCells.Root.Cell.Row);
@@ -1115,21 +1116,23 @@ namespace Pronome.Mac
                 var endPos = SelectedCells.Max.Cell.Position;
                 //double spacing = ConvertBpmToPixels(GridSpacing, SelectedCells.Root.Cell.Row);
 
-                if (xPos >= endPos + GridSpacing)
+                if (xPos >= CellDragAnchor + GridSpacing)
                 {
                     // dragging cell to right
-                    var action = new MoveCells(SelectedCells.ToArray(), GridSpacingString, (int)((xPos - endPos) / GridSpacing));
+                    var action = new MoveCells(SelectedCells.ToArray(), GridSpacingString, (int)((xPos - CellDragAnchor) / GridSpacing));
                     EditorViewController.InitNewAction(action);
 
                     CellWasDragged = true;
+                    CellDragAnchor += GridSpacing;
                 }
-                else if (xPos <= startPos - GridSpacing)
+                else if (xPos <= CellDragAnchor - GridSpacing)
                 {
                     // dragging cell to left
-                    var action = new MoveCells(SelectedCells.ToArray(), GridSpacingString, (int)(-(startPos - xPos) / GridSpacing));
+                    var action = new MoveCells(SelectedCells.ToArray(), GridSpacingString, (int)(-(CellDragAnchor - xPos) / GridSpacing));
                     EditorViewController.InitNewAction(action);
 
                     CellWasDragged = true;
+                    CellDragAnchor -= GridSpacing;
                 }
             }
 		}
