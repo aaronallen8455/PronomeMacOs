@@ -834,14 +834,14 @@ Gw
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="cO4-fK-sK5"/>
-                                        <menuItem title="Undo" tag="1" id="oS1-do-maH">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Undo" tag="1" keyEquivalent="z" id="oS1-do-maH">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="undoBeat:" target="Ady-hI-5gd" id="fjq-ZN-ys6"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Redo" id="dk5-eo-FiP">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Redo" keyEquivalent="y" id="dk5-eo-FiP">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="redoBeat:" target="Ady-hI-5gd" id="OIL-YH-PHI"/>
                                             </connections>
@@ -930,19 +930,22 @@ Gw
                                             </menu>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="vM8-3X-Cbu"/>
-                                        <menuItem title="Move Cell(s) Left" id="AfK-dW-OAe">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Move Cell(s) Left" keyEquivalent="a" id="AfK-dW-OAe">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="moveCellsLeft:" target="Ady-hI-5gd" id="DZx-eZ-aop"/>
                                             </connections>
                                         </menuItem>
-                                        <menuItem title="Move Cell(s) Right" id="T8P-uD-su3">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Move Cell(s) Right" keyEquivalent="s" id="T8P-uD-su3">
+                                            <modifierMask key="keyEquivalentModifierMask" control="YES"/>
                                             <connections>
                                                 <action selector="moveCellsRight:" target="Ady-hI-5gd" id="IRa-J5-sfQ"/>
                                             </connections>
                                         </menuItem>
                                         <menuItem title="Remove Cell(s)" id="YDB-py-y9M">
+                                            <string key="keyEquivalent" base64-UTF8="YES">
+CA
+</string>
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <connections>
                                                 <action selector="removeCells:" target="Ady-hI-5gd" id="U96-sJ-Jfj"/>
@@ -1985,7 +1988,7 @@ Gw
                                     <action selector="NewLayerAction:" target="59N-8S-Y2z" id="q9s-AV-mXY"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cGr-DM-aS1">
+                            <button verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cGr-DM-aS1">
                                 <rect key="frame" x="277" y="20" width="57" height="58"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="StopButton" imagePosition="overlaps" alignment="center" enabled="NO" imageScaling="proportionallyDown" inset="2" id="BMA-84-fYV">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2068,7 +2071,7 @@ IA
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d60-Oe-h4N">
+                            <button verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="d60-Oe-h4N">
                                 <rect key="frame" x="143" y="20" width="57" height="58"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="PlayButton" imagePosition="overlaps" alignment="center" imageScaling="proportionallyDown" inset="2" id="Nl2-1E-dzb">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2082,7 +2085,7 @@ IA
                                     <action selector="PlayButtonAction:" target="59N-8S-Y2z" id="wZv-gT-wMk"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" ambiguous="YES" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y5z-i4-6tX">
+                            <button verticalHuggingPriority="750" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="y5z-i4-6tX">
                                 <rect key="frame" x="210" y="20" width="57" height="58"/>
                                 <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="PauseButton" imagePosition="overlaps" alignment="center" enabled="NO" imageScaling="proportionallyDown" inset="2" id="wuo-wK-BeF">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
@@ -2140,12 +2143,12 @@ IA
         <image name="NSMultipleDocuments" width="32" height="32"/>
         <image name="NSPreferencesGeneral" width="32" height="32"/>
         <image name="NSUser" width="32" height="32"/>
-        <image name="PauseButton" width="80" height="81"/>
-        <image name="PlayButton" width="80" height="81"/>
+        <image name="PauseButton" width="57" height="58"/>
+        <image name="PlayButton" width="57" height="58"/>
         <image name="Quarter" width="39" height="39"/>
         <image name="QuarterTriplet" width="39" height="39"/>
         <image name="Sixteenth" width="39" height="39"/>
         <image name="SixteenthTriplet" width="39" height="39"/>
-        <image name="StopButton" width="80" height="81"/>
+        <image name="StopButton" width="57" height="58"/>
     </resources>
 </document>

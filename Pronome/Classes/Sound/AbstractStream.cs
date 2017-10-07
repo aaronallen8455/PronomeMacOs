@@ -28,6 +28,9 @@ namespace Pronome.Mac
 
 		private float pan;
 
+        /// <summary>
+        /// holds the current position within the silent/audible interval continuum
+        /// </summary>
 		protected long _silentInterval;
 
         /// <summary>
@@ -121,8 +124,9 @@ namespace Pronome.Mac
             Layer = layer;
             _info = info;
 
+
             // subscribe to events
-            Metronome.Instance.Stopped += Reset;
+            Metronome.Instance.Started += Reset;
             Metronome.Instance.TempoChanged += TempoChanged;
 		}
 		#endregion
@@ -136,7 +140,13 @@ namespace Pronome.Mac
 			CurrentOffset = InitialOffset;
 			SampleInterval = 0;
 			IntervalLoop.Enumerator = IntervalLoop.GetEnumerator();
-            _silentInterval = (long)InitialOffset * -1;
+            //_silentInterval = (long)InitialOffset * -1;
+            if (Metronome.Instance.IsSilentIntervalEngaged)
+            {
+				long silent = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.SilentIntervalBpm);
+				long audible = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.AudibleIntervalBpm);
+                _silentInterval = silent + audible - (long)InitialOffset;
+            }
             RandomMuteCountdownTotal = 0;
 		}
 
@@ -264,30 +274,27 @@ namespace Pronome.Mac
 		}
 
 		/// <summary>
-		/// Check if silent interval is muted.
+		/// Check if silent interval is muted. Works by checking if current interval position is before the cut-off point
 		/// </summary>
 		/// <returns><c>true</c>, if interval muted was silented, <c>false</c> otherwise.</returns>
 		protected bool SilentIntervalMuted()
 		{
 			if (Metronome.Instance.IsSilentIntervalEngaged)
 			{
+				long silent = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.SilentIntervalBpm);
+				long audible = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.AudibleIntervalBpm);
+				
+				// check result before decrementing so that initial cycle is not stunted
+                bool IsSilentIntervalSilent = _silentInterval <= silent;
+
                 _silentInterval -= SampleInterval;
 
-                bool IsSilentIntervalSilent = false;
-
-				if (_silentInterval <= 0)
-				{
-					// get the intervals in samples
-					long silent = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.SilentIntervalBpm);
-					long audible = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.AudibleIntervalBpm);
-
+                if (_silentInterval <= 0)
+                {
 					// account for possible proced cycles
 					_silentInterval %= silent + audible;
 
-                    IsSilentIntervalSilent = _silentInterval > audible;
-
-					// reset the interval size
-                    _silentInterval = IsSilentIntervalSilent ? silent : audible;
+                    _silentInterval += silent + audible;
 				}
 
                 return IsSilentIntervalSilent;
