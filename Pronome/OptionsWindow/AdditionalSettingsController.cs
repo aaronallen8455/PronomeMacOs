@@ -188,6 +188,19 @@ namespace Pronome.Mac
             }
         }
 
+        /// <summary>
+        /// Assign the window delegate in here.
+        /// </summary>
+        public override void ViewDidAppear()
+        {
+            if (View.Window.Delegate == null)
+            {
+                View.Window.Delegate = new OptionsWindow.OptionsWindowDelegate(View.Window);
+            }
+
+            base.ViewDidAppear();
+        }
+
         public override bool ShouldPerformSegue(string identifier, NSObject sender)
         {
             // cancel the segue if there arn't any layers

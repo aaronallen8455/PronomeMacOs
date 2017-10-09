@@ -247,6 +247,7 @@
     <Compile Include="CustomSlider.designer.cs">
       <DependentUpon>CustomSlider.cs</DependentUpon>
     </Compile>
+    <Compile Include="OptionsWindow\OptionsWindowDelegate.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

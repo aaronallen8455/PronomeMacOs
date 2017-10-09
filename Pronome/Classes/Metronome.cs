@@ -579,18 +579,19 @@ namespace Pronome.Mac
 
         public void Cleanup()
         {
-			// Dispose the mixer
-			Mixer.Dispose();
-			// null the events
-			TempoChanged = null;
-			Started = null;
-			Stopped = null;
-			Paused = null;
+            // null the events
+            TempoChanged = null;
+            Started = null;
+            Stopped = null;
+            Paused = null;
 
             foreach (Layer layer in Layers)
             {
                 layer.Cleanup();
             }
+
+			// Dispose the mixer
+			Mixer.Dispose();
         }
         #endregion
 

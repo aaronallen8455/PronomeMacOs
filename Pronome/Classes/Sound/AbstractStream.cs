@@ -285,7 +285,7 @@ namespace Pronome.Mac
 				long audible = (long)Metronome.Instance.ConvertBpmToSamples(Metronome.Instance.AudibleIntervalBpm);
 				
 				// check result before decrementing so that initial cycle is not stunted
-                bool IsSilentIntervalSilent = _silentInterval <= silent;
+                bool isSilentIntervalSilent = _silentInterval <= silent;
 
                 _silentInterval -= SampleInterval;
 
@@ -297,7 +297,7 @@ namespace Pronome.Mac
                     _silentInterval += silent + audible;
 				}
 
-                return IsSilentIntervalSilent;
+                return isSilentIntervalSilent;
 			}
 
 			return false;
