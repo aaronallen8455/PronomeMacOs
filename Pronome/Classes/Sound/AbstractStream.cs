@@ -277,7 +277,7 @@ namespace Pronome.Mac
 		/// Check if silent interval is muted. Works by checking if current interval position is before the cut-off point
 		/// </summary>
 		/// <returns><c>true</c>, if interval muted was silented, <c>false</c> otherwise.</returns>
-		protected bool SilentIntervalMuted()
+		public bool SilentIntervalMuted(long sampleInterval)
 		{
 			if (Metronome.Instance.IsSilentIntervalEngaged)
 			{
@@ -287,7 +287,7 @@ namespace Pronome.Mac
 				// check result before decrementing so that initial cycle is not stunted
                 bool isSilentIntervalSilent = _silentInterval <= silent;
 
-                _silentInterval -= SampleInterval;
+                _silentInterval -= sampleInterval;
 
                 if (_silentInterval <= 0)
                 {
@@ -311,7 +311,7 @@ namespace Pronome.Mac
         {
             bool mute = WillRandomMute();
 
-            return SilentIntervalMuted() || mute;
+            return SilentIntervalMuted(SampleInterval) || mute;
         }
 		#endregion
 	}

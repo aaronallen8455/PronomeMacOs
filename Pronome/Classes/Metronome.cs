@@ -490,6 +490,11 @@ namespace Pronome.Mac
             t.Start();
         }
 
+        /// <summary>
+        /// Takes each layer that is in the queue of layers to change (while playing)
+        /// and winds it up to the current time point.
+        /// </summary>
+        /// <param name="cycles">Cycles.</param>
         public unsafe void FastForwardChangedLayers(double cycles)
         {
             int floatsPerCycle = Mixer.BufferSize;
@@ -500,45 +505,53 @@ namespace Pronome.Mac
                 Layer l = pair.Value;
 
                 double x = l.GetTotalBpmValue();
-                // don't run extraneous samples
-                double bytesToRun = totalFloats % ConvertBpmToSamples(l.GetTotalBpmValue());
 
                 foreach (IStreamProvider src in l.GetAllStreams())
                 {
+					// don't run extraneous samples
                     // Need to deal with interval muting when compressing
-                    //long floats;
-					//
-                    //if (totalFloats > src.InitialOffset)
-                    //{
-                    //    // compress the number of samples to run
-                    //    floats = (long)(bytesToRun + src.InitialOffset);
-					//
-                    //    l.SampleRemainder += bytesToRun + src.InitialOffset - floats;
-                    //}
-                    //else
-                    //{
-                    //    floats = totalFloats;
-                    //}
-
-					long floats = totalFloats;
-
-                    long interval = (long)src.InitialOffset + 1;
-                    if (interval < totalFloats)
+                    long floats;
+                    
+                    if (totalFloats > src.InitialOffset)
                     {
-                        // turn off byte production to increase efficiency
-                        src.ProduceBytes = false;
-                    
-                    	while (interval <= floats)
-                    	{
-                            src.Read(null, null, (uint)interval, false);
-                            floats -= (uint)interval;
-                    		interval = src.IntervalLoop.Enumerator.Current;
-                    	}
-                    
-                        src.ProduceBytes = true;
+						double bytesToRun = (totalFloats - src.InitialOffset) % ConvertBpmToSamples(l.GetTotalBpmValue());
+                        // compress the number of samples to run
+                        floats = (long)(bytesToRun + src.InitialOffset);
+					
+                        l.SampleRemainder += bytesToRun + src.InitialOffset - floats;
+
+                        src.SilentIntervalMuted(totalFloats - floats);
                     }
+                    else
+                    {
+                        floats = totalFloats;
+                    }
+
+
+
+					//long floats = totalFloats;
+
+                    //long interval = (long)src.InitialOffset + 1;
+                    //if (interval < totalFloats)
+                    //{
+                    //    // turn off byte production to increase efficiency
+                    //    src.ProduceBytes = false;
+                    //
+                    //	while (interval <= floats)
+                    //	{
+                    //        src.Read(null, null, (uint)interval, false);
+                    //        floats -= (uint)interval;
+                    //		interval = src.IntervalLoop.Enumerator.Current;
+                    //	}
+                    //
+                    //    src.ProduceBytes = true;
+                    //}
                     // do produce bytes for the last interval
                     //src.ProduceBytes = false;
+
+
+
+
                     while (floats > 0)
                     {
                         uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);

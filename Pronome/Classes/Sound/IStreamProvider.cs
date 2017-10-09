@@ -39,6 +39,8 @@ namespace Pronome.Mac
 
         bool ProduceBytes { get; set; }
 
+        bool SilentIntervalMuted(long sampleInterval);
+
         void Dispose();
 
         /// <summary>
