@@ -5,8 +5,12 @@ namespace Pronome.Mac
 {
     public abstract class AbstractStream : IStreamProvider, IDisposable
     {
-		#region private/protected variables
-		protected StreamInfoProvider _info;
+		#region Public variables
+		
+        #endregion
+
+        #region private/protected variables
+        protected StreamInfoProvider _info;
 
 		protected AudioStreamBasicDescription _format;
 
@@ -53,6 +57,11 @@ namespace Pronome.Mac
         public bool ProduceBytes { get; set; } = true;
 
         public bool IsMuted { get; set; }
+
+		/// <summary>
+		/// Keeps track of partial samples to add back in when the value is >= 1.
+		/// </summary>
+        public double SampleRemainder { get; set; }
 
 		/// <summary>
 		/// Gets or sets the volume.
@@ -139,6 +148,7 @@ namespace Pronome.Mac
 		{
 			CurrentOffset = InitialOffset;
 			SampleInterval = 0;
+            SampleRemainder = 0;
 			IntervalLoop.Enumerator = IntervalLoop.GetEnumerator();
             //_silentInterval = (long)InitialOffset * -1;
             if (Metronome.Instance.IsSilentIntervalEngaged)
@@ -172,7 +182,7 @@ namespace Pronome.Mac
             CurrentOffset *= ratio;
             // sample interval
             long newSI = (long)(SampleInterval * ratio);
-            Layer.SampleRemainder += (SampleInterval * ratio) - newSI;
+            SampleRemainder += (SampleInterval * ratio) - newSI;
             SampleInterval = newSI;
         }
 
@@ -237,7 +247,7 @@ namespace Pronome.Mac
 				// add remainder to the layer
 				if (CurrentOffset < 1)
 				{
-					Layer.SampleRemainder += CurrentOffset;
+                    SampleRemainder += CurrentOffset;
 					CurrentOffset = 0;
 				}
 			}

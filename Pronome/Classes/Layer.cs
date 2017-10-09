@@ -16,11 +16,6 @@ namespace Pronome.Mac
     {
         #region Public Variables
         /// <summary>
-        /// Keeps track of partial samples to add back in when the value is >= 1.
-        /// </summary>
-        public double SampleRemainder = 0;
-
-        /// <summary>
         /// The beat cells.
         /// </summary>
         public List<BeatCell> Beat = new List<BeatCell>();
@@ -588,7 +583,6 @@ namespace Pronome.Mac
         /** <summary>Reset this layer so that it will play from the start.</summary> */
         public void Reset()
         {
-            SampleRemainder = 0;
             foreach (IStreamProvider src in GetAllStreams())
             {
                 src.Reset();
@@ -788,7 +782,7 @@ namespace Pronome.Mac
                             }
                         }
                         beats.Add(accumulator);
-                        var sbc = new SampleIntervalLoop(this, beats.ToArray());
+                        var sbc = new SampleIntervalLoop(newSource, beats.ToArray());
                         newSource.IntervalLoop = sbc;
                     }
 
@@ -847,7 +841,7 @@ namespace Pronome.Mac
                                 accumulator += Beat[index].Bpm;
                             }
                             beats.Add(accumulator);
-                            var sbc = new SampleIntervalLoop(this, beats.ToArray());
+                            var sbc = new SampleIntervalLoop(newPitchSource, beats.ToArray());
                             newPitchSource.IntervalLoop = sbc;
                             PitchSource = newPitchSource;
                             // get the offset
@@ -876,7 +870,7 @@ namespace Pronome.Mac
                             }
                         }
                         beats.Add(accumulator);
-                        var baseSbc = new SampleIntervalLoop(this, beats.ToArray());
+                        var baseSbc = new SampleIntervalLoop(newSource, beats.ToArray());
                         newSource.IntervalLoop = baseSbc;
                     }
                     else
@@ -1123,7 +1117,7 @@ namespace Pronome.Mac
                 }
                 completed.Add(beat[i].AudioSource);
 
-                beat[i].AudioSource.IntervalLoop = new SampleIntervalLoop(this, cells.ToArray());
+                beat[i].AudioSource.IntervalLoop = new SampleIntervalLoop(beat[i].AudioSource, cells.ToArray());
             }
 
             foreach (IStreamProvider source in AudioSources.Values.Concat(new IStreamProvider[] { BaseAudioSource }))

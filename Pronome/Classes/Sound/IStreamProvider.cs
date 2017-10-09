@@ -39,6 +39,11 @@ namespace Pronome.Mac
 
         bool ProduceBytes { get; set; }
 
+		/// <summary>
+		/// Keeps track of partial samples to add back in when the value is >= 1.
+		/// </summary>
+		double SampleRemainder { get; set; }
+
         bool SilentIntervalMuted(long sampleInterval);
 
         void Dispose();

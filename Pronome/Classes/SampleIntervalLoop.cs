@@ -8,7 +8,7 @@ namespace Pronome.Mac
     public class SampleIntervalLoop : IEnumerable<long>, IDisposable
     {
         #region Private Variables
-        Layer Layer;
+        IStreamProvider Stream;
         double[] Beats;
         double[] Bpm;
         #endregion
@@ -18,9 +18,9 @@ namespace Pronome.Mac
         #endregion
 
         #region Constructors
-        public SampleIntervalLoop(Layer layer, double[] bpm)
+        public SampleIntervalLoop(IStreamProvider stream, double[] bpm)
         {
-            Layer = layer;
+            Stream = stream;
             Bpm = bpm;
             ConvertBpmValues();
             Metronome.Instance.TempoChanged += ConvertBpmValues;
@@ -39,11 +39,11 @@ namespace Pronome.Mac
 
                 long whole = (long)raw;
 
-                Layer.SampleRemainder += raw - whole;
+                Stream.SampleRemainder += raw - whole;
 
-                while (Layer.SampleRemainder >= 1)
+                while (Stream.SampleRemainder >= 1)
                 {
-                    Layer.SampleRemainder--;
+                    Stream.SampleRemainder--;
                     whole++;
                 }
 

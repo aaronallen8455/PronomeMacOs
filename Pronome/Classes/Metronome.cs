@@ -504,8 +504,6 @@ namespace Pronome.Mac
             {
                 Layer l = pair.Value;
 
-                double x = l.GetTotalBpmValue();
-
                 foreach (IStreamProvider src in l.GetAllStreams())
                 {
 					// don't run extraneous samples
@@ -518,7 +516,7 @@ namespace Pronome.Mac
                         // compress the number of samples to run
                         floats = (long)(bytesToRun + src.InitialOffset);
 					
-                        l.SampleRemainder += bytesToRun + src.InitialOffset - floats;
+                        src.SampleRemainder += bytesToRun + src.InitialOffset - floats;
 
                         src.SilentIntervalMuted(totalFloats - floats);
                     }
