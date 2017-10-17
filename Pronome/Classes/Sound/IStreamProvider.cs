@@ -37,8 +37,6 @@ namespace Pronome.Mac
 
         unsafe void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true);
 
-        bool ProduceBytes { get; set; }
-
 		/// <summary>
 		/// Keeps track of partial samples to add back in when the value is >= 1.
 		/// </summary>

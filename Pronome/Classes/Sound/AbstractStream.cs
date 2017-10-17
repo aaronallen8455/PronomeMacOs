@@ -50,12 +50,6 @@ namespace Pronome.Mac
 
 		public AudioStreamBasicDescription Format { get => _format; }
 
-        /// <summary>
-        /// False if the read method is not producing any output. Used to efficiently progress a stream.
-        /// </summary>
-        /// <value><c>true</c> if producing bytes; otherwise, <c>false</c>.</value>
-        public bool ProduceBytes { get; set; } = true;
-
         public bool IsMuted { get; set; }
 
 		/// <summary>

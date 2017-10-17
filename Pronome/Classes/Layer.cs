@@ -574,7 +574,7 @@ namespace Pronome.Mac
             IEnumerable<IStreamProvider> sources = AudioSources.Values.Concat(new IStreamProvider[] { BaseAudioSource });
             if (!BaseStreamInfo.IsPitch && PitchSource != null)
             {
-                sources.Concat(new IStreamProvider[] { PitchSource });
+                return sources.Concat(new IStreamProvider[] { PitchSource });
             }
 
             return sources;

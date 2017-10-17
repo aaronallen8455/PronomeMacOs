@@ -504,7 +504,7 @@ namespace Pronome.Mac
             {
                 Layer l = pair.Value;
 
-                foreach (IStreamProvider src in l.GetAllStreams())
+                foreach (IStreamProvider src in l.GetAllStreams().OrderBy(x => x.Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open))
                 {
 					// don't run extraneous samples
                     // Need to deal with interval muting when compressing
@@ -524,8 +524,6 @@ namespace Pronome.Mac
                     {
                         floats = totalFloats;
                     }
-
-
 
 					//long floats = totalFloats;
 
@@ -547,9 +545,6 @@ namespace Pronome.Mac
                     // do produce bytes for the last interval
                     //src.ProduceBytes = false;
 
-
-
-
                     while (floats > 0)
                     {
                         uint intsToCopy = (uint)Math.Min(uint.MaxValue, floats);
@@ -558,7 +553,6 @@ namespace Pronome.Mac
 
                         floats -= uint.MaxValue;
                     }
-                    //src.ProduceBytes = true;
                 }
             }
         }

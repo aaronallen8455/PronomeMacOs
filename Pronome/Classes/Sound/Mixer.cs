@@ -676,12 +676,6 @@ namespace Pronome.Mac
                 stream.SampleRemainder *= ratio;
             }
 
-            // apply to layer's remainder
-            //foreach (Layer layer in Metronome.Instance.Layers)
-            //{
-            //    layer.SampleRemainder *= ratio;
-            //}
-
             cycle *= ratio;
         }
         #endregion

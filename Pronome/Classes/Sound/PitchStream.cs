@@ -147,8 +147,6 @@ namespace Pronome.Mac
             {
                 if (SampleInterval == 0)
                 {
-                    //if (ProduceBytes)
-                    //{
 					double oldFreq = Frequency;
 					//double oldWavelength = WaveLength;
 					
@@ -179,27 +177,23 @@ namespace Pronome.Mac
 						// propagate a change of the gain step
 						GainStep = NewGainStep;
 					}
-                    //}
                 }
 
-                if (ProduceBytes)
-                {
-					if (Gain > 0)
+				if (Gain > 0)
+				{
+					sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
+					_sample++;
+					Gain -= GainStep;
+					
+					if (writeToBuffer)
 					{
-						sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
-						_sample++;
-						Gain -= GainStep;
-						
-						if (writeToBuffer)
-						{
-							leftBuffer[i] = rightBuffer[i] = sampleValue;
-						}
+						leftBuffer[i] = rightBuffer[i] = sampleValue;
 					}
-					else if (writeToBuffer)
-					{
-						leftBuffer[i] = rightBuffer[i] = 0;
-					}
-                }
+				}
+				else if (writeToBuffer)
+				{
+					leftBuffer[i] = rightBuffer[i] = 0;
+				}
 
                 SampleInterval--;
             }

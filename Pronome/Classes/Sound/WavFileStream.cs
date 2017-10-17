@@ -67,8 +67,8 @@ namespace Pronome.Mac
                         }
 						else if (Layer.HasHiHatClosed && Info.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open && HiHatDurations.Any())
 						{
-						    // get the next hihat muting, or 0 if there isn't any
-						    CurrentHiHatDuration = HiHatDurations.SkipWhile(x => x < i).FirstOrDefault();
+                            // get the next hihat muting, or 0 if there isn't any
+                            CurrentHiHatDuration = HiHatDurations.SkipWhile(x => x - offset < i).FirstOrDefault() - offset;
 						}
 					}
 
@@ -87,23 +87,20 @@ namespace Pronome.Mac
                     }
 				}
 
-                if (ProduceBytes)
-                {
-					if (_sampleNum < TotalFrames)
+				if (_sampleNum < TotalFrames)
+				{
+					var input = (float*)Data;
+					if (writeToBuffer)
 					{
-						var input = (float*)Data;
-						if (writeToBuffer)
-						{
-							leftBuffer[i] = rightBuffer[i] = input[_sampleNum];
-						}
-						_sampleNum++;
+						leftBuffer[i] = rightBuffer[i] = input[_sampleNum];
 					}
-					else if (writeToBuffer)
-					{
-						// if end of file reached, fill with silence
-						leftBuffer[i] = rightBuffer[i] = 0;
-					}
-                }
+					_sampleNum++;
+				}
+				else if (writeToBuffer)
+				{
+					// if end of file reached, fill with silence
+					leftBuffer[i] = rightBuffer[i] = 0;
+				}
 
                 SampleInterval--;
             }
