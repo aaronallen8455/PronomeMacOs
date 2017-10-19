@@ -157,12 +157,15 @@ namespace Pronome.Mac
 				if (Graph.Stop() != AUGraphError.OK)
 					throw new ApplicationException();
 
-                _file?.Dispose(); // finished recording to file
-                _fileRecordingQueued = false;
-
-				IsPlaying = false;
-                _tempoChanged = false;
-                cycle = 0;
+                if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+                {
+					_file?.Dispose(); // finished recording to file
+					_fileRecordingQueued = false;
+					
+					IsPlaying = false;
+					_tempoChanged = false;
+					cycle = 0;
+                }
 			}
 		}
 
@@ -610,6 +613,9 @@ namespace Pronome.Mac
 						{
 							EnableInput(src, true);
 						}
+
+                        SetPan(src, src.Pan);
+                        SetInputVolume(src, (float)src.Volume);
                     }
 				}
 
