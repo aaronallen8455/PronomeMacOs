@@ -164,7 +164,10 @@ namespace Pronome.Mac
 
         public virtual void Reset(object sender, EventArgs e)
         {
-            Reset();
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+            {
+				Reset();
+            }
         }
 
         unsafe abstract public void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true);
