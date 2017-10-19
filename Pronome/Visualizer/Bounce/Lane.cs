@@ -154,10 +154,10 @@ namespace Pronome.Mac.Visualizer.Bounce
             BeatIndex = 0;
             CurrentInterval = Layer.OffsetBpm;
             // handle silence at start of beat
-            while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
-            {
-                CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
-            }
+            //while (StreamInfoProvider.IsSilence(Layer.Beat[BeatIndex].StreamInfo))
+            //{
+            //    CurrentInterval += Layer.Beat[BeatIndex++].Bpm;
+            //}
             InitTicks();
         }
 

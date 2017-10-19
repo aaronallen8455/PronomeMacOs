@@ -154,6 +154,14 @@ namespace Pronome.Mac
             RandomMuteCountdownTotal = 0;
 		}
 
+        public virtual void Reset(object sender, Metronome.StartedEventArgs e)
+        {
+            if (e.PreviousState == Metronome.PlayStates.Stopped)
+            {
+				Reset();
+            }
+        }
+
         public virtual void Reset(object sender, EventArgs e)
         {
             Reset();
