@@ -679,6 +679,118 @@ Gw
             </objects>
             <point key="canvasLocation" x="-642" y="210"/>
         </scene>
+        <!--Quantized Tap-->
+        <scene sceneID="Vcf-5y-IbK">
+            <objects>
+                <viewController title="Quantized Tap" id="Z5e-TA-LaQ" customClass="QuantizedTapController" sceneMemberID="viewController">
+                    <view key="view" id="aZh-PN-z6E">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="PWJ-sM-7Ud">
+                                <rect key="frame" x="194" y="177" width="96" height="22"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="AJe-4Q-IUw">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="value" keyPath="self.QuantizationIntervalString" id="35w-WS-YW8"/>
+                                </connections>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NBb-WV-dyc">
+                                <rect key="frame" x="43" y="182" width="145" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Quantization Interval(s)" id="xJq-Uc-ax9">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="waq-gB-BbN">
+                                <rect key="frame" x="175" y="141" width="82" height="18"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="check" title="Count Off" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="7He-Q2-IU2">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.Metronome.IsPlaying" id="mWe-4u-emh">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="67r-DF-2Z0">
+                                <rect key="frame" x="275" y="13" width="75" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Begin" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="mBy-iY-lJZ">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="BeginAction:" target="Z5e-TA-LaQ" id="nW5-n3-3NO"/>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.Metronome.IsPlaying" id="XAw-Ys-YGy">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7y5-Sk-bNV">
+                                <rect key="frame" x="360" y="13" width="72" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Done" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="b6t-yc-pZw">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+Gw
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="DoneAction:" target="Z5e-TA-LaQ" id="BcS-Q0-47R"/>
+                                </connections>
+                            </button>
+                            <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="50A-mX-eoZ">
+                                <rect key="frame" x="192" y="222" width="76" height="26"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <popUpButtonCell key="cell" type="push" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" id="NJG-Pg-Y7x">
+                                    <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="menu"/>
+                                    <menu key="menu" id="we8-P8-pQC"/>
+                                </popUpButtonCell>
+                                <connections>
+                                    <binding destination="fzL-pU-Szg" name="content" keyPath="arrangedObjects" id="viv-x4-8T9"/>
+                                    <binding destination="fzL-pU-Szg" name="contentObjects" keyPath="arrangedObjects" previousBinding="viv-x4-8T9" id="7hS-rF-9J6"/>
+                                    <binding destination="fzL-pU-Szg" name="contentValues" keyPath="arrangedObjects.Index" previousBinding="7hS-rF-9J6" id="xnQ-AX-hTO"/>
+                                </connections>
+                            </popUpButton>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bG3-gJ-QeA">
+                                <rect key="frame" x="102" y="227" width="80" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Target Layer" id="eqr-ea-gUL">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                    </view>
+                    <connections>
+                        <outlet property="CountOffCheckBox" destination="waq-gB-BbN" id="yUO-Md-ghb"/>
+                    </connections>
+                </viewController>
+                <customObject id="tpP-oo-mMs" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <arrayController id="fzL-pU-Szg">
+                    <connections>
+                        <binding destination="Z5e-TA-LaQ" name="contentArray" keyPath="self.layerArray" id="sD4-sG-Ms1"/>
+                    </connections>
+                </arrayController>
+            </objects>
+            <point key="canvasLocation" x="119" y="-795"/>
+        </scene>
         <!--Application-->
         <scene sceneID="JPo-4y-FX3">
             <objects>
@@ -820,6 +932,13 @@ Gw
                                         <menuItem title="Select All" keyEquivalent="a" id="Ruw-6m-B2m">
                                             <connections>
                                                 <action selector="selectAll:" target="Ady-hI-5gd" id="VNm-Mi-diN"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="Afa-Sn-Jvt"/>
+                                        <menuItem title="Tapping" id="ZY0-jn-617">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="quantizedTap:" target="Ady-hI-5gd" id="2fv-Sz-d14"/>
                                             </connections>
                                         </menuItem>
                                     </items>
@@ -1037,7 +1156,7 @@ CA
                 <customObject id="Voe-Tx-rLC" customClass="AppDelegate"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="148" y="-368"/>
+            <point key="canvasLocation" x="163" y="-500"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="FM0-xT-KaJ">
@@ -1969,7 +2088,7 @@ Gw
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-13" y="43"/>
+            <point key="canvasLocation" x="-191" y="66"/>
         </scene>
         <!--Transport View Controller-->
         <scene sceneID="lDp-bQ-3Y7">
@@ -2129,6 +2248,7 @@ IA
                         <outlet property="PlayButton" destination="d60-Oe-h4N" id="tJL-5Z-yX1"/>
                         <outlet property="StopButton" destination="cGr-DM-aS1" id="YAv-uI-sY8"/>
                         <outlet property="TempoField" destination="0we-qS-jA1" id="OXy-C7-3dD"/>
+                        <segue destination="Z5e-TA-LaQ" kind="sheet" identifier="QuantizedTapSegue" id="UCZ-H4-eVx"/>
                     </connections>
                 </viewController>
                 <customObject id="pRY-Wm-eDz" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

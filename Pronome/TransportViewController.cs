@@ -224,6 +224,23 @@ namespace Pronome.Mac
             }
         }
 
+        [Action("quantizedTap:")]
+        public void QuantizedTapAction(NSObject sender)
+        {
+            PerformSegue("QuantizedTapSegue", this);
+        }
+
+        //[Action("validateMenuItem:")]
+        //public bool ValidateMenuAction(NSMenuItem item)
+        //{
+        //    if (item.Action.Name == "quantizedTap:")
+        //    {
+        //        return true;
+        //    }
+		//
+        //    return true;
+        //}
+
         partial void TempoButtonAction(NSObject sender)
         {
             long curStmp = Stopwatch.GetTimestamp();
@@ -262,6 +279,22 @@ namespace Pronome.Mac
 			PopulateWithData();
 
 		}
+
+        public override void PrepareForSegue(NSStoryboardSegue segue, NSObject sender)
+        {
+            base.PrepareForSegue(segue, sender);
+
+            switch(segue.Identifier)
+            {
+                case "QuantizedTapSegue":
+                    var sheet = segue.DestinationController as QuantizedTapController;
+
+                    sheet.Presentor = this;
+
+                    break;
+
+            }
+        }
 		#endregion
 
 		#region Private Variables

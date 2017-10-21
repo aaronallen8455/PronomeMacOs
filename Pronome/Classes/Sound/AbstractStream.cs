@@ -156,6 +156,7 @@ namespace Pronome.Mac
 
         public virtual void Reset(object sender, Metronome.StartedEventArgs e)
         {
+            // don't reset if previously paused
             if (e.PreviousState == Metronome.PlayStates.Stopped)
             {
 				Reset();

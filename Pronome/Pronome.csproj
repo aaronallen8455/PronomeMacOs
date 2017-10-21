@@ -107,6 +107,7 @@
     <Folder Include="Assets.xcassets\PlayButton.imageset\" />
     <Folder Include="Assets.xcassets\PauseButton.imageset\" />
     <Folder Include="Assets.xcassets\StopButton.imageset\" />
+    <Folder Include="QuantizedTap\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -248,6 +249,10 @@
       <DependentUpon>CustomSlider.cs</DependentUpon>
     </Compile>
     <Compile Include="OptionsWindow\OptionsWindowDelegate.cs" />
+    <Compile Include="QuantizedTap\QuantizedTapController.cs" />
+    <Compile Include="QuantizedTap\QuantizedTapController.designer.cs">
+      <DependentUpon>QuantizedTapController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
