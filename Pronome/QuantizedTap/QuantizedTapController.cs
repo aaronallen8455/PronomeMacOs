@@ -23,24 +23,27 @@ namespace Pronome.Mac
                 // break into chunks
                 string[] chunks = value.Split(',');
 
-                bool isValid = true;
+                //bool isValid = true;
 
-                LinkedList<double> newIntervals = new LinkedList<double>();
+                LinkedList<string> newIntervals = new LinkedList<string>();
+                HashSet<double> touchedVals = new HashSet<double>();
                 // check that each value is valid
                 foreach (string chunk in chunks)
                 {
-                    if (BeatCell.TryParse(chunk, out double val))
+                    if (BeatCell.TryParse(chunk, out double val) && !touchedVals.Contains(val))
                     {
-                        newIntervals.AddLast(val);
+                        //newIntervals.AddLast(val);
+                        newIntervals.AddLast(BeatCell.SimplifyValue(chunk));
+                        touchedVals.Add(val);
                     }
-                    else
-                    {
-                        isValid = false;
-                        break;
-                    }
+                    //else
+                    //{
+                    //    isValid = false;
+                    //    break;
+                    //}
                 }
 
-                if (isValid)
+                if (newIntervals.Any())//isValid)
                 {
                     // every value is valid
                     QuantizeIntervals = newIntervals;
@@ -105,7 +108,7 @@ namespace Pronome.Mac
         /// <summary>
         /// The intervals to check against when quantizing
         /// </summary>
-        protected LinkedList<double> QuantizeIntervals = new LinkedList<double>();
+        protected LinkedList<string> QuantizeIntervals = new LinkedList<string>();
         #endregion
 
         #region Constructor
@@ -116,24 +119,35 @@ namespace Pronome.Mac
         #endregion
 
         #region Overridden Methods
+
+        public override void KeyDown(NSEvent theEvent)
+        {
+            if (IsListening)
+            {
+                Taps.AddLast(Metronome.Instance.ElapsedBpm);
+            }
+        }
+
         partial void BeginAction(NSObject sender)
         {
             IsListening = true;
             // lose focus for any inputs
-            View.Window.MakeFirstResponder(null);
+            View.Window.MakeFirstResponder(this);
 
             // start playing the beat if it isn't already (plus count-down)
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Playing)
             {
 
             }
-            else if (CountOffCheckBox.State == NSCellStateValue.On)
-            {
-                // do count-off
-            }
+            //else if (CountOffCheckBox.State == NSCellStateValue.On)
+            //{
+            //    // do count-off
+            //}
             else
             {
                 TransportViewController.Instance.Play();
+
+                var x = Metronome.Instance.ElapsedBpm;
             }
         }
 
@@ -146,83 +160,169 @@ namespace Pronome.Mac
 
         partial void DoneAction(NSObject sender)
         {
-            if (Taps.Count <= 1 && QuantizeIntervals.Count > 0) return;  // need at least 2 to define a cell
+            if (Taps.Count <= 1 && QuantizeIntervals.Count > 0) 
+            {
+				// need at least 2 to define a cell
+                IsListening = false;
+
+                Presentor.DismissViewController(this);
+            }
 
 
-            LinkedList<double> cellDurs = new LinkedList<double>();
-            double last = 0;
+            LinkedList<string> cellDurs = new LinkedList<string>();
+            string last = "0";
+
             // get the quantized values
-            foreach (double t in Taps.Select(x => Quantize(x)))
+            foreach (string t in Taps.Select(x => Quantize(x)))
             {
                 if (t == last) continue;
-                cellDurs.AddLast(t - last);
+                cellDurs.AddLast(BeatCell.Subtract(t, last));
                 last = t;
             }
 
-            // determine offset
-            double length = last - cellDurs.First.Value;
-            long cycles = (long)(cellDurs.First.Value / length);
+            if (cellDurs.Count <= 1)
+            {
+                IsListening = false;
 
-            cellDurs.First.Value -= length * cycles;
+                Presentor.DismissViewController(this);
+            }
 
-            // rotate to the actual orientation
-            double offset = cellDurs.First.Value;
+            // determine the offset
+            string length = BeatCell.Subtract(last, cellDurs.First.Value);
+            long cycles = (long)(BeatCell.Parse(cellDurs.First()) / BeatCell.Parse(length));
+            // remove extraneous cycles
+            cellDurs.First.Value = BeatCell.Subtract(cellDurs.First(), BeatCell.MultiplyTerms(length, cycles));
+
+            // rotate until offset is found
+            string offset = cellDurs.First();
             cellDurs.RemoveFirst();
 
-            while (offset >= cellDurs.Last.Value)
+            while (BeatCell.Parse(offset) >= BeatCell.Parse(cellDurs.Last.Value))
             {
-                offset -= cellDurs.Last.Value;
+                offset = BeatCell.Subtract(offset, cellDurs.Last.Value);
                 // rotate
                 cellDurs.AddFirst(cellDurs.Last.Value);
                 cellDurs.RemoveLast();
             }
 
             // modify the layer
-            string beatCode = string.Join(",", cellDurs.Select(x => x.ToString()));
+            string beatCode = string.Join(",", cellDurs);
 
-            Layer.SetBeatCode(beatCode, offset.ToString());
+            Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
+            Layer.Controller.HighlightBeatCodeSyntax();
 
             IsListening = false;
 
             Presentor.DismissViewController(this);
         }
 
+        //partial void DoneAction(NSObject sender)
+        //{
+        //    if (Taps.Count <= 1 && QuantizeIntervals.Count > 0) return;  // need at least 2 to define a cell
+		//
+		//
+        //    LinkedList<double> cellDurs = new LinkedList<double>();
+        //    double last = 0;
+        //    // get the quantized values
+        //    foreach (double t in Taps.Select(x => Quantize(x)))
+        //    {
+        //        if (t == last) continue;
+        //        cellDurs.AddLast(t - last);
+        //        last = t;
+        //    }
+		//
+        //    // determine offset
+        //    double length = last - cellDurs.First.Value;
+        //    long cycles = (long)(cellDurs.First.Value / length);
+		//
+        //    cellDurs.First.Value -= length * cycles;
+		//
+        //    // rotate to the actual orientation
+        //    double offset = cellDurs.First.Value;
+        //    cellDurs.RemoveFirst();
+		//
+        //    while (offset >= cellDurs.Last.Value)
+        //    {
+        //        offset -= cellDurs.Last.Value;
+        //        // rotate
+        //        cellDurs.AddFirst(cellDurs.Last.Value);
+        //        cellDurs.RemoveLast();
+        //    }
+		//
+        //    // modify the layer
+        //    string beatCode = string.Join(",", cellDurs.Select(x => x.ToString()));
+		//
+        //    Layer.SetBeatCode(beatCode, offset.ToString());
+		//
+        //    IsListening = false;
+		//
+        //    Presentor.DismissViewController(this);
+        //}
+
         /// <summary>
         /// The tap action. triggered by a key bind to a button that is positioned off screen.
         /// </summary>
         /// <param name="sender">Sender.</param>
-        partial void TapAction(NSObject sender)
-        {
-            if (IsListening)
-            {
-                Taps.AddLast(Metronome.Instance.ElapsedBpm);
-            }
-        }
+        //partial void TapAction(NSObject sender)
+        //{
+        //    if (IsListening)
+        //    {
+        //        Taps.AddLast(Metronome.Instance.ElapsedBpm);
+        //    }
+        //}
         #endregion
 
         #region Protected Methods
-        protected double Quantize(double value)
+        protected string Quantize(double value)
         {
-            var qs = QuantizeIntervals
-                .SelectMany(x => { int div = (int)(value / x); return new double[] { div * x, (div + 1) * x }; });
-            //.Min(x => Math.Abs(value - x));
+            // use doubles to determine which interval is the match
+            //double dval = BeatCell.Parse(value);
 
-            double r = 0;
+            var qs = QuantizeIntervals
+                .Select(x => (x, BeatCell.Parse(x)))
+                .SelectMany(x => { 
+                int div = (int)(value / x.Item2); 
+                return new[] { (x.Item1, div * x.Item2, div), (x.Item1, (div + 1) * x.Item2, div + 1) }; 
+            });
+
+            string r = "";
             double diff = double.MaxValue;
 
-            // find match with minimal difference
-            foreach (double q in qs)
+            foreach ((string interval, double total, int div) in qs)
             {
-                double d = Math.Abs(value - q);
+                double d = Math.Abs(value - total);
                 if (d < diff)
                 {
-                    r = q;
+                    r = BeatCell.MultiplyTerms(interval, div);
                     diff = d;
                 }
             }
 
             return r;
         }
+
+        //protected double Quantize(double value)
+        //{
+        //    var qs = QuantizeIntervals
+        //        .SelectMany(x => { int div = (int)(value / x); return new double[] { div * x, (div + 1) * x }; });
+        //    //.Min(x => Math.Abs(value - x));
+		//
+        //    double r = 0;
+        //    double diff = double.MaxValue;
+		//
+        //    // find match with minimal difference
+        //    foreach (double q in qs)
+        //    {
+        //        double d = Math.Abs(value - q);
+        //        if (d < diff)
+        //        {
+        //            r = q;
+        //            diff = d;
+        //        }
+        //    }
+		//
+        //    return r;
+        //}
         #endregion
     }
 }
