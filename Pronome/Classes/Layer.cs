@@ -56,8 +56,8 @@ namespace Pronome.Mac
         public LayerItemController Controller;
         #endregion
 
-        #region Protected Properties
-
+        #region Protected Fields
+        protected bool ChangeInProgress;
         #endregion
 
         #region Databound Properties
@@ -138,7 +138,7 @@ namespace Pronome.Mac
                         // trigger beat change event
                         Metronome.Instance.OnBeatChanged(new EventArgs());
                     }
-                    else
+                    else if (!ChangeInProgress)
                     {
                         // change offset while playing
                         Metronome.Instance.ExecuteLayerChange(this);
@@ -499,6 +499,21 @@ namespace Pronome.Mac
 
             }
             return null;
+        }
+
+        public void SetBeatCode(string beatCode, string offset)
+        {
+            if (beatCode != ParsedString)
+            {
+				ChangeInProgress = true;
+				Offset = offset;
+				SetBeatCode(beatCode);
+				ChangeInProgress = false;
+            }
+            else
+            {
+                Offset = offset;
+            }
         }
 
         public void SetBeatCode(string beatCode)

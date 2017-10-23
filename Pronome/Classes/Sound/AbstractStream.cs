@@ -19,7 +19,7 @@ namespace Pronome.Mac
 		/// <summary>
 		/// The current offset in samples.
 		/// </summary>
-		double CurrentOffset;
+        public double CurrentOffset { get; set; }
 
 		/// <summary>
 		/// The initial offset in samples.

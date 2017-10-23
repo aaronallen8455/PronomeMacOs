@@ -696,6 +696,11 @@ Gw
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                                 <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.IsListening" id="Ghp-r8-VFw">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                     <binding destination="Z5e-TA-LaQ" name="value" keyPath="self.QuantizationIntervalString" id="35w-WS-YW8"/>
                                 </connections>
                             </textField>
@@ -732,7 +737,25 @@ Gw
                                 </buttonCell>
                                 <connections>
                                     <action selector="BeginAction:" target="Z5e-TA-LaQ" id="nW5-n3-3NO"/>
-                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.Metronome.IsPlaying" id="XAw-Ys-YGy">
+                                    <binding destination="Z5e-TA-LaQ" name="enabled2" keyPath="self.QuantizationIntervalString" previousBinding="xHS-5U-URg" id="aQa-it-LXn">
+                                        <dictionary key="options">
+                                            <integer key="NSMultipleValuesPlaceholder" value="-1"/>
+                                            <integer key="NSNoSelectionPlaceholder" value="-1"/>
+                                            <integer key="NSNotApplicablePlaceholder" value="-1"/>
+                                            <integer key="NSNullPlaceholder" value="-1"/>
+                                            <string key="NSValueTransformerName">NSIsNotNil</string>
+                                        </dictionary>
+                                    </binding>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled3" keyPath="self.Layer" previousBinding="aQa-it-LXn" id="4PN-P0-hih">
+                                        <dictionary key="options">
+                                            <integer key="NSMultipleValuesPlaceholder" value="-1"/>
+                                            <integer key="NSNoSelectionPlaceholder" value="-1"/>
+                                            <integer key="NSNotApplicablePlaceholder" value="-1"/>
+                                            <integer key="NSNullPlaceholder" value="-1"/>
+                                            <string key="NSValueTransformerName">NSIsNotNil</string>
+                                        </dictionary>
+                                    </binding>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.IsListening" id="xHS-5U-URg">
                                         <dictionary key="options">
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
@@ -751,6 +774,7 @@ Gw
                                 </buttonCell>
                                 <connections>
                                     <action selector="DoneAction:" target="Z5e-TA-LaQ" id="BcS-Q0-47R"/>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.IsListening" id="5vs-ff-Mau"/>
                                 </connections>
                             </button>
                             <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="50A-mX-eoZ">
@@ -762,9 +786,15 @@ Gw
                                     <menu key="menu" id="we8-P8-pQC"/>
                                 </popUpButtonCell>
                                 <connections>
-                                    <binding destination="fzL-pU-Szg" name="content" keyPath="arrangedObjects" id="viv-x4-8T9"/>
                                     <binding destination="fzL-pU-Szg" name="contentObjects" keyPath="arrangedObjects" previousBinding="viv-x4-8T9" id="7hS-rF-9J6"/>
+                                    <binding destination="fzL-pU-Szg" name="content" keyPath="arrangedObjects" id="viv-x4-8T9"/>
                                     <binding destination="fzL-pU-Szg" name="contentValues" keyPath="arrangedObjects.Index" previousBinding="7hS-rF-9J6" id="xnQ-AX-hTO"/>
+                                    <binding destination="Z5e-TA-LaQ" name="selectedObject" keyPath="self.Layer" previousBinding="xnQ-AX-hTO" id="odN-sb-4nR"/>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.IsListening" id="2g2-9c-tMf">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
                                 </connections>
                             </popUpButton>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bG3-gJ-QeA">
@@ -775,6 +805,36 @@ Gw
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
+                            </textField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NcA-5x-tho">
+                                <rect key="frame" x="-90" y="68" width="81" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="WXn-ZD-L8d">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <string key="keyEquivalent" base64-UTF8="YES">
+IA
+</string>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="TapAction:" target="Z5e-TA-LaQ" id="n7x-2c-pPA"/>
+                                </connections>
+                            </button>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tTK-bH-0YD">
+                                <rect key="frame" x="194" y="55" width="71" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Listening..." id="5DA-5q-ymE">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                                <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="hidden" keyPath="self.IsListening" id="LFB-tR-iFK">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
+                                </connections>
                             </textField>
                         </subviews>
                     </view>
@@ -1733,7 +1793,7 @@ CA
                                             </connections>
                                         </textField>
                                         <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="HMw-j1-2AF">
-                                            <rect key="frame" x="0.0" y="153" width="571" height="5"/>
+                                            <rect key="frame" x="0.0" y="153" width="571" height="93"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                         </box>
                                         <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aFN-El-zeZ">
@@ -2088,7 +2148,7 @@ Gw
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-191" y="66"/>
+            <point key="canvasLocation" x="32" y="66"/>
         </scene>
         <!--Transport View Controller-->
         <scene sceneID="lDp-bQ-3Y7">

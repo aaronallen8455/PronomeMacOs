@@ -53,7 +53,7 @@ namespace Pronome.Mac
 
         #region Actions
         /// <summary>
-        /// Starts playing out to a wav file.
+        /// queue playing out to a wav file.
         /// </summary>
         /// <param name="sender">Sender.</param>
         partial void RecordWavFileAction(NSObject sender)

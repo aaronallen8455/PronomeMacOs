@@ -20,6 +20,9 @@ namespace Pronome.Mac
 
 		[Action ("DoneAction:")]
 		partial void DoneAction (Foundation.NSObject sender);
+
+		[Action ("TapAction:")]
+		partial void TapAction (Foundation.NSObject sender);
 		
 		void ReleaseDesignerOutlets ()
 		{

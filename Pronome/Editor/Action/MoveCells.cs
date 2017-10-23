@@ -141,7 +141,7 @@ namespace Pronome.Mac.Editor.Action
             var prev = Row.Cells.LookupIndex(Cells.First().Index).Prev();
 
             // can't move if directly above a reference.
-            if (!string.IsNullOrEmpty(prev.Cell.Reference) && !prev.Cell.IsSelected)
+            if (prev != null && !string.IsNullOrEmpty(prev.Cell.Reference) && !prev.Cell.IsSelected)
             {
                 return false;
             }
@@ -151,6 +151,8 @@ namespace Pronome.Mac.Editor.Action
             if (ShiftingRight)
             {
                 if (Cells.Last().Index == Row.Cells.Count - 1) return true;
+
+                if (Row.Cells.Count == 1) return true; // can always move single cell right
 
                 var next = Row.Cells.LookupIndex(Cells.Last().Index).Next();
 

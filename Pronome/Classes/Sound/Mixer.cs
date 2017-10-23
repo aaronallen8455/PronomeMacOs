@@ -157,15 +157,15 @@ namespace Pronome.Mac
 				if (Graph.Stop() != AUGraphError.OK)
 					throw new ApplicationException();
 
-                if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
-                {
+                //if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
+                //{
 					_file?.Dispose(); // finished recording to file
 					_fileRecordingQueued = false;
 					
 					IsPlaying = false;
 					_tempoChanged = false;
 					cycle = 0;
-                }
+                //}
 			}
 		}
 

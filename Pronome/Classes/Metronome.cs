@@ -458,6 +458,8 @@ namespace Pronome.Mac
 
         public void ExecuteLayerChange(Layer layer)
         {
+            if (LayersToChange.ContainsKey(Layers.IndexOf(layer))) return;
+
             Layer copyLayer = new Layer(
                 "1",
                 layer.BaseStreamInfo,
@@ -509,14 +511,14 @@ namespace Pronome.Mac
 					// don't run extraneous samples
                     // Need to deal with interval muting when compressing
                     long floats;
-                    
-                    if (totalFloats > src.InitialOffset)
+
+                    if (totalFloats > src.CurrentOffset)
                     {
-						double bytesToRun = (totalFloats - src.InitialOffset) % ConvertBpmToSamples(l.GetTotalBpmValue());
+                        double bytesToRun = (totalFloats - src.CurrentOffset) % ConvertBpmToSamples(l.GetTotalBpmValue());
                         // compress the number of samples to run
-                        floats = (long)(bytesToRun + src.InitialOffset);
+                        floats = (long)(bytesToRun + src.CurrentOffset);
 					
-                        src.SampleRemainder += bytesToRun + src.InitialOffset - floats;
+                        src.SampleRemainder += bytesToRun + src.CurrentOffset - floats;
 
                         src.SilentIntervalMuted(totalFloats - floats);
                     }
@@ -524,26 +526,6 @@ namespace Pronome.Mac
                     {
                         floats = totalFloats;
                     }
-
-					//long floats = totalFloats;
-
-                    //long interval = (long)src.InitialOffset + 1;
-                    //if (interval < totalFloats)
-                    //{
-                    //    // turn off byte production to increase efficiency
-                    //    src.ProduceBytes = false;
-                    //
-                    //	while (interval <= floats)
-                    //	{
-                    //        src.Read(null, null, (uint)interval, false);
-                    //        floats -= (uint)interval;
-                    //		interval = src.IntervalLoop.Enumerator.Current;
-                    //	}
-                    //
-                    //    src.ProduceBytes = true;
-                    //}
-                    // do produce bytes for the last interval
-                    //src.ProduceBytes = false;
 
                     while (floats > 0)
                     {

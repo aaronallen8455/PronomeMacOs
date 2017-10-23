@@ -5,6 +5,7 @@ using System;
 using Foundation;
 using AppKit;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pronome.Mac
 {
@@ -42,7 +43,7 @@ namespace Pronome.Mac
                 if (isValid)
                 {
                     // every value is valid
-                    QIntervals = newIntervals;
+                    QuantizeIntervals = newIntervals;
                     _quantizationIntervalString = value;
                 }
 
@@ -75,6 +76,19 @@ namespace Pronome.Mac
         {
             get => Metronome.Instance;
         }
+
+        private bool _isListening = false;
+        [Export("IsListening")]
+        public bool IsListening
+        {
+            get => _isListening;
+            set
+            {
+                WillChangeValue("IsListening");
+                _isListening = value;
+                DidChangeValue("IsListening");
+            }
+        }
         #endregion
 
         #region Public fields
@@ -91,9 +105,7 @@ namespace Pronome.Mac
         /// <summary>
         /// The intervals to check against when quantizing
         /// </summary>
-        protected LinkedList<double> QIntervals = new LinkedList<double>();
-
-        protected bool IsListening;
+        protected LinkedList<double> QuantizeIntervals = new LinkedList<double>();
         #endregion
 
         #region Constructor
@@ -107,24 +119,109 @@ namespace Pronome.Mac
         partial void BeginAction(NSObject sender)
         {
             IsListening = true;
+            // lose focus for any inputs
+            View.Window.MakeFirstResponder(null);
 
             // start playing the beat if it isn't already (plus count-down)
+            if (Metronome.Instance.PlayState == Metronome.PlayStates.Playing)
+            {
+
+            }
+            else if (CountOffCheckBox.State == NSCellStateValue.On)
+            {
+                // do count-off
+            }
+            else
+            {
+                TransportViewController.Instance.Play();
+            }
         }
+
+        // if started listening when already playing,
+        // find modulo of tapped entry length against
+        // elapsed time of first tap
+        // we use this to find the first part,
+        // which will be a portion of the tap cycle
+        // that may involve an offset
 
         partial void DoneAction(NSObject sender)
         {
+            if (Taps.Count <= 1 && QuantizeIntervals.Count > 0) return;  // need at least 2 to define a cell
+
+
+            LinkedList<double> cellDurs = new LinkedList<double>();
+            double last = 0;
+            // get the quantized values
+            foreach (double t in Taps.Select(x => Quantize(x)))
+            {
+                if (t == last) continue;
+                cellDurs.AddLast(t - last);
+                last = t;
+            }
+
+            // determine offset
+            double length = last - cellDurs.First.Value;
+            long cycles = (long)(cellDurs.First.Value / length);
+
+            cellDurs.First.Value -= length * cycles;
+
+            // rotate to the actual orientation
+            double offset = cellDurs.First.Value;
+            cellDurs.RemoveFirst();
+
+            while (offset >= cellDurs.Last.Value)
+            {
+                offset -= cellDurs.Last.Value;
+                // rotate
+                cellDurs.AddFirst(cellDurs.Last.Value);
+                cellDurs.RemoveLast();
+            }
+
+            // modify the layer
+            string beatCode = string.Join(",", cellDurs.Select(x => x.ToString()));
+
+            Layer.SetBeatCode(beatCode, offset.ToString());
+
+            IsListening = false;
+
             Presentor.DismissViewController(this);
         }
 
-        public override void KeyDown(NSEvent theEvent)
+        /// <summary>
+        /// The tap action. triggered by a key bind to a button that is positioned off screen.
+        /// </summary>
+        /// <param name="sender">Sender.</param>
+        partial void TapAction(NSObject sender)
         {
-            base.KeyDown(theEvent);
-
-            if (theEvent.KeyCode == 1 && Metronome.Instance.PlayState == Metronome.PlayStates.Playing)
+            if (IsListening)
             {
-                // add current time position to the collection
                 Taps.AddLast(Metronome.Instance.ElapsedBpm);
             }
+        }
+        #endregion
+
+        #region Protected Methods
+        protected double Quantize(double value)
+        {
+            var qs = QuantizeIntervals
+                .SelectMany(x => { int div = (int)(value / x); return new double[] { div * x, (div + 1) * x }; });
+            //.Min(x => Math.Abs(value - x));
+
+            double r = 0;
+            double diff = double.MaxValue;
+
+            // find match with minimal difference
+            foreach (double q in qs)
+            {
+                double d = Math.Abs(value - q);
+                if (d < diff)
+                {
+                    r = q;
+                    diff = d;
+                }
+            }
+
+            return r;
         }
         #endregion
     }

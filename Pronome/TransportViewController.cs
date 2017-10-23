@@ -139,6 +139,11 @@ namespace Pronome.Mac
                 }
             }
 		}
+
+        public void Play()
+        {
+            PlayButtonAction(null);
+        }
 		#endregion
 
 		#region Private Methods
@@ -193,9 +198,7 @@ namespace Pronome.Mac
 
             if (Metronome.Instance.Play())
             {
-                // disable the play button
                 PlayButton.Enabled = false;
-                // enable the pause and stop buttons
                 PauseButton.Enabled = true;
                 StopButton.Enabled = true;
             }
@@ -205,9 +208,7 @@ namespace Pronome.Mac
         {
             if (Metronome.Instance.Pause())
             {
-                // enable the play button
                 PlayButton.Enabled = true;
-                // disable the pause button
                 PauseButton.Enabled = false;
             }
         }
@@ -216,9 +217,7 @@ namespace Pronome.Mac
         {
             if (Metronome.Instance.Stop())
             {
-                // enable the play button
                 PlayButton.Enabled = true;
-                // disable the pause and stop buttons
                 PauseButton.Enabled = false;
                 StopButton.Enabled = false;
             }
