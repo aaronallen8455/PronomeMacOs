@@ -31,7 +31,7 @@ namespace Pronome.Mac
         /// <value>The initial offset.</value>
         double InitialOffset { get; set; }
 
-        double CurrentOffset { get; }
+        double CurrentOffset { get; set; }
 
         SampleIntervalLoop IntervalLoop { get; set; }
 

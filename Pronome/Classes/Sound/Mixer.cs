@@ -41,10 +41,22 @@ namespace Pronome.Mac
         //AudioBuffers _conversionBuffer;
 
         AudioConverter _converter;
+
+        /// <summary>
+        /// Used to play a count-off when doing a tap entry
+        /// </summary>
+        PitchStream _countOff;
+
+        long _countOffTotal;
         #endregion
 
         #region Public Variables
         public bool IsPlaying = false;
+
+		/// <summary>
+		/// number of samples that constitutes the count-off
+		/// </summary>
+        public long CountOffSampleDuration;
         #endregion
 
         #region Constructors
@@ -55,6 +67,10 @@ namespace Pronome.Mac
             _converter = AudioConverter.Create(MixerNode.GetAudioFormat(AudioUnitScopeType.Output), AudioStreamBasicDescription.CreateLinearPCM());
 
             Metronome.Instance.TempoChanged += TempoChanged;
+
+            _countOff = new PitchStream(StreamInfoProvider.GetDefault(), null);
+            _countOff.IntervalLoop = new SampleIntervalLoop(_countOff, new double[] { 1 });
+            _countOff.AddFrequency("A4");
         }
         #endregion
 
@@ -394,6 +410,36 @@ namespace Pronome.Mac
 
             Metronome.Instance.TempoChanged -= TempoChanged;
         }
+
+        /// <summary>
+        /// If true, sets a count-off length of 4 bpm, otherwise disables the count-off
+        /// </summary>
+        /// <param name="enabled">If set to <c>true</c> enabled.</param>
+        public void SetCountOff(bool enabled = true)
+        {
+            if (enabled)
+            {
+                _countOff.Reset();
+
+                CountOffSampleDuration = (long)Metronome.Instance.ConvertBpmToSamples(4);
+
+                uint countOffPad = (uint)(CountOffSampleDuration > BufferSize
+                    ? BufferSize - CountOffSampleDuration % BufferSize
+                    : BufferSize - CountOffSampleDuration);
+
+                CountOffSampleDuration += countOffPad;
+
+                _countOffTotal = CountOffSampleDuration;
+
+                // if the countoff pad doesn't align with cycle, we need to set an offset on the
+                // count off source
+                _countOff.Offset = Metronome.Instance.ConvertSamplesToBpm(countOffPad);
+            }
+            else
+            {
+                CountOffSampleDuration = _countOffTotal = 0;
+            }
+        }
         #endregion
 
         #region Protected Methods
@@ -506,10 +552,30 @@ namespace Pronome.Mac
                 return AudioUnitStatus.InvalidElement;
             }
 
-            IStreamProvider source = Streams[(int)busNumber];
-
             var outLeft = (float*)data[0].Data;
             var outRight = (float*)data[1].Data;
+
+            // if theres a count-off, we read from the countoff source
+            if (CountOffSampleDuration > 0)
+            {
+                // skip all inputs but the last one so that non-count off cycle starts with bus 0
+                if (busNumber != Streams.Count - 1) return AudioUnitStatus.InvalidElement;
+
+                _countOff.Read(outLeft, outRight, numberFrames);
+
+                CountOffSampleDuration -= numberFrames;
+
+                // set elapsed bpm and cycles to 0
+                if (CountOffSampleDuration == 0)
+                {
+                    Metronome.Instance.ElapsedBpm -= Metronome.Instance.ConvertSamplesToBpm(_countOffTotal);
+                    cycle = -1;
+                }
+
+                return AudioUnitStatus.OK;
+            }
+
+            IStreamProvider source = Streams[(int)busNumber];
 
             source.Read(outLeft, outRight, numberFrames);
 

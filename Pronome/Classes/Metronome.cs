@@ -234,7 +234,7 @@ namespace Pronome.Mac
                 return _elapsedBpm;
             }
 
-            protected set 
+            set
             {
                 _animationTimer.Reset();
                 //_animationTimer.GetElapsedTime();

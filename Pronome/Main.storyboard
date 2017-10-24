@@ -726,6 +726,7 @@ Gw
                                             <string key="NSValueTransformerName">NSNegateBoolean</string>
                                         </dictionary>
                                     </binding>
+                                    <binding destination="Z5e-TA-LaQ" name="value" keyPath="self.CountOff" id="Os4-qD-rnd"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="67r-DF-2Z0">
@@ -774,7 +775,6 @@ Gw
                                 </buttonCell>
                                 <connections>
                                     <action selector="DoneAction:" target="Z5e-TA-LaQ" id="BcS-Q0-47R"/>
-                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.IsListening" id="5vs-ff-Mau"/>
                                 </connections>
                             </button>
                             <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="50A-mX-eoZ">
@@ -806,20 +806,6 @@ Gw
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="NcA-5x-tho">
-                                <rect key="frame" x="80" y="68" width="81" height="32"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="push" title="Button" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="WXn-ZD-L8d">
-                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                    <string key="keyEquivalent" base64-UTF8="YES">
-IA
-</string>
-                                </buttonCell>
-                                <connections>
-                                    <action selector="TapAction:" target="Z5e-TA-LaQ" id="n7x-2c-pPA"/>
-                                </connections>
-                            </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tTK-bH-0YD">
                                 <rect key="frame" x="194" y="55" width="71" height="17"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>

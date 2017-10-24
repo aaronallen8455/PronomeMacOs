@@ -92,6 +92,20 @@ namespace Pronome.Mac
                 DidChangeValue("IsListening");
             }
         }
+
+        private bool _countOff;
+        [Export("CountOff")]
+        public bool CountOff
+        {
+            get => _countOff;
+            set
+            {
+                WillChangeValue("CountOff");
+                _countOff = value;
+                Metronome.Instance.Mixer.SetCountOff(value);
+                DidChangeValue("CountOff");
+            }
+        }
         #endregion
 
         #region Public fields
@@ -124,7 +138,15 @@ namespace Pronome.Mac
         {
             if (IsListening)
             {
-                Taps.AddLast(Metronome.Instance.ElapsedBpm);
+                // check if we are in the count off
+                if (Metronome.Instance.Mixer.CountOffSampleDuration > 0)
+                {
+                    Taps.AddLast(0);
+                }
+                else
+                {
+					Taps.AddLast(Metronome.Instance.ElapsedBpm);
+                }
             }
         }
 
@@ -160,14 +182,14 @@ namespace Pronome.Mac
 
         partial void DoneAction(NSObject sender)
         {
-            if (Taps.Count <= 1 && QuantizeIntervals.Count > 0) 
+            if (Taps.Count <= 1 || QuantizeIntervals.Count == 0) 
             {
 				// need at least 2 to define a cell
                 IsListening = false;
 
                 Presentor.DismissViewController(this);
+                return;
             }
-
 
             LinkedList<string> cellDurs = new LinkedList<string>();
             string last = "0";
@@ -178,13 +200,6 @@ namespace Pronome.Mac
                 if (t == last) continue;
                 cellDurs.AddLast(BeatCell.Subtract(t, last));
                 last = t;
-            }
-
-            if (cellDurs.Count <= 1)
-            {
-                IsListening = false;
-
-                Presentor.DismissViewController(this);
             }
 
             // determine the offset
