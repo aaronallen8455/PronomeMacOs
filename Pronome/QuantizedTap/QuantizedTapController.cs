@@ -123,6 +123,10 @@ namespace Pronome.Mac
         /// The intervals to check against when quantizing
         /// </summary>
         protected LinkedList<string> QuantizeIntervals = new LinkedList<string>();
+
+        const int MODE_OVERWRITE = 0;
+
+        const int MODE_INSERT = 1;
         #endregion
 
         #region Constructor
@@ -157,19 +161,10 @@ namespace Pronome.Mac
             View.Window.MakeFirstResponder(this);
 
             // start playing the beat if it isn't already (plus count-down)
-            if (Metronome.Instance.PlayState == Metronome.PlayStates.Playing)
+            if (Metronome.Instance.PlayState != Metronome.PlayStates.Playing)
             {
+				TransportViewController.Instance.Play();
 
-            }
-            //else if (CountOffCheckBox.State == NSCellStateValue.On)
-            //{
-            //    // do count-off
-            //}
-            else
-            {
-                TransportViewController.Instance.Play();
-
-                var x = Metronome.Instance.ElapsedBpm;
             }
         }
 
@@ -191,37 +186,127 @@ namespace Pronome.Mac
                 return;
             }
 
-            LinkedList<string> cellDurs = new LinkedList<string>();
-            string last = "0";
-
-            // get the quantized values
-            foreach (string t in Taps.Select(x => Quantize(x)))
+            if (ModeDropdown.SelectedTag == MODE_OVERWRITE)
             {
-                if (t == last) continue;
-                cellDurs.AddLast(BeatCell.Subtract(t, last));
-                last = t;
+				
+				LinkedList<string> cellDurs = new LinkedList<string>();
+				string last = "0";
+				
+				// get the quantized values
+				foreach (string t in Taps.Select(x => Quantize(x)))
+				{
+					if (t == last) continue;
+					cellDurs.AddLast(BeatCell.Subtract(t, last));
+					last = t;
+				}
+				
+				// determine the offset
+				string length = BeatCell.Subtract(last, cellDurs.First.Value);
+				long cycles = (long)(BeatCell.Parse(cellDurs.First()) / BeatCell.Parse(length));
+				// remove extraneous cycles
+				cellDurs.First.Value = BeatCell.Subtract(cellDurs.First(), BeatCell.MultiplyTerms(length, cycles));
+				
+				// rotate until offset is found
+				string offset = cellDurs.First();
+				cellDurs.RemoveFirst();
+				
+				while (BeatCell.Parse(offset) >= BeatCell.Parse(cellDurs.Last.Value))
+				{
+					offset = BeatCell.Subtract(offset, cellDurs.Last.Value);
+					// rotate
+					cellDurs.AddFirst(cellDurs.Last.Value);
+					cellDurs.RemoveLast();
+				}
+				
+				// modify the layer
+				string beatCode = string.Join(",", cellDurs);
             }
-
-            // determine the offset
-            string length = BeatCell.Subtract(last, cellDurs.First.Value);
-            long cycles = (long)(BeatCell.Parse(cellDurs.First()) / BeatCell.Parse(length));
-            // remove extraneous cycles
-            cellDurs.First.Value = BeatCell.Subtract(cellDurs.First(), BeatCell.MultiplyTerms(length, cycles));
-
-            // rotate until offset is found
-            string offset = cellDurs.First();
-            cellDurs.RemoveFirst();
-
-            while (BeatCell.Parse(offset) >= BeatCell.Parse(cellDurs.Last.Value))
+            else if (ModeDropdown.SelectedTag == MODE_INSERT)
             {
-                offset = BeatCell.Subtract(offset, cellDurs.Last.Value);
-                // rotate
-                cellDurs.AddFirst(cellDurs.Last.Value);
-                cellDurs.RemoveLast();
-            }
+                // how to deal with inserting cells into a rep group?
+                // easy way is to just flatten it out, use raw values from .Beat
+                // ideally we want to insert the cell and retain the original beatCode aspects
 
-            // modify the layer
-            string beatCode = string.Join(",", cellDurs);
+                // retain a int for the current cell index in the beatcode
+                // so when we run a rep group, the index will backtrack as needed
+
+                // will also need to deal with mult groups
+                // when accumulating cell values, we 'expand' out the multgroups
+                // so that we are dealing with actual values
+                // after all work is done, we 'contract' the multgroups
+
+                // if below cell is a | termination, the new cell will be one.
+
+                // could use the modeling objects from the editor?
+
+                // could reuse the editor insert cell operation
+                // only difference is that if we insert a cell into a rep group,
+                // theres some special cases:
+                // 1) if inserting into first or last group of a rep with >2 times,
+                // we break off the cycle being inserted into and decrement
+                // the times of the group
+                // 2) if the group has times == 2 then the group is de-sugared.
+                // this entails adding the LTM to the last cell
+                // 3) if the same insertion is made on each repeat, we can use the
+                // default behaviour of the editor insert action.
+
+                List<string> beatCells = new List<string>(Layer.ParsedString.Split(new char[] { ',', '|' }));
+
+                // get the layers total length
+                double bpmLength = Layer.GetTotalBpmValue();
+
+                string offset = "";
+
+                foreach (double t in Taps)
+                {
+                    // check if tap was done in the offset area
+                    if (t <= Layer.OffsetBpm)
+                    {
+                        offset = Quantize(t);
+
+                        string cellValue = BeatCell.Subtract(Layer.ParsedOffset, offset);
+
+                        if (cellValue != "" && cellValue != "0")
+                        {
+                            
+                        }
+
+                        continue;
+                    }
+
+                    // get the number of elapsed cycles
+                    int cycles = (int)(t / bpmLength);
+
+                    // subtract the elapsed cycles
+                    double pos = Layer.OffsetBpm + t - cycles * bpmLength;
+                    string belowValue = Quantize(pos);
+
+                    // calc the added up cell values to the one below the inserted tap
+                    double elapsed = Layer.OffsetBpm;
+                    int beatIndex = 0;
+
+                    while (true)
+                    {
+                        BeatCell bc = Layer.Beat[beatIndex];
+                        elapsed += bc.Bpm;
+
+                        if (elapsed < pos)
+                        {
+							belowValue = BeatCell.Subtract(belowValue, bc.ParsedString);
+                            beatIndex++;
+                        }
+                        else
+                        {
+                            elapsed -= bc.Bpm;
+                            break;
+                        }
+                    }
+
+                    // get new value of the below cell
+
+                    // get value of tapped cell
+                }
+            }
 
             Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
             Layer.Controller.HighlightBeatCodeSyntax();

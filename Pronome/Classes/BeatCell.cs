@@ -12,6 +12,11 @@ namespace Pronome.Mac
         /**<summary>The time length in quarter notes</summary>*/
         public double Bpm; // value expressed in BPM time.
 
+        /// <summary>
+        /// The string representation of the cell's value.
+        /// </summary>
+        public string ParsedString;
+
         ///**<summary>Holds info about the sound source.</summary>*/
         public StreamInfoProvider SoundSource;
 
@@ -39,6 +44,7 @@ namespace Pronome.Mac
             Layer = layer;
             SoundSource = soundSource;
             Bpm = Parse(beat);
+            ParsedString = beat;
         }
         #endregion
 

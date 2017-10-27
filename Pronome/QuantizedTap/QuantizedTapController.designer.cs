@@ -15,6 +15,9 @@ namespace Pronome.Mac
 		[Outlet]
 		AppKit.NSButton CountOffCheckBox { get; set; }
 
+		[Outlet]
+		AppKit.NSPopUpButton ModeDropdown { get; set; }
+
 		[Action ("BeginAction:")]
 		partial void BeginAction (Foundation.NSObject sender);
 
@@ -29,6 +32,11 @@ namespace Pronome.Mac
 			if (CountOffCheckBox != null) {
 				CountOffCheckBox.Dispose ();
 				CountOffCheckBox = null;
+			}
+
+			if (ModeDropdown != null) {
+				ModeDropdown.Dispose ();
+				ModeDropdown = null;
 			}
 		}
 	}

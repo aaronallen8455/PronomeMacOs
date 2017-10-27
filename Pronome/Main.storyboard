@@ -713,22 +713,6 @@ Gw
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="waq-gB-BbN">
-                                <rect key="frame" x="175" y="141" width="82" height="18"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Count Off" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="7He-Q2-IU2">
-                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                    <font key="font" metaFont="system"/>
-                                </buttonCell>
-                                <connections>
-                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.Metronome.IsPlaying" id="mWe-4u-emh">
-                                        <dictionary key="options">
-                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
-                                        </dictionary>
-                                    </binding>
-                                    <binding destination="Z5e-TA-LaQ" name="value" keyPath="self.CountOff" id="Os4-qD-rnd"/>
-                                </connections>
-                            </button>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="67r-DF-2Z0">
                                 <rect key="frame" x="275" y="13" width="75" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -822,10 +806,50 @@ Gw
                                     </binding>
                                 </connections>
                             </textField>
+                            <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kVG-QA-Kif">
+                                <rect key="frame" x="192" y="136" width="101" height="26"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <popUpButtonCell key="cell" type="push" title="Overwrite" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="bU9-MD-Kbd" id="uez-h9-9cN">
+                                    <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="menu"/>
+                                    <menu key="menu" id="IPx-uS-mVF">
+                                        <items>
+                                            <menuItem title="Overwrite" state="on" id="bU9-MD-Kbd"/>
+                                            <menuItem title="Insert" tag="1" id="Vak-Us-YtD"/>
+                                        </items>
+                                    </menu>
+                                </popUpButtonCell>
+                            </popUpButton>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EOb-wg-KOW">
+                                <rect key="frame" x="143" y="141" width="39" height="17"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Mode" id="Vga-FX-3gA">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <button fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="waq-gB-BbN">
+                                <rect key="frame" x="184" y="105" width="82" height="18"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="check" title="Count Off" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="7He-Q2-IU2">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="value" keyPath="self.CountOff" id="Os4-qD-rnd"/>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.Metronome.IsPlaying" id="mWe-4u-emh">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
                         <outlet property="CountOffCheckBox" destination="waq-gB-BbN" id="yUO-Md-ghb"/>
+                        <outlet property="ModeDropdown" destination="kVG-QA-Kif" id="Tsp-F1-YR3"/>
                     </connections>
                 </viewController>
                 <customObject id="tpP-oo-mMs" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
