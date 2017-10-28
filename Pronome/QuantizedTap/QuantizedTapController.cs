@@ -6,6 +6,8 @@ using Foundation;
 using AppKit;
 using System.Collections.Generic;
 using System.Linq;
+using Pronome.Mac.Editor;
+using Pronome.Mac.Editor.Groups;
 
 namespace Pronome.Mac
 {
@@ -220,6 +222,8 @@ namespace Pronome.Mac
 				
 				// modify the layer
 				string beatCode = string.Join(",", cellDurs);
+
+                Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
             }
             else if (ModeDropdown.SelectedTag == MODE_INSERT)
             {
@@ -250,7 +254,12 @@ namespace Pronome.Mac
                 // 3) if the same insertion is made on each repeat, we can use the
                 // default behaviour of the editor insert action.
 
-                List<string> beatCells = new List<string>(Layer.ParsedString.Split(new char[] { ',', '|' }));
+                // if a tap occurs during a reference, we desugar the reference
+
+                // get the objects representing the beatcode
+                Row row = new Row(Layer);
+
+
 
                 // get the layers total length
                 double bpmLength = Layer.GetTotalBpmValue();
@@ -268,7 +277,17 @@ namespace Pronome.Mac
 
                         if (cellValue != "" && cellValue != "0")
                         {
-                            
+                            // insert cell at start of beat and change the offset
+                            Cell cell = new Cell(row)
+                            {
+                                Value = cellValue
+                            };
+
+                            if (row.Cells.Insert(cell))
+                            {
+                                Layer.ParsedOffset = offset;
+                                Layer.OffsetBpm = BeatCell.Parse(offset);
+                            }
                         }
 
                         continue;
@@ -278,16 +297,143 @@ namespace Pronome.Mac
                     int cycles = (int)(t / bpmLength);
 
                     // subtract the elapsed cycles
-                    double pos = Layer.OffsetBpm + t - cycles * bpmLength;
+                    double pos = t - cycles * bpmLength;
                     string belowValue = Quantize(pos);
+                    double qPos = BeatCell.Parse(belowValue); // quantized BPM position double
 
                     // calc the added up cell values to the one below the inserted tap
                     double elapsed = Layer.OffsetBpm;
                     int beatIndex = 0;
 
-                    while (true)
+
+                    // going to iterate over all the cells
+                    CellTreeNode cellNode = row.Cells.Min;
+
+                    // rep groups that have been traversed and should'nt be touched again
+                    HashSet<Repeat> touchedReps = new HashSet<Repeat>();
+
+					Repeat repWithLtmToInsertInto = null;
+
+                    // the nested repeat groups paired with the number of the repeat in which to insert
+                    Dictionary<Repeat, int> repToInsertInto = new Dictionary<Repeat, int>();
+
+                    while (cellNode != null)
                     {
-                        BeatCell bc = Layer.Beat[beatIndex];
+                        Cell c = cellNode.Cell;
+                        // will need to desugar if it's a ref
+
+                        foreach (Repeat rep in c.RepeatGroups.Where(x => !touchedReps.Contains(x)))
+                        {
+                            // see if the total duration of this rep group is shorter than tap position
+                            // then we know that we will be inserting into this rep group at one of it's times. need to know which one.
+                            // rep.Length does not include the times, it's only one cycle
+                            if (qPos < rep.Position + rep.Length * rep.Times)
+                            {
+                                int times = (int)(rep.Length * rep.Times / (qPos - rep.Position));
+                                repToInsertInto.Add(rep, times);
+                            }
+                            else
+                            {
+                                // subtract each repeated cell's value from the total
+                                foreach (Cell rcell in rep.Cells)
+                                {
+                                    string val = BeatCell.MultiplyTerms(rcell.GetValueWithMultFactors(), rep.Times);
+                                    belowValue = BeatCell.Subtract(belowValue, val);
+                                }
+                                qPos -= rep.Length;
+
+								// see if we are inserting into the LTM
+								if (qPos < BeatCell.Parse(rep.GetLtmWithMultFactor()))
+								{
+									//rep.LastTermModifier = belowValue;
+									//
+									//// check if this is the terminating position of any groups and transfer the group action if so
+									//Cell newCell = new Cell(row);
+									//
+									//foreach (var action in rep.Cells.Last.Value.GroupActions)
+									//{
+									//    if (action.Item2.Length > rep.Length)
+									//    {
+									//        newCell.GroupActions.AddLast(action);
+									//    }
+									//}
+									//
+									//foreach (var action in newCell.GroupActions)
+									//{
+									//    rep.Cells.Last.Value.GroupActions.Remove(action);
+									//}
+									//
+									//row.Cells.Insert(newCell);
+									
+									// should be done with the tap at this point.
+									repWithLtmToInsertInto = rep;
+									break;
+									
+								}
+                            }
+
+
+                            touchedReps.Add(rep);
+                        }
+
+                        if (repToInsertInto.Any())
+                        {
+                            // need to break up the groups that are being inserted into
+                            HashSet<Repeat> touched = new HashSet<Repeat>();
+                            foreach (KeyValuePair<Repeat, int> pair in repToInsertInto.Reverse())
+                            {
+                                if (pair.Value == 1)
+                                {
+                                    // terminates on first rep
+                                    // make deep copies
+                                    var copiedCells = Cell.DeepCopyCells(pair.Key.Cells.Where(x => !x.RepeatGroups.Any(g => !touched.Contains(g))), pair.Key);
+
+                                    // if only 2 repeats, we are getting rid of the group
+                                    if (pair.Key.Times == 2)
+                                    {
+                                        foreach (Cell cel in pair.Key.Cells)
+                                        {
+                                            cel.RepeatGroups.Remove(pair.Key);
+                                        }
+                                        pair.Key.Cells.Min().GroupActions.Remove((true, pair.Key));
+                                        pair.Key.Cells.Max().GroupActions.Remove((false, pair.Key));
+                                    }
+
+                                    // finish getting the below value
+                                    while (qPos > cellNode.Cell.Duration)
+                                    {
+                                        belowValue = BeatCell.Subtract(belowValue, cellNode.Cell.Value);
+                                        qPos -= cellNode.Cell.Duration;
+                                        cellNode = cellNode.Next();
+                                    }
+
+                                    // assign the new below cell value
+
+                                    // insert new cell
+
+                                    // need to change the position of all cells from orig group up
+                                    // TODO
+                                }
+                                else if (pair.Value == pair.Key.Times)
+                                {
+                                    // terminates on last rep
+                                }
+                                else
+                                {
+                                    // terminates in a middle rep
+                                }
+
+                                touched.Add(pair.Key);
+                            }
+                        }
+
+                        if (repWithLtmToInsertInto != null)
+                        {
+                            // need to decompress any rep groups that were split by the tap
+
+                        }
+
+
                         elapsed += bc.Bpm;
 
                         if (elapsed < pos)
@@ -300,6 +446,8 @@ namespace Pronome.Mac
                             elapsed -= bc.Bpm;
                             break;
                         }
+
+                        cellNode = cellNode.Next();
                     }
 
                     // get new value of the below cell
@@ -308,7 +456,6 @@ namespace Pronome.Mac
                 }
             }
 
-            Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
             Layer.Controller.HighlightBeatCodeSyntax();
 
             IsListening = false;

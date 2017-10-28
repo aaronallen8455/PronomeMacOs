@@ -194,5 +194,101 @@ namespace Pronome.Mac.Editor
                 grp.Cells.Remove(this);
             }
         }
+
+        static public LinkedList<Cell> DeepCopyCells(IEnumerable<Cell> cells, AbstractGroup noCopyGroup = null)
+        {
+            var copiedCells = new LinkedList<Cell>();
+            var oldToNew = new Dictionary<AbstractGroup, AbstractGroup>();
+
+            foreach (Cell ce in cells)
+            {
+                Cell copy = new Cell(null)
+                {
+                    Duration = ce.Duration,
+                    Source = ce.Source,
+                    IsBreak = ce.IsBreak,
+                    Value = ce.Value
+                };
+
+                foreach (var kp in oldToNew)
+                {
+                    // add cell to each containing group
+                    kp.Value.Cells.AddLast(copy);
+
+                    // add the group to the cell
+                    if (kp.Key is Repeat)
+                    {
+                        copy.RepeatGroups.AddLast((Repeat)kp.Value);
+                    }
+                    else if (kp.Key is Multiply)
+                    {
+                        copy.MultGroups.AddLast((Multiply)kp.Value);
+                    }
+                }
+
+                // copy the groups
+                foreach ((bool isStart, AbstractGroup oldGroup) in ce.GroupActions)
+                {
+                    if (oldGroup == noCopyGroup) continue;
+
+                    if (isStart)
+                    {
+                        // start of group
+						AbstractGroup newGroup = null;
+						
+                        if (oldGroup is Repeat)
+						{
+							newGroup = new Repeat()
+							{
+                                Times = ((Repeat)oldGroup).Times,
+                                Length = oldGroup.Length,
+                                LastTermModifier = ((Repeat)oldGroup).LastTermModifier,
+                                Position = oldGroup.Position,
+                                MultFactor = ((Repeat)oldGroup).MultFactor
+							};
+							
+                            copy.RepeatGroups.AddLast((Repeat)newGroup);
+						}
+                        else if (oldGroup is Multiply)
+						{
+							newGroup = new Multiply()
+							{
+                                Length = oldGroup.Length,
+                                Factor = (oldGroup as Multiply).Factor,
+                                FactorValue = ((Multiply)oldGroup).FactorValue,
+                                Position = oldGroup.Position
+							};
+
+                            copy.MultGroups.AddLast((Multiply)newGroup);
+						}
+						newGroup.Cells.AddLast(copy);
+						
+						copy.GroupActions.AddLast((true, newGroup));
+						
+                        oldToNew.Add(oldGroup, newGroup);
+                    }
+                    else
+                    {
+                        // end of group
+                        copy.GroupActions.AddLast((false, oldToNew[oldGroup]));
+
+                        if (oldGroup is Repeat)
+                        {
+                            copy.RepeatGroups.AddLast((Repeat)oldToNew[oldGroup]);
+                        }
+                        else if (oldGroup is Multiply)
+                        {
+                            copy.MultGroups.AddLast((Multiply)oldToNew[oldGroup]);
+                        }
+
+						oldToNew.Remove(oldGroup);
+                    }
+                }
+
+                copiedCells.AddLast(copy);
+            }
+
+            return copiedCells;
+        }
 	}
 }
