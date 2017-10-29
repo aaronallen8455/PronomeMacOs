@@ -11,7 +11,7 @@ namespace Pronome.Mac.Editor
 
 		protected double _duration;
 		/// <summary>
-		/// The cell's value in BPM
+		/// The cell's value in BPM. Includes the mult factor
 		/// </summary>
 		public double Duration
 		{
@@ -20,20 +20,20 @@ namespace Pronome.Mac.Editor
 			{
 				//HashSet<RepeatGroup> touchedRepGroups = new HashSet<RepeatGroup>();
 				//HashSet<MultGroup> touchedMultGroups = new HashSet<MultGroup>();
-                HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
-				double diff = value - _duration;
+                //HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
+				//double diff = value - _duration;
 				_duration = value;
 				// resize groups of which this cell is a part
-                foreach (Repeat rg in RepeatGroups)
-				{
-					touchedGroups.Add(rg);
-                    rg.Length += diff;
-				}
-                foreach (Multiply mg in MultGroups)
-				{
-					touchedGroups.Add(mg);
-                    mg.Length += diff;
-				}
+                //foreach (Repeat rg in RepeatGroups)
+				//{
+				//	touchedGroups.Add(rg);
+                //    rg.Length += diff;
+				//}
+                //foreach (Multiply mg in MultGroups)
+				//{
+				//	touchedGroups.Add(mg);
+                //    mg.Length += diff;
+				//}
 			}
 		}
 
