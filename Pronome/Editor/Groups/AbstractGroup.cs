@@ -8,6 +8,9 @@ namespace Pronome.Mac.Editor.Groups
         #region Public Fields
         public double Position;
 
+        /// <summary>
+        /// The bpm length of a single cycle, not including the LTM
+        /// </summary>
         public double Length;
 
         public Row Row;

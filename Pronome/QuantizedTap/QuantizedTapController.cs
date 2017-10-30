@@ -317,7 +317,14 @@ namespace Pronome.Mac
                     // the nested repeat groups paired with the number of the repeat in which to insert
                     Dictionary<Repeat, int> repToInsertInto = new Dictionary<Repeat, int>();
 
+                    LinkedList<Repeat> openRepGroups = new LinkedList<Repeat>();
+
                     bool foundBelowCell = false;
+
+                    int completeReps = 0; // the times run due to values being subtracted at each step
+                    //int collateralRun = 0;
+                    Stack<int> collateralRuns = new Stack<int>();
+                    collateralRuns.Push(0);
 
                     while (cellNode != null)
                     {
@@ -326,168 +333,186 @@ namespace Pronome.Mac
 
                         if (c.RepeatGroups.Any())
                         {
+                            //bool repGroup
+
 							foreach (Repeat rep in c.RepeatGroups.Where(x => !touchedReps.Contains(x)))
 							{
-								// see if the total duration of this rep group is shorter than tap position
-								// then we know that we will be inserting into this rep group at one of it's times. need to know which one.
-								// rep.Length does not include the times, it's only one cycle
-								if (qPos < rep.Position + rep.Length * rep.Times)
-								{
+                                
+                                // see if the total duration of this rep group is shorter than tap position
+                                // then we know that we will be inserting into this rep group at one of it's times. need to know which one.
+                                // rep.Length does not include the times, it's only one cycle
+                                if (qPos < rep.Position + rep.Length * rep.Times)
+                                {
+
+
+
                                     // does the rep length field take into account mult group factor? YES
-									int times = (int)(rep.Length * rep.Times / (qPos - rep.Position));
-									repToInsertInto.Add(rep, times);
+                                    int times = (int)(rep.Length * rep.Times / (qPos - rep.Position));
+                                    repToInsertInto.Add(rep, times);
 
-                                    int completeReps = 0; // the times run due to values being subtracted at each step
-                                    int collateralRun = 0;
-                                    foreach (var p in repToInsertInto)
-                                    {
-                                        completeReps *= p.Key.Times;
-                                        completeReps += p.Value - 1;
+									completeReps *= rep.Times;
+									completeReps += times - 1;
+                                
 
-                                        //completeReps += collateralRun;
-                                        //completeReps += p.Key.Times * completeReps - collateralRun;
-
-                                        collateralRun += p.Value - 1;
-                                    }
-                                    completeReps += times - 1;
-                                    completeReps -= collateralRun;
+                                    //completeReps -= collateralRun;
 
                                     // subtract the cell values up to the below cell
                                     //int completeReps = times * repToInsertInto.Select(x => x.Key.Times).Aggregate((x, y) => x * y - (x-1)) - 1;
 
-                                    // subtract out all the complete reps of this group
-                                    foreach (Cell ce in rep.Cells)
-                                    {
-                                        qPos -= ce.Duration * completeReps;
-                                        belowValue = BeatCell.Subtract(belowValue, BeatCell.MultiplyTerms(ce.GetValueWithMultFactors(), completeReps));
-                                    }
+                                    //foreach (var p in repToInsertInto)
+                                    //{
+                                    //completeReps *= p.Key.Times;
 
-                                    // at this point we should be able to simply increment up to the below cell
-                                    // each rep group is wound up to it's last time through
+                                        //completeReps += p.Value - 1;
+
+                                        //completeReps += collateralRun;
+                                        //completeReps += p.Key.Times * completeReps - collateralRun;
+
+                                        //collateralRun += completeReps - collateralRun; //p.Value - 1;
+                                    //}
 								}
 								else
 								{
-									// subtract each repeated cell's value from the total
-									foreach (Cell rcell in rep.Cells)
-									{
-										string val = BeatCell.MultiplyTerms(rcell.GetValueWithMultFactors(), rep.Times);
-										belowValue = BeatCell.Subtract(belowValue, val);
-										// can blow through all these cells
-										//cellNode = cellNode.Next();
-									}
-									qPos -= rep.Length;
-									
-									// see if we are inserting into the LTM
-									if (qPos < BeatCell.Parse(rep.GetLtmWithMultFactor()))
-									{
-										//rep.LastTermModifier = belowValue;
-										//
-										//// check if this is the terminating position of any groups and transfer the group action if so
-										//Cell newCell = new Cell(row);
-										//
-										//foreach (var action in rep.Cells.Last.Value.GroupActions)
-										//{
-										//    if (action.Item2.Length > rep.Length)
-										//    {
-										//        newCell.GroupActions.AddLast(action);
-										//    }
-										//}
-										//
-										//foreach (var action in newCell.GroupActions)
-										//{
-										//    rep.Cells.Last.Value.GroupActions.Remove(action);
-										//}
-										//
-										//row.Cells.Insert(newCell);
-										
-										// should be done with the tap at this point.
-										repWithLtmToInsertInto = rep;
-										break;
-										
-									}
+                                    completeReps *= rep.Times;
 								}
-								
+
+                                // subtract out all the complete reps of this group
+                                foreach (Cell ce in rep.Cells)
+                                {
+                                    int reps = repToInsertInto.ContainsKey(rep) ? completeReps : completeReps - 1;
+                                    
+                                    qPos -= ce.Duration * reps;
+                                    belowValue = BeatCell.Subtract(belowValue, BeatCell.MultiplyTerms(ce.GetValueWithMultFactors(), reps));
+                                }
+
+                                // at this point we should be able to simply increment up to the below cell
+                                // each rep group is wound up to it's last time through
+
+                                // this assumes that the current cell is contained by all rep groups
+                                // that will contain the tapped cell
+
+                                collateralRuns.Push(completeReps - collateralRuns.Peek());
+                                //collateralRun += completeReps - collateralRun;
+
+                                openRepGroups.AddLast(rep);
 								touchedReps.Add(rep);
 							}
-							
-							if (repToInsertInto.Any())
+
+
+                            if (repWithLtmToInsertInto != null)
+                            {
+                                // need to decompress any rep groups that were split by the tap
+
+                            }
+                            else
+                            {
+                                
+                            }
+
+							// close any open groups that have ended
+							while (c.GroupActions.Contains((false, openRepGroups.Last.Value)))
 							{
-								// need to break up the groups that are being inserted into
-								HashSet<Repeat> touched = new HashSet<Repeat>();
-                                HashSet<Cell> touchedCells = new HashSet<Cell>();
-								bool newCellPlaced = false;
-								foreach (KeyValuePair<Repeat, int> pair in repToInsertInto.Reverse())
+								Repeat last = openRepGroups.Last();
+								openRepGroups.RemoveLast();
+								// factor out from global reps times
+								if (openRepGroups.Any())
 								{
-									if (pair.Value == 1)
-									{
-										// terminates on first rep
-										// make deep copies
-										var copiedCells = Cell.DeepCopyCells(pair.Key.Cells.Where(x => !x.RepeatGroups.Any(g => !touched.Contains(g))), pair.Key);
-										
-										// if only 2 repeats, we are getting rid of the group
-										if (pair.Key.Times == 2)
-										{
-											foreach (Cell cel in pair.Key.Cells)
-											{
-												cel.RepeatGroups.Remove(pair.Key);
-											}
-											pair.Key.Cells.Min().GroupActions.Remove((true, pair.Key));
-											pair.Key.Cells.Max().GroupActions.Remove((false, pair.Key));
-										}
-										
-										if (!newCellPlaced)
-										{
-											// finish getting the below value
-											//while (qPos > cellNode.Cell.Duration)
-											//{
-											//  belowValue = BeatCell.Subtract(belowValue, cellNode.Cell.Value);
-											//  qPos -= cellNode.Cell.Duration;
-											//  cellNode = cellNode.Next();
-											//}
-											
-											// need to find the cell in the copied cells that
-											// is the copy of the below cell cellNode
-											int skip = pair.Key.Cells.TakeWhile(x => x != cellNode.Cell).Count();
-											Cell below = copiedCells.Skip(skip).First();
-											
-											// assign the new below cell value or an LTM
-											if (repWithLtmToInsertInto == null)
-											{
-												below.Value = belowValue;
-											}
-											else
-											{
-												
-											}
-											
-											// insert new cell
-											
-											newCellPlaced = true;
-										}
-										
-										
-										// need to change the position of all cells from orig group up
-										// TODO
-									}
-									else if (pair.Value == pair.Key.Times)
-									{
-										// terminates on last rep
-									}
-									else
-									{
-										// terminates in a middle rep
-									}
-									
-									touched.Add(pair.Key);
+									completeReps /= last.Times;
 								}
+								else
+								{
+									completeReps = 0;
+								}
+								collateralRuns.Pop();
+								
+                                if (qPos < BeatCell.Parse(last.GetLtmWithMultFactor()))
+                                {
+                                    // should be done with the tap at this point.
+                                    repWithLtmToInsertInto = last;
+                                    break;
+
+                                }
+                                else
+                                {
+									// subtract the ltm
+									string ltm = last.GetLtmWithMultFactor();
+									qPos -= BeatCell.Parse(ltm);
+									belowValue = BeatCell.Subtract(belowValue, ltm);
+                                }
 							}
 							
-							if (repWithLtmToInsertInto != null)
-							{
-								// need to decompress any rep groups that were split by the tap
-								
-							}
-                            
+							//if (repToInsertInto.Any())
+							//{
+							//	// need to break up the groups that are being inserted into
+							//	HashSet<Repeat> touched = new HashSet<Repeat>();
+                            //    HashSet<Cell> touchedCells = new HashSet<Cell>();
+							//	bool newCellPlaced = false;
+							//	foreach (KeyValuePair<Repeat, int> pair in repToInsertInto.Reverse())
+							//	{
+							//		if (pair.Value == 1)
+							//		{
+							//			// terminates on first rep
+							//			// make deep copies
+							//			var copiedCells = Cell.DeepCopyCells(pair.Key.Cells.Where(x => !x.RepeatGroups.Any(g => !touched.Contains(g))), pair.Key);
+							//			
+							//			// if only 2 repeats, we are getting rid of the group
+							//			if (pair.Key.Times == 2)
+							//			{
+							//				foreach (Cell cel in pair.Key.Cells)
+							//				{
+							//					cel.RepeatGroups.Remove(pair.Key);
+							//				}
+							//				pair.Key.Cells.Min().GroupActions.Remove((true, pair.Key));
+							//				pair.Key.Cells.Max().GroupActions.Remove((false, pair.Key));
+							//			}
+							//			
+							//			if (!newCellPlaced)
+							//			{
+							//				// finish getting the below value
+							//				//while (qPos > cellNode.Cell.Duration)
+							//				//{
+							//				//  belowValue = BeatCell.Subtract(belowValue, cellNode.Cell.Value);
+							//				//  qPos -= cellNode.Cell.Duration;
+							//				//  cellNode = cellNode.Next();
+							//				//}
+							//				
+							//				// need to find the cell in the copied cells that
+							//				// is the copy of the below cell cellNode
+							//				int skip = pair.Key.Cells.TakeWhile(x => x != cellNode.Cell).Count();
+							//				Cell below = copiedCells.Skip(skip).First();
+							//				
+							//				// assign the new below cell value or an LTM
+							//				if (repWithLtmToInsertInto == null)
+							//				{
+							//					below.Value = belowValue;
+							//				}
+							//				else
+							//				{
+							//					
+							//				}
+							//				
+							//				// insert new cell
+							//				
+							//				newCellPlaced = true;
+							//			}
+							//			
+							//			
+							//			// need to change the position of all cells from orig group up
+							//			// TODO
+							//		}
+							//		else if (pair.Value == pair.Key.Times)
+							//		{
+							//			// terminates on last rep
+							//		}
+							//		else
+							//		{
+							//			// terminates in a middle rep
+							//		}
+							//		
+							//		touched.Add(pair.Key);
+							//	}
+							//}
+
                         }
                         else
                         {
