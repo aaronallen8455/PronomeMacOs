@@ -177,19 +177,33 @@ namespace Pronome.Mac
         // which will be a portion of the tap cycle
         // that may involve an offset
 
+        /// <summary>
+        /// Inserts the tapped cells into the layer
+        /// </summary>
+        /// <param name="sender">Sender.</param>
         partial void DoneAction(NSObject sender)
         {
-            if (Taps.Count <= 1 || QuantizeIntervals.Count == 0) 
+            if (QuantizeIntervals.Count == 0)
             {
-				// need at least 2 to define a cell
                 IsListening = false;
 
                 Presentor.DismissViewController(this);
                 return;
             }
 
+            string beatCode = "";
+            string offset = "";
+
             if (ModeDropdown.SelectedTag == MODE_OVERWRITE)
             {
+				if (Taps.Count <= 1) 
+				{
+					// need at least 2 to define a cell
+					IsListening = false;
+					
+					Presentor.DismissViewController(this);
+					return;
+				}
 				
 				LinkedList<string> cellDurs = new LinkedList<string>();
 				string last = "0";
@@ -209,7 +223,7 @@ namespace Pronome.Mac
 				cellDurs.First.Value = BeatCell.Subtract(cellDurs.First(), BeatCell.MultiplyTerms(length, cycles));
 				
 				// rotate until offset is found
-				string offset = cellDurs.First();
+				offset = cellDurs.First();
 				cellDurs.RemoveFirst();
 				
 				while (BeatCell.Parse(offset) >= BeatCell.Parse(cellDurs.Last.Value))
@@ -221,9 +235,8 @@ namespace Pronome.Mac
 				}
 				
 				// modify the layer
-				string beatCode = string.Join(",", cellDurs);
+				beatCode = string.Join(",", cellDurs);
 
-                Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
             }
             else if (ModeDropdown.SelectedTag == MODE_INSERT)
             {
@@ -264,7 +277,7 @@ namespace Pronome.Mac
                 // get the layers total length
                 double bpmLength = Layer.GetTotalBpmValue();
 
-                string offset = "";
+                //string offset = "";
 
                 foreach (double t in Taps)
                 {
@@ -300,10 +313,11 @@ namespace Pronome.Mac
                     double pos = t - cycles * bpmLength;
                     string belowValue = Quantize(pos);
                     double qPos = BeatCell.Parse(belowValue); // quantized BPM position double
+                    double newCellPosition = qPos;
 
                     // calc the added up cell values to the one below the inserted tap
-                    double elapsed = Layer.OffsetBpm;
-                    int beatIndex = 0;
+                    //double elapsed = Layer.OffsetBpm;
+                    //int beatIndex = 0;
 
 
                     // going to iterate over all the cells
@@ -318,8 +332,6 @@ namespace Pronome.Mac
                     Dictionary<Repeat, int> repToInsertInto = new Dictionary<Repeat, int>();
 
                     LinkedList<Repeat> openRepGroups = new LinkedList<Repeat>();
-
-                    bool foundBelowCell = false;
 
                     int completeReps = 0; // the times run due to values being subtracted at each step
                     //int collateralRun = 0;
@@ -343,44 +355,22 @@ namespace Pronome.Mac
                                 // rep.Length does not include the times, it's only one cycle
                                 if (qPos < rep.Position + rep.Length * rep.Times)
                                 {
-
-
-
-                                    // does the rep length field take into account mult group factor? YES
                                     int times = (int)(rep.Length * rep.Times / (qPos - rep.Position));
                                     repToInsertInto.Add(rep, times);
 
 									completeReps *= rep.Times;
 									completeReps += times - 1;
-                                
-
-                                    //completeReps -= collateralRun;
-
-                                    // subtract the cell values up to the below cell
-                                    //int completeReps = times * repToInsertInto.Select(x => x.Key.Times).Aggregate((x, y) => x * y - (x-1)) - 1;
-
-                                    //foreach (var p in repToInsertInto)
-                                    //{
-                                    //completeReps *= p.Key.Times;
-
-                                        //completeReps += p.Value - 1;
-
-                                        //completeReps += collateralRun;
-                                        //completeReps += p.Key.Times * completeReps - collateralRun;
-
-                                        //collateralRun += completeReps - collateralRun; //p.Value - 1;
-                                    //}
 								}
 								else
 								{
                                     completeReps *= rep.Times;
 								}
 
-                                // subtract out all the complete reps of this group
+                                int reps = (repToInsertInto.ContainsKey(rep) ? completeReps : completeReps - 1) - collateralRuns.Peek();
+
+                                // subtract out all the complete reps of this group, except for very last time, which is covered by the cell iteration
                                 foreach (Cell ce in rep.Cells)
                                 {
-                                    int reps = repToInsertInto.ContainsKey(rep) ? completeReps : completeReps - 1;
-                                    
                                     qPos -= ce.Duration * reps;
                                     belowValue = BeatCell.Subtract(belowValue, BeatCell.MultiplyTerms(ce.GetValueWithMultFactors(), reps));
                                 }
@@ -399,15 +389,6 @@ namespace Pronome.Mac
 							}
 
 
-                            if (repWithLtmToInsertInto != null)
-                            {
-                                // need to decompress any rep groups that were split by the tap
-
-                            }
-                            else
-                            {
-                                
-                            }
 
 							// close any open groups that have ended
 							while (c.GroupActions.Contains((false, openRepGroups.Last.Value)))
@@ -440,6 +421,8 @@ namespace Pronome.Mac
 									belowValue = BeatCell.Subtract(belowValue, ltm);
                                 }
 							}
+
+
 							
 							//if (repToInsertInto.Any())
 							//{
@@ -514,33 +497,71 @@ namespace Pronome.Mac
 							//}
 
                         }
-                        else
+
+                        // check if this is the cell that will be above the tap
+                        if (qPos < c.Duration)
                         {
-                            // no repeat groups
+                            // all cell insertion and rep group splitting
+                            // will occur in here
+                            break;
                         }
-
-
-                        elapsed += bc.Bpm;
-
-                        if (elapsed < pos)
+                        else if (repWithLtmToInsertInto != null)
                         {
-							belowValue = BeatCell.Subtract(belowValue, bc.ParsedString);
-                            beatIndex++;
-                        }
-                        else
-                        {
-                            elapsed -= bc.Bpm;
+                            // inserting to an ltm
+                            // may also involve splitting group(s)
                             break;
                         }
 
+                        // subtract the cell value
+                        qPos -= c.Duration;
+                        belowValue = BeatCell.Subtract(belowValue, c.GetValueWithMultFactors());
+
                         cellNode = cellNode.Next();
+                    }
+
+                    if (!string.IsNullOrEmpty(belowValue))
+                    {
+                        if (repWithLtmToInsertInto != null)
+                        {
+                            // inserting into an ltm
+                        }
+                        else
+                        {
+                            // inserting cell between two cells
+                            // insert new cell and do group splitting
+                            Cell below = cellNode.Cell; //cellNode.Prev()?.Cell ?? row.Cells.Max.Cell;
+
+                            string newCellValue = BeatCell.Subtract(below.Value, belowValue);
+
+                            Cell newCell = new Cell(row)
+                            {
+                                Value = newCellValue,
+                                Position = newCellPosition,
+                                Source = row.Layer.BaseStreamInfo,
+                                Duration = below.Duration - qPos
+                            };
+
+                            below.Value = BeatCell.SimplifyValue(below.GetValueDividedByMultFactors(belowValue));
+                            below.Duration = qPos;
+
+                            row.Cells.Insert(newCell);
+                        }
+                    }
+                    else
+                    {
+                        // tap value was a duplicate, don't alter beatcode
+                        continue;
                     }
 
                     // get new value of the below cell
 
                     // get value of tapped cell
                 }
+
+                beatCode = row.Stringify();
             }
+
+            Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
 
             Layer.Controller.HighlightBeatCodeSyntax();
 
@@ -549,60 +570,6 @@ namespace Pronome.Mac
             Presentor.DismissViewController(this);
         }
 
-        //partial void DoneAction(NSObject sender)
-        //{
-        //    if (Taps.Count <= 1 && QuantizeIntervals.Count > 0) return;  // need at least 2 to define a cell
-		//
-		//
-        //    LinkedList<double> cellDurs = new LinkedList<double>();
-        //    double last = 0;
-        //    // get the quantized values
-        //    foreach (double t in Taps.Select(x => Quantize(x)))
-        //    {
-        //        if (t == last) continue;
-        //        cellDurs.AddLast(t - last);
-        //        last = t;
-        //    }
-		//
-        //    // determine offset
-        //    double length = last - cellDurs.First.Value;
-        //    long cycles = (long)(cellDurs.First.Value / length);
-		//
-        //    cellDurs.First.Value -= length * cycles;
-		//
-        //    // rotate to the actual orientation
-        //    double offset = cellDurs.First.Value;
-        //    cellDurs.RemoveFirst();
-		//
-        //    while (offset >= cellDurs.Last.Value)
-        //    {
-        //        offset -= cellDurs.Last.Value;
-        //        // rotate
-        //        cellDurs.AddFirst(cellDurs.Last.Value);
-        //        cellDurs.RemoveLast();
-        //    }
-		//
-        //    // modify the layer
-        //    string beatCode = string.Join(",", cellDurs.Select(x => x.ToString()));
-		//
-        //    Layer.SetBeatCode(beatCode, offset.ToString());
-		//
-        //    IsListening = false;
-		//
-        //    Presentor.DismissViewController(this);
-        //}
-
-        /// <summary>
-        /// The tap action. triggered by a key bind to a button that is positioned off screen.
-        /// </summary>
-        /// <param name="sender">Sender.</param>
-        //partial void TapAction(NSObject sender)
-        //{
-        //    if (IsListening)
-        //    {
-        //        Taps.AddLast(Metronome.Instance.ElapsedBpm);
-        //    }
-        //}
         #endregion
 
         #region Protected Methods
