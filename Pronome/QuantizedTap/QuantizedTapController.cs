@@ -422,80 +422,6 @@ namespace Pronome.Mac
                                 }
 							}
 
-
-							
-							//if (repToInsertInto.Any())
-							//{
-							//	// need to break up the groups that are being inserted into
-							//	HashSet<Repeat> touched = new HashSet<Repeat>();
-                            //    HashSet<Cell> touchedCells = new HashSet<Cell>();
-							//	bool newCellPlaced = false;
-							//	foreach (KeyValuePair<Repeat, int> pair in repToInsertInto.Reverse())
-							//	{
-							//		if (pair.Value == 1)
-							//		{
-							//			// terminates on first rep
-							//			// make deep copies
-							//			var copiedCells = Cell.DeepCopyCells(pair.Key.Cells.Where(x => !x.RepeatGroups.Any(g => !touched.Contains(g))), pair.Key);
-							//			
-							//			// if only 2 repeats, we are getting rid of the group
-							//			if (pair.Key.Times == 2)
-							//			{
-							//				foreach (Cell cel in pair.Key.Cells)
-							//				{
-							//					cel.RepeatGroups.Remove(pair.Key);
-							//				}
-							//				pair.Key.Cells.Min().GroupActions.Remove((true, pair.Key));
-							//				pair.Key.Cells.Max().GroupActions.Remove((false, pair.Key));
-							//			}
-							//			
-							//			if (!newCellPlaced)
-							//			{
-							//				// finish getting the below value
-							//				//while (qPos > cellNode.Cell.Duration)
-							//				//{
-							//				//  belowValue = BeatCell.Subtract(belowValue, cellNode.Cell.Value);
-							//				//  qPos -= cellNode.Cell.Duration;
-							//				//  cellNode = cellNode.Next();
-							//				//}
-							//				
-							//				// need to find the cell in the copied cells that
-							//				// is the copy of the below cell cellNode
-							//				int skip = pair.Key.Cells.TakeWhile(x => x != cellNode.Cell).Count();
-							//				Cell below = copiedCells.Skip(skip).First();
-							//				
-							//				// assign the new below cell value or an LTM
-							//				if (repWithLtmToInsertInto == null)
-							//				{
-							//					below.Value = belowValue;
-							//				}
-							//				else
-							//				{
-							//					
-							//				}
-							//				
-							//				// insert new cell
-							//				
-							//				newCellPlaced = true;
-							//			}
-							//			
-							//			
-							//			// need to change the position of all cells from orig group up
-							//			// TODO
-							//		}
-							//		else if (pair.Value == pair.Key.Times)
-							//		{
-							//			// terminates on last rep
-							//		}
-							//		else
-							//		{
-							//			// terminates in a middle rep
-							//		}
-							//		
-							//		touched.Add(pair.Key);
-							//	}
-							//}
-
                         }
 
                         // check if this is the cell that will be above the tap
@@ -528,6 +454,25 @@ namespace Pronome.Mac
                         else
                         {
                             // inserting cell between two cells
+                            if (repToInsertInto.Any())
+                            {
+                                // make three copies of the rep group, 1 before, 1 after, and 
+                                // the group that we will insert into
+                                // groups with 0 times will be completely deleted
+                                // groups with 1 times will no longer be a group
+
+                                // calculating the position isn't important as long
+                                // as the cells are in correct order
+
+                                foreach (var pair in repToInsertInto)
+                                {
+                                    // make the two copies of the first nested rep
+                                    // we then recurse into the next nested rep
+                                    // until we reach the rep where the new cell will
+                                    // exist, then we're done
+
+                                }
+                            }
                             // insert new cell and do group splitting
                             Cell below = cellNode.Cell; //cellNode.Prev()?.Cell ?? row.Cells.Max.Cell;
 

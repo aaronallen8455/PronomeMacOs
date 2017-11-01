@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Pronome.Mac.Editor.Groups
 {
@@ -22,5 +23,85 @@ namespace Pronome.Mac.Editor.Groups
         {
             Cells = new LinkedList<Cell>();
         }
+
+        #region Public Static Methods
+        public static AbstractGroup DeepCopy(AbstractGroup group)
+        {
+            AbstractGroup copy = null;
+
+            if (group is Repeat)
+            {
+                var r = group as Repeat;
+
+				copy = new Repeat()
+				{
+					LastTermModifier = r.LastTermModifier,
+					Length = r.Length,
+					MultFactor = r.MultFactor,
+					Position = r.Position,
+					Row = r.Row,
+					Times = r.Times
+				};
+            }
+            else if (group is Multiply)
+            {
+                var m = group as Multiply;
+
+                copy = new Multiply()
+                {
+                    Factor = m.Factor,
+                    FactorValue = m.FactorValue,
+                    Length = m.Length,
+                    Position = m.Position,
+                    Row = m.Row
+                };
+            }
+
+            Dictionary<AbstractGroup, AbstractGroup> copiedGroups = new Dictionary<AbstractGroup, AbstractGroup>();
+
+            bool first = true;
+            foreach (Cell c in group.Cells)
+            {
+                IEnumerable<(bool, AbstractGroup)> nested = c.GroupActions;
+
+                // the first cell, we skip any opening groups up to and including the target
+                if (first)
+                {
+                    nested = nested.SkipWhile(x => x.Item2 != group).Skip(1);
+
+					first = false;
+                }
+
+                // only clone a group that is opening
+                nested = nested.SkipWhile(x => !x.Item1);
+                if (nested.Any())
+                {
+                    (bool _, AbstractGroup g) = nested.First();
+                    AbstractGroup nestedCopy = DeepCopy(g);
+
+                    copy.Cells = (LinkedList<Cell>)copy.Cells.Concat(nestedCopy.Cells);
+                }
+                else
+                {
+                    Cell copyCell = new Cell(group.Row)
+                    {
+                        Duration = c.Duration,
+                        MultFactor = c.MultFactor,
+                        Position = c.Position,
+                        Source = c.Source,
+                        Value = c.Value,
+                        Reference = c.Reference,
+                        IsBreak = c.IsBreak,
+                    };
+                    copy.Cells.AddLast(copyCell);
+                }
+            }
+
+            copy.Cells.First.Value.GroupActions.AddFirst((true, copy));
+            copy.Cells.Last.Value.GroupActions.AddLast((false, copy));
+
+            return copy;
+        }
+        #endregion
     }
 }

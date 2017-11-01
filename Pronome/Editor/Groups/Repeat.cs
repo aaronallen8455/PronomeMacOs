@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+
 namespace Pronome.Mac.Editor.Groups
 {
     public class Repeat : AbstractGroup
