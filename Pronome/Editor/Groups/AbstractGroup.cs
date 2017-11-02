@@ -24,7 +24,23 @@ namespace Pronome.Mac.Editor.Groups
             Cells = new LinkedList<Cell>();
         }
 
+        #region public methods
+        /// <summary>
+        /// Produce a deep copy of this group and it's components.
+        /// </summary>
+        /// <returns>The copy.</returns>
+        public AbstractGroup DeepCopy()
+        {
+            return DeepCopy(this);
+        }
+        #endregion
+
         #region Public Static Methods
+        /// <summary>
+        /// Produce a deep copy of a group and it's components
+        /// </summary>
+        /// <returns>The copy.</returns>
+        /// <param name="group">Group.</param>
         public static AbstractGroup DeepCopy(AbstractGroup group)
         {
             AbstractGroup copy = null;
@@ -93,6 +109,17 @@ namespace Pronome.Mac.Editor.Groups
                         Reference = c.Reference,
                         IsBreak = c.IsBreak,
                     };
+
+                    // add the group to the cell's collection
+                    if (copy is Repeat)
+                    {
+						copyCell.RepeatGroups.AddLast(copy as Repeat);
+                    }
+                    else if (copy is Multiply)
+                    {
+                        copyCell.MultGroups.AddLast(copy as Multiply);
+                    }
+
                     copy.Cells.AddLast(copyCell);
                 }
             }

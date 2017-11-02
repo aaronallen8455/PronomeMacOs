@@ -142,10 +142,10 @@ namespace Pronome.Mac.Editor
         /// Gets the string value with mult factors applied.
         /// </summary>
         /// <returns>The value with mult factors.</returns>
-        public string GetValueWithMultFactors()
+        public string GetValueWithMultFactors(bool ignoreSetting = false)
         {
             // don't operate if scaling is disabled
-            if (!UserSettings.GetSettings().DrawMultToScale) return Value;
+            if (string.IsNullOrEmpty(MultFactor) || (!ignoreSetting && !UserSettings.GetSettings().DrawMultToScale)) return Value;
 
             if (string.IsNullOrEmpty(MultipliedValue))
             {
@@ -153,15 +153,14 @@ namespace Pronome.Mac.Editor
             }
 
             return MultipliedValue;
+        }
 
-            //string val = Value;
-			//
-            //foreach (Multiply mg in MultGroups)
-            //{
-            //    val = BeatCell.MultiplyTerms(val, mg.FactorValue);
-            //}
-			//
-            //return val;
+        /// <summary>
+        /// Resets the multiplied value so that it will be recalculated against a new cell value.
+        /// </summary>
+        public void ResetMultipliedValue()
+        {
+            MultipliedValue = string.Empty;
         }
 
         /// <summary>
@@ -170,19 +169,12 @@ namespace Pronome.Mac.Editor
         /// </summary>
         /// <returns>The value divided by mult factors.</returns>
         /// <param name="value">Value.</param>
-        public string GetValueDividedByMultFactors(string value)
+        public string GetValueDividedByMultFactors(string value, bool ignoreSetting = false)
         {
             // don't operate if scaling is disabled
-            if (!UserSettings.GetSettings().DrawMultToScale) return value;
+            if (string.IsNullOrEmpty(MultFactor) || (!ignoreSetting && !UserSettings.GetSettings().DrawMultToScale)) return value;
 
             return BeatCell.DivideTerms(value, MultFactor);
-
-            //foreach (Multiply mg in MultGroups)
-            //{
-            //    value = BeatCell.DivideTerms(value, mg.FactorValue);
-            //}
-			//
-            //return value;
         }
 
         public void Delete()

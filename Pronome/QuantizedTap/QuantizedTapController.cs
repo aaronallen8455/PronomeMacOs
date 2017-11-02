@@ -38,11 +38,6 @@ namespace Pronome.Mac
                         newIntervals.AddLast(BeatCell.SimplifyValue(chunk));
                         touchedVals.Add(val);
                     }
-                    //else
-                    //{
-                    //    isValid = false;
-                    //    break;
-                    //}
                 }
 
                 if (newIntervals.Any())//isValid)
@@ -106,6 +101,27 @@ namespace Pronome.Mac
                 _countOff = value;
                 Metronome.Instance.Mixer.SetCountOff(value);
                 DidChangeValue("CountOff");
+            }
+        }
+
+        [Export("IsInsert")]
+        public bool IsInsert
+        {
+            get => ModeDropdown.SelectedTag == MODE_INSERT;
+        }
+
+        private nint _modeSelection = 0;
+        [Export("ModeSelection")]
+        public nint ModeSelection
+        {
+            get => _modeSelection;
+            set
+            {
+                WillChangeValue("ModeSelection");
+                WillChangeValue("IsInsert");
+                _modeSelection = value;
+                DidChangeValue("ModeSelection");
+                DidChangeValue("IsInsert");
             }
         }
         #endregion
@@ -183,7 +199,7 @@ namespace Pronome.Mac
         /// <param name="sender">Sender.</param>
         partial void DoneAction(NSObject sender)
         {
-            if (QuantizeIntervals.Count == 0)
+            if (QuantizeIntervals.Count == 0 || !Metronome.Instance.IsPlaying)
             {
                 IsListening = false;
 
@@ -355,11 +371,11 @@ namespace Pronome.Mac
                                 // rep.Length does not include the times, it's only one cycle
                                 if (qPos < rep.Position + rep.Length * rep.Times)
                                 {
-                                    int times = (int)(rep.Length * rep.Times / (qPos - rep.Position));
+                                    int times = (int)((qPos - rep.Position) / rep.Length);//(int)(rep.Length * rep.Times / (qPos - rep.Position));
                                     repToInsertInto.Add(rep, times);
 
 									completeReps *= rep.Times;
-									completeReps += times - 1;
+									completeReps += times;
 								}
 								else
 								{
@@ -391,7 +407,7 @@ namespace Pronome.Mac
 
 
 							// close any open groups that have ended
-							while (c.GroupActions.Contains((false, openRepGroups.Last.Value)))
+                            while (openRepGroups.Any() && c.GroupActions.Contains((false, openRepGroups.Last.Value)))
 							{
 								Repeat last = openRepGroups.Last();
 								openRepGroups.RemoveLast();
@@ -406,7 +422,7 @@ namespace Pronome.Mac
 								}
 								collateralRuns.Pop();
 								
-                                if (qPos < BeatCell.Parse(last.GetLtmWithMultFactor()))
+                                if (qPos < BeatCell.Parse(last.GetLtmWithMultFactor(true)))
                                 {
                                     // should be done with the tap at this point.
                                     repWithLtmToInsertInto = last;
@@ -416,7 +432,7 @@ namespace Pronome.Mac
                                 else
                                 {
 									// subtract the ltm
-									string ltm = last.GetLtmWithMultFactor();
+									string ltm = last.GetLtmWithMultFactor(true);
 									qPos -= BeatCell.Parse(ltm);
 									belowValue = BeatCell.Subtract(belowValue, ltm);
                                 }
@@ -447,60 +463,187 @@ namespace Pronome.Mac
 
                     if (!string.IsNullOrEmpty(belowValue))
                     {
-                        if (repWithLtmToInsertInto != null)
-                        {
-                            // inserting into an ltm
-                        }
-                        else
-                        {
-                            // inserting cell between two cells
-                            if (repToInsertInto.Any())
+						foreach (var pair in repToInsertInto)
+						{
+                            // make the two copies of the first nested rep
+                            // we then recurse into the next nested rep
+                            // until we reach the rep where the new cell will
+                            // exist, then we're done
+							Repeat actual = pair.Key;
+                            Repeat before = actual.DeepCopy() as Repeat;
+                            Repeat after = actual.DeepCopy() as Repeat;
+
+                            //before.Length *= (double)pair.Value / before.Times;
+                            before.Times = pair.Value;
+
+                            //after.Length *= (double)(actual.Times - pair.Value - 1) / after.Times;
+                            after.Times = actual.Times - pair.Value - 1;
+
+                            //actual.Length *= 1d / actual.Times;
+                            actual.Times = 1;
+
+                            // only the after-copy should have the LTM, or the
+                            // actual one if the after copy has 0 times
+							before.LastTermModifier = "";
+                            if (after.Times > 0)
                             {
-                                // make three copies of the rep group, 1 before, 1 after, and 
-                                // the group that we will insert into
-                                // groups with 0 times will be completely deleted
-                                // groups with 1 times will no longer be a group
+                                pair.Key.LastTermModifier = "";
+                            }
 
-                                // calculating the position isn't important as long
-                                // as the cells are in correct order
+                            // get rid of actual group
+                            actual.Cells.First.Value.GroupActions.Remove((true, actual));
+                            actual.Cells.Last.Value.GroupActions.Remove((false, actual));
+                            foreach (Cell c in actual.Cells)
+                            {
+                                c.RepeatGroups.Remove(actual);
+                            }
 
-                                foreach (var pair in repToInsertInto)
+                            // get rid of group if the times is 1
+                            if (before.Times == 1)
+                            {
+                                before.Cells.First().GroupActions.RemoveFirst();
+                                before.Cells.Last().GroupActions.RemoveLast();
+                                foreach (Cell c in before.Cells)
                                 {
-                                    // make the two copies of the first nested rep
-                                    // we then recurse into the next nested rep
-                                    // until we reach the rep where the new cell will
-                                    // exist, then we're done
-
+                                    c.RepeatGroups.Remove(before);
                                 }
                             }
-                            // insert new cell and do group splitting
-                            Cell below = cellNode.Cell; //cellNode.Prev()?.Cell ?? row.Cells.Max.Cell;
-
-                            string newCellValue = BeatCell.Subtract(below.Value, belowValue);
-
-                            Cell newCell = new Cell(row)
+                            if (after.Times == 1)
                             {
-                                Value = newCellValue,
-                                Position = newCellPosition,
-                                Source = row.Layer.BaseStreamInfo,
-                                Duration = below.Duration - qPos
-                            };
+                                after.Cells.First().GroupActions.RemoveFirst();
+                                after.Cells.Last().GroupActions.RemoveLast();
+                                foreach (Cell c in after.Cells)
+                                {
+                                    c.RepeatGroups.Remove(after);
+                                }
+                            }
 
-                            below.Value = BeatCell.SimplifyValue(below.GetValueDividedByMultFactors(belowValue));
-                            below.Duration = qPos;
+                            // if the before-copy isn't nulled, and the first cell of
+                            // this inner nested rep group is also the first cell of it's
+                            // containing group, then we need to transfer ownership of the
+                            // groupAction to the before-copy. And likewise with the 
+                            // after-copy
+                            if (before.Times > 0)
+                            {
+                                var fstCell = actual.Cells.First();
+                                var gAction = fstCell.GroupActions.First;
+                                var actionsToPrepend = new LinkedList<(bool, AbstractGroup)>();
+                                // grab all groups that need to be transfered
+                                while (gAction != null && gAction.Value.Item2 != actual)
+                                {
+                                    actionsToPrepend.AddLast(gAction.Value);
+									gAction = gAction.Next;
+                                    fstCell.GroupActions.RemoveFirst();
+                                }
+                                // transfer the groups
+                                before.Cells.First().GroupActions = new LinkedList<(bool, AbstractGroup)>(actionsToPrepend.Concat(before.Cells.First().GroupActions));
+                            }
+                            // copy actions from last cell of actual group to the after-copy
+                            if (after.Times > 0)
+                            {
+                                var lstCell = actual.Cells.Last();
+                                var gAction = lstCell.GroupActions.Last;
+                                var actionsToAppend = new LinkedList<(bool, AbstractGroup)>();
 
-                            row.Cells.Insert(newCell);
+                                while (gAction != null && gAction.Value.Item2 != actual)
+                                {
+                                    actionsToAppend.AddFirst(gAction.Value);
+									gAction = gAction.Previous;
+                                    lstCell.GroupActions.RemoveLast();
+                                }
+                                after.Cells.Last().GroupActions = new LinkedList<(bool, AbstractGroup)>(after.Cells.Last().GroupActions.Concat(actionsToAppend));
+                            }
+
+                            // reposition the actual group and the after-copy
+                            double curOffset = before.Length * before.Times;
+                            if (before.Times > 0)
+                            {
+								foreach (Cell c in actual.Cells)
+								{
+									c.Position += curOffset;
+									foreach (var action in c.GroupActions)
+									{
+										if (action.Item1)
+											action.Item2.Position += curOffset;
+									}
+								}
+                            }
+
+                            curOffset += actual.Length;
+                            if (after.Times > 0)
+                            {
+								foreach (Cell c in after.Cells)
+								{
+                                    c.Position += curOffset;
+                                    foreach (var action in c.GroupActions)
+                                    {
+                                        if (action.Item1)
+                                            action.Item2.Position += curOffset;
+                                    }
+								}
+                            }
+
+                            // add the copies to the row
+                            if (before.Times > 0)
+                            {
+                                foreach (Cell c in before.Cells)
+                                {
+                                    row.Cells.Insert(c);
+                                }
+                            }
+                            if (after.Times > 0)
+                            {
+                                foreach (Cell c in after.Cells)
+                                {
+                                    row.Cells.Insert(c);
+                                }
+                            }
                         }
+
+						if (repWithLtmToInsertInto == null)
+						{
+							// insert new cell
+							Cell below = cellNode.Cell;
+							
+							string newCellValue = BeatCell.Subtract(below.GetValueWithMultFactors(true), belowValue);
+							
+							//TODO need to add mult groups
+							Cell newCell = new Cell(row)
+							{
+								//Value = newCellValue,
+								Position = newCellPosition,
+								Source = row.Layer.BaseStreamInfo,
+								Duration = below.Duration - qPos
+							};
+							newCell.Value = BeatCell.SimplifyValue(newCell.GetValueDividedByMultFactors(newCellValue, true));
+							// modify below cell
+							below.Value = BeatCell.SimplifyValue(below.GetValueDividedByMultFactors(belowValue, true));
+							below.ResetMultipliedValue();
+							below.Duration = qPos;
+							
+							row.Cells.Insert(newCell);
+						}
+						else
+						{
+							string newCellValue = BeatCell.Subtract(repWithLtmToInsertInto.GetLtmWithMultFactor(true), belowValue);
+							// insert into LTM
+							Cell newCell = new Cell(row)
+							{
+								Position = newCellPosition,
+								Source = row.Layer.BaseStreamInfo,
+								Duration = BeatCell.Parse(repWithLtmToInsertInto.LastTermModifier) - qPos
+							};
+							newCell.Value = BeatCell.SimplifyValue(repWithLtmToInsertInto.GetValueDividedByMultFactor(newCellValue, true));
+							// modify the rep group
+							repWithLtmToInsertInto.LastTermModifier = BeatCell.SimplifyValue(repWithLtmToInsertInto.GetValueDividedByMultFactor(belowValue, true));
+							repWithLtmToInsertInto.ResetMultedLtm();
+						}
                     }
                     else
                     {
                         // tap value was a duplicate, don't alter beatcode
                         continue;
                     }
-
-                    // get new value of the below cell
-
-                    // get value of tapped cell
                 }
 
                 beatCode = row.Stringify();
@@ -546,28 +689,6 @@ namespace Pronome.Mac
             return r;
         }
 
-        //protected double Quantize(double value)
-        //{
-        //    var qs = QuantizeIntervals
-        //        .SelectMany(x => { int div = (int)(value / x); return new double[] { div * x, (div + 1) * x }; });
-        //    //.Min(x => Math.Abs(value - x));
-		//
-        //    double r = 0;
-        //    double diff = double.MaxValue;
-		//
-        //    // find match with minimal difference
-        //    foreach (double q in qs)
-        //    {
-        //        double d = Math.Abs(value - q);
-        //        if (d < diff)
-        //        {
-        //            r = q;
-        //            diff = d;
-        //        }
-        //    }
-		//
-        //    return r;
-        //}
         #endregion
     }
 }

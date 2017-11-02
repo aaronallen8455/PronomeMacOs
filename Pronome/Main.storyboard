@@ -819,6 +819,14 @@ Gw
                                         </items>
                                     </menu>
                                 </popUpButtonCell>
+                                <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.IsListening" id="pDQ-tN-dpP">
+                                        <dictionary key="options">
+                                            <string key="NSValueTransformerName">NSNegateBoolean</string>
+                                        </dictionary>
+                                    </binding>
+                                    <binding destination="Z5e-TA-LaQ" name="selectedTag" keyPath="self.ModeSelection" id="VcM-UN-0DS"/>
+                                </connections>
                             </popUpButton>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EOb-wg-KOW">
                                 <rect key="frame" x="143" y="141" width="39" height="17"/>
@@ -837,6 +845,7 @@ Gw
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
+                                    <binding destination="Z5e-TA-LaQ" name="hidden" keyPath="self.IsInsert" previousBinding="mWe-4u-emh" id="pLl-aQ-MGO"/>
                                     <binding destination="Z5e-TA-LaQ" name="value" keyPath="self.CountOff" id="Os4-qD-rnd"/>
                                     <binding destination="Z5e-TA-LaQ" name="enabled" keyPath="self.Metronome.IsPlaying" id="mWe-4u-emh">
                                         <dictionary key="options">
@@ -1005,8 +1014,7 @@ Gw
                                             </connections>
                                         </menuItem>
                                         <menuItem isSeparatorItem="YES" id="Afa-Sn-Jvt"/>
-                                        <menuItem title="Tapping" id="ZY0-jn-617">
-                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                        <menuItem title="Tapping" keyEquivalent="t" id="ZY0-jn-617">
                                             <connections>
                                                 <action selector="quantizedTap:" target="Ady-hI-5gd" id="2fv-Sz-d14"/>
                                             </connections>

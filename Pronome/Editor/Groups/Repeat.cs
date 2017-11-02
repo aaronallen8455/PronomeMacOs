@@ -31,9 +31,12 @@ namespace Pronome.Mac.Editor.Groups
         /// Gets the ltm with mult factor.
         /// </summary>
         /// <returns>The ltm with mult factor.</returns>
-        public string GetLtmWithMultFactor()
+        public string GetLtmWithMultFactor(bool ignoreSettings = false)
         {
-            if (!UserSettings.GetSettings().DrawMultToScale) return LastTermModifier;
+            if (string.IsNullOrEmpty(LastTermModifier) || (!ignoreSettings && !UserSettings.GetSettings().DrawMultToScale))
+            {
+                return LastTermModifier;
+            }
 
             if (string.IsNullOrEmpty(MultedLtm))
             {
@@ -43,9 +46,17 @@ namespace Pronome.Mac.Editor.Groups
             return MultedLtm;
         }
 
-        public string GetValueDividedByMultFactor(string value)
+        /// <summary>
+        /// Resets the multed ltm, so that it will be recalculated against a new value.
+        /// </summary>
+        public void ResetMultedLtm()
         {
-            if (!UserSettings.GetSettings().DrawMultToScale) return value;
+            MultedLtm = string.Empty;
+        }
+
+        public string GetValueDividedByMultFactor(string value, bool ignoreSetting = false)
+        {
+            if (string.IsNullOrEmpty(value) || (!ignoreSetting && !UserSettings.GetSettings().DrawMultToScale)) return value;
 
             return BeatCell.DivideTerms(value, MultFactor);
         }
