@@ -834,9 +834,9 @@ namespace Pronome.Mac
 					{
 						rgCopy = CopiedRepeatGroups[rg];
 					}
-					else if (rg.Cells.First.Value == c
+					else if (rg.ExclusiveCells.First.Value == c
                              && (!lastSelected.RepeatGroups.Contains(rg)
-                                 || rg.Cells.Last.Value == lastSelected))
+                                 || rg.ExclusiveCells.Last.Value == lastSelected))
 					{
                         rgCopy = new Repeat()
                         {
@@ -848,7 +848,7 @@ namespace Pronome.Mac
 
 					if (rgCopy != null)
 					{
-						rgCopy.Cells.AddLast(copy);
+						rgCopy.ExclusiveCells.AddLast(copy);
 						copy.RepeatGroups.AddLast(rgCopy);
 					}
 				}
@@ -860,9 +860,9 @@ namespace Pronome.Mac
 					{
 						mgCopy = CopiedMultGroups[mg];
 					}
-					else if (mg.Cells.First.Value == c
+					else if (mg.ExclusiveCells.First.Value == c
                              && (!lastSelected.MultGroups.Contains(mg)
-                                 || mg.Cells.Last.Value == lastSelected))
+                                 || mg.ExclusiveCells.Last.Value == lastSelected))
 					{
                         mgCopy = new Multiply();
 						mgCopy.FactorValue = mg.FactorValue;
@@ -871,7 +871,7 @@ namespace Pronome.Mac
 
 					if (mgCopy != null)
 					{
-						mgCopy.Cells.AddLast(copy);
+						mgCopy.ExclusiveCells.AddLast(copy);
 						copy.MultGroups.AddLast(mgCopy);
 					}
 				}

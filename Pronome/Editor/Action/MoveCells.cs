@@ -69,10 +69,10 @@ namespace Pronome.Mac.Editor.Action
 			{
                 Cell below = Row.Cells.LookupIndex(Cells[0].Index - 1).Cell;
 				// if below is last cell of a repeat group, we instead operate on that group's LTM
-				Repeat leftGroup = below.RepeatGroups.Where(x => x.Cells.Last.Value == below).FirstOrDefault();
+				Repeat leftGroup = below.RepeatGroups.Where(x => x.ExclusiveCells.Last.Value == below).FirstOrDefault();
 				bool useLeftGroup = leftGroup != default(Repeat);
 				// if last cell in selection is last of a repeat group, operate on it's LTM
-				Repeat rightGroup = last.RepeatGroups.Where(x => x.Cells.Last.Value == last).FirstOrDefault();
+				Repeat rightGroup = last.RepeatGroups.Where(x => x.ExclusiveCells.Last.Value == last).FirstOrDefault();
 				bool useRightGroup = rightGroup != default(Repeat);
 
 				if (ShiftingRight)

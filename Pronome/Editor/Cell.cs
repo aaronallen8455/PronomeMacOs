@@ -183,7 +183,7 @@ namespace Pronome.Mac.Editor
 
             foreach (AbstractGroup grp in RepeatGroups.Concat<AbstractGroup>(MultGroups))
             {
-                grp.Cells.Remove(this);
+                grp.ExclusiveCells.Remove(this);
             }
         }
 
@@ -205,7 +205,7 @@ namespace Pronome.Mac.Editor
                 foreach (var kp in oldToNew)
                 {
                     // add cell to each containing group
-                    kp.Value.Cells.AddLast(copy);
+                    kp.Value.ExclusiveCells.AddLast(copy);
 
                     // add the group to the cell
                     if (kp.Key is Repeat)
@@ -253,7 +253,7 @@ namespace Pronome.Mac.Editor
 
                             copy.MultGroups.AddLast((Multiply)newGroup);
 						}
-						newGroup.Cells.AddLast(copy);
+						newGroup.ExclusiveCells.AddLast(copy);
 						
 						copy.GroupActions.AddLast((true, newGroup));
 						

@@ -75,15 +75,15 @@ namespace Pronome.Mac.Editor.Action
 				foreach (Repeat rg in c.RepeatGroups.Reverse())
 				{
 					// remove cell from group
-					rg.Cells.Remove(c);
+					rg.ExclusiveCells.Remove(c);
 					if (touchedGroups.Contains(rg)) continue;
 
 					rgToAppendTo.Enqueue(rg);
 					touchedGroups.Add(rg);
 
 					if (
-                        (StartNode.Cell == rg.Cells.First?.Value || rg.Position >= StartNode.Cell.Position)
-                        && (EndNode.Cell == rg.Cells.Last?.Value || rg.Position + rg.Length <= EndNode.Cell.Position))
+                        (StartNode.Cell == rg.ExclusiveCells.First?.Value || rg.Position >= StartNode.Cell.Position)
+                        && (EndNode.Cell == rg.ExclusiveCells.Last?.Value || rg.Position + rg.Length <= EndNode.Cell.Position))
 					{
 						RepGroups.Add(rg);
 
@@ -101,12 +101,12 @@ namespace Pronome.Mac.Editor.Action
                 foreach (Multiply mg in c.MultGroups)
 				{
 					// remove cell from group
-					mg.Cells.Remove(c);
+					mg.ExclusiveCells.Remove(c);
 					if (touchedGroups.Contains(mg)) continue;
 					touchedGroups.Add(mg);
 					if (
-                        (StartNode.Cell == mg.Cells.First.Value || mg.Position >= StartNode.Cell.Position)
-                        && (EndNode.Cell == mg.Cells.Last.Value || mg.Position + mg.Length <= EndNode.Cell.Position + EndNode.Cell.Duration))
+                        (StartNode.Cell == mg.ExclusiveCells.First.Value || mg.Position >= StartNode.Cell.Position)
+                        && (EndNode.Cell == mg.ExclusiveCells.Last.Value || mg.Position + mg.Length <= EndNode.Cell.Position + EndNode.Cell.Duration))
 					{
 						MultGroups.Add(mg);
 					}
@@ -138,7 +138,7 @@ namespace Pronome.Mac.Editor.Action
             {
 				foreach (AbstractGroup group in openedGroups)
 				{
-					if (group.Cells.Count > 0)
+					if (group.ExclusiveCells.Count > 0)
 					{
                         after.Cell.GroupActions.AddFirst((true, group));
 					}
@@ -149,7 +149,7 @@ namespace Pronome.Mac.Editor.Action
             {
 				foreach (AbstractGroup group in closedGroups)
 				{
-					if (group.Cells.Count > 0)
+					if (group.ExclusiveCells.Count > 0)
 					{
                         before.Cell.GroupActions.AddFirst((false, group));
 					}

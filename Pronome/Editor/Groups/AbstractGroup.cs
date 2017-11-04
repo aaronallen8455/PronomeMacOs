@@ -16,11 +16,17 @@ namespace Pronome.Mac.Editor.Groups
 
         public Row Row;
 
+        /// <summary>
+        /// The cells contained by this group that exclusive to this group, i.e. not also in a nested group
+        /// </summary>
+        public LinkedList<Cell> ExclusiveCells;
+
         public LinkedList<Cell> Cells;
         #endregion
 
         public AbstractGroup()
         {
+            ExclusiveCells = new LinkedList<Cell>();
             Cells = new LinkedList<Cell>();
         }
 
@@ -95,7 +101,7 @@ namespace Pronome.Mac.Editor.Groups
                     (bool _, AbstractGroup g) = nested.First();
                     AbstractGroup nestedCopy = DeepCopy(g);
 
-                    copy.Cells = (LinkedList<Cell>)copy.Cells.Concat(nestedCopy.Cells);
+                    copy.Cells = new LinkedList<Cell>(copy.Cells.Concat(nestedCopy.Cells));
                 }
                 else
                 {
@@ -120,12 +126,13 @@ namespace Pronome.Mac.Editor.Groups
                         copyCell.MultGroups.AddLast(copy as Multiply);
                     }
 
+                    copy.ExclusiveCells.AddLast(copyCell);
                     copy.Cells.AddLast(copyCell);
                 }
             }
 
-            copy.Cells.First.Value.GroupActions.AddFirst((true, copy));
-            copy.Cells.Last.Value.GroupActions.AddLast((false, copy));
+            copy.ExclusiveCells.First.Value.GroupActions.AddFirst((true, copy));
+            copy.ExclusiveCells.Last.Value.GroupActions.AddLast((false, copy));
 
             return copy;
         }

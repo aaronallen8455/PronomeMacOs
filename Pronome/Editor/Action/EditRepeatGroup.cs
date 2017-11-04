@@ -8,7 +8,7 @@ namespace Pronome.Mac.Editor.Action
         string Ltm;
         int Times;
 
-        public EditRepeatGroup(Repeat group, string ltm, int times) : base(group.Cells.First.Value.Row, "Edit Repeat Group")
+        public EditRepeatGroup(Repeat group, string ltm, int times) : base(group.ExclusiveCells.First.Value.Row, "Edit Repeat Group")
         {
             Group = group;
             Ltm = ltm;

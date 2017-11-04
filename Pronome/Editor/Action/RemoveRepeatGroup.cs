@@ -17,7 +17,7 @@ namespace Pronome.Mac.Editor.Action
 
 		protected override void Transformation()
 		{
-			foreach (Cell c in Group.Cells)
+			foreach (Cell c in Group.ExclusiveCells)
 			{
 				c.RepeatGroups.Remove(Group);
 			}
@@ -31,8 +31,8 @@ namespace Pronome.Mac.Editor.Action
 
         public override bool CanPerform()
         {
-            var firstGroups = Cells.Min.Cell.RepeatGroups.Where(x => x.Cells.First() == Cells.Min.Cell);
-            var lastGroups = Cells.Max.Cell.RepeatGroups.Where(x => x.Cells.Last() == Cells.Max.Cell);
+            var firstGroups = Cells.Min.Cell.RepeatGroups.Where(x => x.ExclusiveCells.First() == Cells.Min.Cell);
+            var lastGroups = Cells.Max.Cell.RepeatGroups.Where(x => x.ExclusiveCells.Last() == Cells.Max.Cell);
 
             Group = firstGroups.Intersect(lastGroups).FirstOrDefault();
 

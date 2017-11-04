@@ -15,6 +15,10 @@ namespace Pronome.Mac
     {
         #region Computed Fields
         private string _quantizationIntervalString;
+        /// <summary>
+        /// The string enumerating the intervals to be used in quantization
+        /// </summary>
+        /// <value>The quantization interval string.</value>
         [Export("QuantizationIntervalString")]
         public string QuantizationIntervalString
         {
@@ -52,6 +56,10 @@ namespace Pronome.Mac
         }
 
         private Layer _layer;
+        /// <summary>
+        /// The target layer
+        /// </summary>
+        /// <value>The layer.</value>
         [Export("Layer")]
         public Layer Layer
         {
@@ -78,6 +86,10 @@ namespace Pronome.Mac
         }
 
         private bool _isListening = false;
+        /// <summary>
+        /// True if taps are being registered.
+        /// </summary>
+        /// <value><c>true</c> if is listening; otherwise, <c>false</c>.</value>
         [Export("IsListening")]
         public bool IsListening
         {
@@ -91,6 +103,10 @@ namespace Pronome.Mac
         }
 
         private bool _countOff;
+        /// <summary>
+        /// True if a countoff will play if begining from stopped state
+        /// </summary>
+        /// <value><c>true</c> if count off; otherwise, <c>false</c>.</value>
         [Export("CountOff")]
         public bool CountOff
         {
@@ -351,8 +367,8 @@ namespace Pronome.Mac
 
                     int completeReps = 0; // the times run due to values being subtracted at each step
                     //int collateralRun = 0;
-                    Stack<int> collateralRuns = new Stack<int>();
-                    collateralRuns.Push(0);
+                    //Stack<int> collateralRuns = new Stack<int>();
+                    //collateralRuns.Push(0);
 
                     while (cellNode != null)
                     {
@@ -369,9 +385,15 @@ namespace Pronome.Mac
                                 // see if the total duration of this rep group is shorter than tap position
                                 // then we know that we will be inserting into this rep group at one of it's times. need to know which one.
                                 // rep.Length does not include the times, it's only one cycle
-                                if (qPos < rep.Position + rep.Length * rep.Times)
+                                if (qPos < rep.Position + rep.Length * rep.Times * (completeReps + 1))
+                                //if (qPos + completeReps * rep.Times * rep.Length < rep.Length * rep.Times)// - rep.Length * completeReps)// + 1))
                                 {
-                                    int times = (int)((qPos - rep.Position) / rep.Length);//(int)(rep.Length * rep.Times / (qPos - rep.Position));
+                                    // the rep position needs an addition from a parent group's length * times
+                                    //int times = (int)((qPos - rep.Times * rep.Length * completeReps - rep.Position) / rep.Length);//(int)(rep.Length * rep.Times / (qPos - rep.Position));
+
+                                    int times = (int)((qPos - rep.Times * rep.Length * completeReps) / rep.Length);
+                                    //int times = (int)((qPos + rep.Length * collateralRuns.Peek()) / rep.Length);
+
                                     repToInsertInto.Add(rep, times);
 
 									completeReps *= rep.Times;
@@ -382,29 +404,20 @@ namespace Pronome.Mac
                                     completeReps *= rep.Times;
 								}
 
-                                int reps = (repToInsertInto.ContainsKey(rep) ? completeReps : completeReps - 1) - collateralRuns.Peek();
+                                int reps = (repToInsertInto.ContainsKey(rep) ? completeReps : completeReps - 1);// - collateralRuns.Peek();
 
                                 // subtract out all the complete reps of this group, except for very last time, which is covered by the cell iteration
-                                foreach (Cell ce in rep.Cells)
+                                foreach (Cell ce in rep.ExclusiveCells)
                                 {
                                     qPos -= ce.Duration * reps;
                                     belowValue = BeatCell.Subtract(belowValue, BeatCell.MultiplyTerms(ce.GetValueWithMultFactors(), reps));
                                 }
 
-                                // at this point we should be able to simply increment up to the below cell
-                                // each rep group is wound up to it's last time through
-
-                                // this assumes that the current cell is contained by all rep groups
-                                // that will contain the tapped cell
-
-                                collateralRuns.Push(completeReps - collateralRuns.Peek());
-                                //collateralRun += completeReps - collateralRun;
+                                //collateralRuns.Push(reps);//completeReps - collateralRuns.Peek());
 
                                 openRepGroups.AddLast(rep);
 								touchedReps.Add(rep);
 							}
-
-
 
 							// close any open groups that have ended
                             while (openRepGroups.Any() && c.GroupActions.Contains((false, openRepGroups.Last.Value)))
@@ -420,7 +433,7 @@ namespace Pronome.Mac
 								{
 									completeReps = 0;
 								}
-								collateralRuns.Pop();
+								//collateralRuns.Pop();
 								
                                 if (qPos < BeatCell.Parse(last.GetLtmWithMultFactor(true)))
                                 {

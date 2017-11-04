@@ -241,7 +241,7 @@ namespace Pronome.Mac.Editor.Action
 					{
 						if (repGroups.Contains(rg)) continue;
 
-						foreach (Cell ce in rg.Cells)
+						foreach (Cell ce in rg.ExclusiveCells)
 						{
                             val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.GetValueWithMultFactors()), rg.Times - 1));
 						}
@@ -326,7 +326,7 @@ namespace Pronome.Mac.Editor.Action
 				// is new cell placed in the LTM zone of a rep group?
 				Repeat repWithLtmToMod = null;
 				foreach (Repeat rg in below.RepeatGroups.Where(
-                    x => x.Cells.Last.Value == below && Position > below.Position + below.ActualDuration))
+                    x => x.ExclusiveCells.Last.Value == below && Position > below.Position + below.ActualDuration))
 				{
 					repWithLtmToMod = rg;
 				}
@@ -367,7 +367,7 @@ namespace Pronome.Mac.Editor.Action
 							continue;
 						}
 
-						foreach (Cell ce in rg.Cells)
+						foreach (Cell ce in rg.ExclusiveCells)
 						{
                             val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.GetValueWithMultFactors()), rg.Times - 1));
 						}
@@ -471,7 +471,7 @@ namespace Pronome.Mac.Editor.Action
 						repGroups.Add(rg);
 						continue;
 					}
-					foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
+					foreach (Cell ce in rg.ExclusiveCells.Where(x => string.IsNullOrEmpty(x.Reference)))
 					{
                         val.Append("+0").Append(BeatCell.MultiplyTerms(BeatCell.Invert(ce.GetValueWithMultFactors()), rg.Times - 1));
 					}
@@ -525,7 +525,7 @@ namespace Pronome.Mac.Editor.Action
                 // see if the cell is being added to a rep group's LTM zone
                 Repeat repWithLtmToMod = null;
                 foreach (Repeat rg in below.RepeatGroups.Where(
-                    x => x.Cells.Last.Value == below && Position > below.Position + below.Duration))
+                    x => x.ExclusiveCells.Last.Value == below && Position > below.Position + below.Duration))
                 {
                     repWithLtmToMod = rg;
                 }
@@ -569,7 +569,7 @@ namespace Pronome.Mac.Editor.Action
                             continue;
                         }
 
-                        foreach (Cell ce in rg.Cells.Where(x => string.IsNullOrEmpty(x.Reference)))
+                        foreach (Cell ce in rg.ExclusiveCells.Where(x => string.IsNullOrEmpty(x.Reference)))
                         {
                             val.Append('0').Append(
                                 BeatCell.MultiplyTerms(ce.GetValueWithMultFactors(), rg.Times - 1))
@@ -622,7 +622,7 @@ namespace Pronome.Mac.Editor.Action
                 cell.RepeatGroups.AddLast(rg);
 
                 // transfer actions if below was last cell of group
-                if (rg.Cells.Last.Value == below)
+                if (rg.ExclusiveCells.Last.Value == below)
                 {
                     below.GroupActions.Remove((false, rg));
                     cell.GroupActions.AddLast((false, rg));
@@ -636,7 +636,7 @@ namespace Pronome.Mac.Editor.Action
                     cell.MultFactor = BeatCell.MultiplyTerms(cell.MultFactor, mg.FactorValue);
                 }
 
-                if (mg.Cells.Last.Value == below)
+                if (mg.ExclusiveCells.Last.Value == below)
                 {
                     below.GroupActions.Remove((false, mg));
                     cell.GroupActions.AddLast((false, mg));

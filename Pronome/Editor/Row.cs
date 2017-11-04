@@ -217,13 +217,22 @@ namespace Pronome.Mac.Editor
                 int repIndex = chunk.IndexOf('[');
                 int multIndex = chunk.IndexOf('{');
 
+                // should Cells contain the cells exclusive to this group, or also cells from nested groups?
                 if (repIndex == -1 && OpenRepeatGroups.Any())
                 {
-					OpenRepeatGroups.Peek().Cells.AddLast(cell);
+                    foreach (Repeat rep in OpenRepeatGroups)
+                    {
+                        rep.Cells.AddLast(cell);
+                    }
+					OpenRepeatGroups.Peek().ExclusiveCells.AddLast(cell);
                 }
                 if (multIndex == -1 && OpenMultGroups.Any())
                 {
-					OpenMultGroups.Peek().Cells.AddLast(cell);
+                    foreach (Multiply mult in OpenMultGroups)
+                    {
+                        mult.Cells.AddLast(cell);
+                    }
+					OpenMultGroups.Peek().ExclusiveCells.AddLast(cell);
                 }
 
                 while (multIndex != -1 || repIndex != -1)
@@ -232,7 +241,13 @@ namespace Pronome.Mac.Editor
                     if (repIndex != -1 && (multIndex == -1 || repIndex < multIndex))
 					{
 						OpenRepeatGroups.Push(new Repeat() { Row = this });
-						OpenRepeatGroups.Peek().Cells.AddLast(cell);
+
+                        foreach (Repeat rep in OpenRepeatGroups)
+                        {
+                            rep.Cells.AddLast(cell);
+                        }
+
+						OpenRepeatGroups.Peek().ExclusiveCells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer
                         OpenRepeatGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
@@ -249,7 +264,12 @@ namespace Pronome.Mac.Editor
                             FactorValue = MultFactors[mIndex],
                             Factor = BeatCell.Parse(MultFactors[mIndex++])
                         });//, FactorValue = factor, Factor = BeatCell.Parse(factor) });
-						OpenMultGroups.Peek().Cells.AddLast(cell);
+
+                        foreach (Multiply mult in OpenMultGroups)
+                        {
+                            mult.Cells.AddLast(cell);
+                        }
+						OpenMultGroups.Peek().ExclusiveCells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer starting at 0
 						OpenMultGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
@@ -445,17 +465,6 @@ namespace Pronome.Mac.Editor
             return (cells, position);
 		}
 
-		protected struct ParsedBeatResult
-		{
-			public CellTree Cells;
-			public double Duration;
-			public ParsedBeatResult(CellTree cells, double duration)
-			{
-				Cells = cells;
-				Duration = duration;
-			}
-		}
-
 		private HashSet<int> touchedRefs = new HashSet<int>();
 
         protected (CellTree cells, double position) ResolveReference(int refIndex, double position)
@@ -607,7 +616,7 @@ namespace Pronome.Mac.Editor
                         {
                             // open repeat group
                             // is single cell?
-                            if (((Repeat)group).Cells.Count != 1)
+                            if (((Repeat)group).ExclusiveCells.Count != 1)
                             {
                                 result.Append('[');
                             }
@@ -624,7 +633,7 @@ namespace Pronome.Mac.Editor
                         {
                             var rg = group as Repeat;
                             // close repeat group
-                            if (rg.Cells.Count != 1)
+                            if (rg.ExclusiveCells.Count != 1)
                             {
                                 result.Append(']');
                                 // multi cell

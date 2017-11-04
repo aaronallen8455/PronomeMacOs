@@ -53,30 +53,30 @@ namespace Pronome.Mac.Editor.Action
 			foreach (Repeat rg in firstCell.RepeatGroups)
 			{
                 // if the first cell in the group is behind the selection, make it's last cell before selection
-                if (rg.Cells.First.Value.Position < firstCell.Position && rg.Cells.Last.Value.Position < lastCell.Position)
+                if (rg.ExclusiveCells.First.Value.Position < firstCell.Position && rg.ExclusiveCells.Last.Value.Position < lastCell.Position)
                 {
                     // make last cell of group be before selection
-                    rg.Cells.Last.Value.GroupActions.Remove((false, rg));
+                    rg.ExclusiveCells.Last.Value.GroupActions.Remove((false, rg));
 
                     CellTreeNode newLast = Row.Cells.Lookup(firstCell.Position).Prev();
                     newLast.Cell.GroupActions.AddLast((false, rg));
-                    rg.Cells.AddLast(newLast.Cell);
+                    rg.ExclusiveCells.AddLast(newLast.Cell);
                 }
-                else if (rg.Cells.First.Value != firstCell || rg.Cells.Last.Value != lastCell)
+                else if (rg.ExclusiveCells.First.Value != firstCell || rg.ExclusiveCells.Last.Value != lastCell)
                 {
                     // reassign the first or last cell of the group
-					if (rg.Cells.First.Value == firstCell)
+					if (rg.ExclusiveCells.First.Value == firstCell)
 					{
 						Cells.First.Value.RepeatGroups.AddLast(rg);
                         Cells.First.Value.GroupActions.AddLast((true, rg));
-						rg.Cells.AddFirst(Cells.First.Value);
+						rg.ExclusiveCells.AddFirst(Cells.First.Value);
 
 					}
-					if (Cells.First != Cells.Last && rg.Cells.Last.Value == lastCell)
+					if (Cells.First != Cells.Last && rg.ExclusiveCells.Last.Value == lastCell)
 					{
 						Cells.Last.Value.RepeatGroups.AddLast(rg);
                         Cells.Last.Value.GroupActions.AddLast((false, rg));
-						rg.Cells.AddLast(Cells.Last.Value);
+						rg.ExclusiveCells.AddLast(Cells.Last.Value);
 					}
                 }
 			}
@@ -84,38 +84,38 @@ namespace Pronome.Mac.Editor.Action
             foreach (Repeat rg in lastCell.RepeatGroups)
             {
                 // if group is split by end of selection, reassign the group's first cell
-                if (rg.Cells.First.Value.Position > firstCell.Position && rg.Cells.Last.Value.Position > lastCell.Position)
+                if (rg.ExclusiveCells.First.Value.Position > firstCell.Position && rg.ExclusiveCells.Last.Value.Position > lastCell.Position)
                 {
-                    rg.Cells.First.Value.GroupActions.Remove((true, rg));
+                    rg.ExclusiveCells.First.Value.GroupActions.Remove((true, rg));
                     CellTreeNode newFirst = Row.Cells.Lookup(lastCell.Position).Next();
                     newFirst.Cell.GroupActions.AddFirst((true, rg));
-                    rg.Cells.AddFirst(newFirst.Cell);
+                    rg.ExclusiveCells.AddFirst(newFirst.Cell);
                 }
             }
 
 			foreach (Multiply mg in firstCell.MultGroups)
 			{
-				if (mg.Cells.First.Value.Position < firstCell.Position && mg.Cells.Last.Value.Position < lastCell.Position)
+				if (mg.ExclusiveCells.First.Value.Position < firstCell.Position && mg.ExclusiveCells.Last.Value.Position < lastCell.Position)
 				{
                     // make last cell of group be before selection
-                    mg.Cells.Last.Value.GroupActions.Remove((false, mg));
+                    mg.ExclusiveCells.Last.Value.GroupActions.Remove((false, mg));
 					CellTreeNode newLast = Row.Cells.Lookup(firstCell.Position).Prev();
                     newLast.Cell.GroupActions.AddLast((false, mg));
-					mg.Cells.AddLast(newLast.Cell);
+					mg.ExclusiveCells.AddLast(newLast.Cell);
 				}
-                else if (mg.Cells.First.Value != firstCell || mg.Cells.Last.Value != lastCell)
+                else if (mg.ExclusiveCells.First.Value != firstCell || mg.ExclusiveCells.Last.Value != lastCell)
                 {
                     // make new first or last cell
-					if (mg.Cells.First.Value == firstCell)
+					if (mg.ExclusiveCells.First.Value == firstCell)
 					{
 						Cells.First.Value.MultGroups.AddLast(mg);
-						mg.Cells.AddFirst(Cells.First.Value);
+						mg.ExclusiveCells.AddFirst(Cells.First.Value);
                         Cells.First.Value.GroupActions.AddFirst((true, mg));
 					}
-					if (Cells.First != Cells.Last && mg.Cells.Last.Value == lastCell)
+					if (Cells.First != Cells.Last && mg.ExclusiveCells.Last.Value == lastCell)
 					{
 						Cells.Last.Value.MultGroups.AddLast(mg);
-						mg.Cells.AddLast(Cells.Last.Value);
+						mg.ExclusiveCells.AddLast(Cells.Last.Value);
                         Cells.Last.Value.GroupActions.AddLast((false, mg));
 					}
                 }
@@ -124,10 +124,10 @@ namespace Pronome.Mac.Editor.Action
             foreach (Multiply mg in lastCell.MultGroups)
 			{
 				// if group is split by end of selection, reassign the group's first cell
-				if (mg.Cells.First.Value.Position > firstCell.Position && mg.Cells.Last.Value.Position > lastCell.Position)
+				if (mg.ExclusiveCells.First.Value.Position > firstCell.Position && mg.ExclusiveCells.Last.Value.Position > lastCell.Position)
 				{
 					CellTreeNode newFirst = Row.Cells.Lookup(lastCell.Position).Next();
-					mg.Cells.AddFirst(newFirst.Cell);
+					mg.ExclusiveCells.AddFirst(newFirst.Cell);
                     newFirst.Cell.GroupActions.AddFirst((true, mg));
 				}
 			}

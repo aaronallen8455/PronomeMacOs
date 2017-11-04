@@ -193,7 +193,7 @@ namespace Pronome.Mac
                         if (firstGroup == lastGroup)
                         {
                             // don't create overlapping groups
-                            return firstGroup.Cells.First() != selectedCells.Min.Cell || lastGroup.Cells.Last() != selectedCells.Max.Cell;
+                            return firstGroup.ExclusiveCells.First() != selectedCells.Min.Cell || lastGroup.ExclusiveCells.Last() != selectedCells.Max.Cell;
                         }
                     }
 
@@ -220,9 +220,9 @@ namespace Pronome.Mac
                 case "removeRepGroup:":
                     if (cellsSelected)
                     {
-                        var firstGroups = selectedCells.Min.Cell.RepeatGroups.Where(x => x.Cells.First() == selectedCells.Min.Cell);
+                        var firstGroups = selectedCells.Min.Cell.RepeatGroups.Where(x => x.ExclusiveCells.First() == selectedCells.Min.Cell);
 
-                        var lastGroups = selectedCells.Max.Cell.RepeatGroups.Where(x => x.Cells.Last() == selectedCells.Max.Cell);
+                        var lastGroups = selectedCells.Max.Cell.RepeatGroups.Where(x => x.ExclusiveCells.Last() == selectedCells.Max.Cell);
 
                         return firstGroups.Intersect(lastGroups).Any();
                     }
@@ -241,7 +241,7 @@ namespace Pronome.Mac
 						if (firstGroup == lastGroup)
 						{
 							// don't create overlapping groups
-							return firstGroup.Cells.First() != selectedCells.Min.Cell || lastGroup.Cells.Last() != selectedCells.Max.Cell;
+							return firstGroup.ExclusiveCells.First() != selectedCells.Min.Cell || lastGroup.ExclusiveCells.Last() != selectedCells.Max.Cell;
 						}
 					}
 
@@ -274,9 +274,9 @@ namespace Pronome.Mac
                 case "removeMultGroup:":
                     if (cellsSelected)
                     {
-                        var firstGroups = selectedCells.Min.Cell.MultGroups.Where(x => x.Cells.First() == selectedCells.Min.Cell);
+                        var firstGroups = selectedCells.Min.Cell.MultGroups.Where(x => x.ExclusiveCells.First() == selectedCells.Min.Cell);
 
-                        var lastGroups = selectedCells.Max.Cell.MultGroups.Where(x => x.Cells.Last() == selectedCells.Max.Cell);
+                        var lastGroups = selectedCells.Max.Cell.MultGroups.Where(x => x.ExclusiveCells.Last() == selectedCells.Max.Cell);
 
                         return firstGroups.Intersect(lastGroups).Any();
                     }
