@@ -8,6 +8,12 @@ namespace Pronome.Mac
     [Register("AppDelegate")]
     public partial class AppDelegate : NSApplicationDelegate
     {
+        [Export("Metronome")]
+        public Metronome Metronome
+        {
+            get => Metronome.Instance;
+        }
+
         public AppDelegate()
         {
         }

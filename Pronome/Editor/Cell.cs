@@ -61,7 +61,7 @@ namespace Pronome.Mac.Editor
 
 		protected double _position;
 		/// <summary>
-		/// The horizontal position of the cell in BPM. Changes actual position when set.
+		/// The horizontal position of the cell in BPM. Did not include the layer's offset value.
 		/// </summary>
 		public double Position
 		{
