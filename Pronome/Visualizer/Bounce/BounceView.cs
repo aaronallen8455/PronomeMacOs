@@ -21,7 +21,7 @@ namespace Pronome.Mac
 
         protected CALayer TickLayer;
 
-        protected AnimationTimer Timer = new AnimationTimer();
+        //protected AnimationTimer Timer = new AnimationTimer();
         #endregion
 
         public BounceView(IntPtr handle) : base(handle)
@@ -37,6 +37,8 @@ namespace Pronome.Mac
             Metronome.Instance.Stopped += Instance_Stopped;
             Metronome.Instance.BeatChanged += Instance_BeatChanged;
             UserSettings.BounceSettingsChanged += UserSettings_BounceSettingsChanged;
+
+            BounceHelper.ResetElaspedBpm();
         }
 
         #region public methods
@@ -46,10 +48,13 @@ namespace Pronome.Mac
 			{
                 // sometimes the drawFrame will run after playback is started, so we handle that case
                 ReturnToInitialState();
+                BounceHelper.ResetElaspedBpm();
 			}
             else
             {
-                BounceHelper.ElapsedBpm = Timer.GetElapsedBpm();
+                //BounceHelper.ElapsedBpm = Metronome.Instance.ElapsedBpm - BounceHelper.ElapsedBpm;
+                //BounceHelper.ElapsedBpm = Timer.GetElapsedBpm();
+                BounceHelper.UpdateElapsedBpm();
             }
 
             DrawElements();
@@ -131,8 +136,9 @@ namespace Pronome.Mac
         /// </summary>
         protected void ReturnToInitialState()
         {
-			BounceHelper.ElapsedBpm = 0;
-            Timer.Reset();
+			//BounceHelper.ElapsedBpm = 0;
+            //Timer.Reset();
+            //BounceHelper.ResetElaspedBpm();
 
 			foreach (Ball ball in Balls)
 			{
@@ -161,6 +167,7 @@ namespace Pronome.Mac
         void Instance_Stopped(object sender, EventArgs e)
         {
             ReturnToInitialState();
+            BounceHelper.ResetElaspedBpm();
             DrawElements();
         }
 
@@ -178,7 +185,7 @@ namespace Pronome.Mac
             BounceHelper.ElapsedBpm = Metronome.Instance.ElapsedBpm;
 
             // progress the tick layer
-            ((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
+            //((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
 
             DrawElements();
         }

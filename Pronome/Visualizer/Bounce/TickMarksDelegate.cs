@@ -8,7 +8,9 @@ namespace Pronome.Mac.Visualizer.Bounce
     {
         public Lane[] Lanes;
 
-        public double BpmToProgress;
+        //public double BpmToProgress;
+
+        protected double LastElapsedBpm;
 
         protected AnimationTimer Timer = new AnimationTimer();
 
@@ -20,8 +22,8 @@ namespace Pronome.Mac.Visualizer.Bounce
         [Export("drawLayer:inContext:")]
         public void DrawLayer(CALayer layer, CoreGraphics.CGContext context)
         {
-            double elapsedBpm = BpmToProgress > 0 ? BpmToProgress : Timer.GetElapsedBpm();
-            BpmToProgress = 0;
+            double elapsedBpm = GetBpmStep();//BpmToProgress > 0 ? BpmToProgress : Timer.GetElapsedBpm();
+            //BpmToProgress = 0;
 
             CATransaction.DisableActions = true;
             CATransaction.AnimationDuration = 0;
@@ -39,12 +41,22 @@ namespace Pronome.Mac.Visualizer.Bounce
 
         public void Reset()
         {
-            Timer.Reset();
+            //Timer.Reset();
+            LastElapsedBpm = 0;
 
             foreach (Lane lane in Lanes)
             {
                 lane.Reset();
             }
+        }
+
+        protected double GetBpmStep()
+        {
+            double newElapsed = Metronome.Instance.ElapsedBpm;
+            double elapsedBpm = newElapsed - LastElapsedBpm;
+            LastElapsedBpm = newElapsed;
+
+            return elapsedBpm;
         }
     }
 }

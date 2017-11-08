@@ -78,6 +78,11 @@ namespace Pronome.Mac.Visualizer.Bounce
         /// used by tick easing function.
         /// </summary>
         static protected double Denominator;
+
+        /// <summary>
+        /// The last recorded elapsedBPM, since beat started playing. Used to find the increment
+        /// </summary>
+        static protected double LastElapsedBpm;
         #endregion
 
         #region Static constructor
@@ -138,6 +143,25 @@ namespace Pronome.Mac.Visualizer.Bounce
             var d = Denominator;
 
 			return (-1 / (Math.Pow(2, input * Factor)) + 1) / Denominator;
+        }
+
+        /// <summary>
+        /// Updates the elapsed bpm.
+        /// </summary>
+        static public void UpdateElapsedBpm()
+        {
+            double newElapsed = Metronome.Instance.ElapsedBpm;
+            ElapsedBpm = newElapsed - LastElapsedBpm;
+            LastElapsedBpm = newElapsed;
+        }
+
+        /// <summary>
+        /// Resets the elasped bpm.
+        /// </summary>
+        static public void ResetElaspedBpm()
+        {
+            ElapsedBpm = 0;
+            LastElapsedBpm = 0;//Metronome.Instance.ElapsedBpm;
         }
         #endregion
 

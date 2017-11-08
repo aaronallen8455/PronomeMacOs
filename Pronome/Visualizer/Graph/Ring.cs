@@ -153,14 +153,14 @@ namespace Pronome.Mac.Visualizer.Graph
         #endregion
 
         #region Public methods
-        public void Progress(double elapsedBpm)
+        public void Progress()
         {
             if (Metronome.Instance.PlayState == Metronome.PlayStates.Stopped)
             {
                 return;
             }
 
-            CurrentBpmInterval -= elapsedBpm;
+            CurrentBpmInterval -= GraphingHelper.ElapsedBpm;
 
             var bgDelegate = (BackgroundLayerDelegate)BackgroundLayer.Delegate;
 

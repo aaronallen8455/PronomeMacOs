@@ -170,6 +170,15 @@ namespace Pronome.Mac
         }
         #endregion
 
+        #region Protected Methods
+        protected void Close()
+        {
+            IsListening = false;
+            Metronome.Instance.Mixer.SetCountOff(false);
+            Presentor.DismissViewController(this);
+        }
+        #endregion
+
         #region Overridden Methods
 
         public override void KeyDown(NSEvent theEvent)
@@ -217,9 +226,7 @@ namespace Pronome.Mac
         {
             if (QuantizeIntervals.Count == 0 || !Metronome.Instance.IsPlaying)
             {
-                IsListening = false;
-
-                Presentor.DismissViewController(this);
+                Close();
                 return;
             }
 
@@ -230,10 +237,8 @@ namespace Pronome.Mac
             {
 				if (Taps.Count <= 1) 
 				{
-					// need at least 2 to define a cell
-					IsListening = false;
-					
-					Presentor.DismissViewController(this);
+                    // need at least 2 to define a cell
+                    Close();
 					return;
 				}
 				
@@ -268,7 +273,6 @@ namespace Pronome.Mac
 				
 				// modify the layer
 				beatCode = string.Join(",", cellDurs);
-
             }
             else if (ModeDropdown.SelectedTag == MODE_INSERT)
             {
@@ -283,8 +287,6 @@ namespace Pronome.Mac
                 // when accumulating cell values, we 'expand' out the multgroups
                 // so that we are dealing with actual values
                 // after all work is done, we 'contract' the multgroups
-
-                // if below cell is a | termination, the new cell will be one.
 
                 // could use the modeling objects from the editor?
 
@@ -451,14 +453,10 @@ namespace Pronome.Mac
                         // check if this is the cell that will be above the tap
                         if (qPos < c.Duration)
                         {
-                            // all cell insertion and rep group splitting
-                            // will occur in here
                             break;
                         }
                         else if (repWithLtmToInsertInto != null)
                         {
-                            // inserting to an ltm
-                            // may also involve splitting group(s)
                             break;
                         }
 
@@ -471,13 +469,13 @@ namespace Pronome.Mac
 
                     if (!string.IsNullOrEmpty(belowValue))
                     {
-						foreach (var pair in repToInsertInto)
-						{
+                        foreach (var pair in repToInsertInto)
+                        {
                             // make the two copies of the first nested rep
                             // we then recurse into the next nested rep
                             // until we reach the rep where the new cell will
                             // exist, then we're done
-							Repeat actual = pair.Key;
+                            Repeat actual = pair.Key;
                             Repeat before = actual.DeepCopy() as Repeat;
                             Repeat after = actual.DeepCopy() as Repeat;
 
@@ -492,7 +490,7 @@ namespace Pronome.Mac
 
                             // only the after-copy should have the LTM, or the
                             // actual one if the after copy has 0 times
-							before.LastTermModifier = "";
+                            before.LastTermModifier = "";
                             if (after.Times > 0)
                             {
                                 pair.Key.LastTermModifier = "";
@@ -540,7 +538,7 @@ namespace Pronome.Mac
                                 while (gAction != null && gAction.Value.Item2 != actual)
                                 {
                                     actionsToPrepend.AddLast(gAction.Value);
-									gAction = gAction.Next;
+                                    gAction = gAction.Next;
                                     fstCell.GroupActions.RemoveFirst();
                                 }
                                 // transfer the groups
@@ -556,7 +554,7 @@ namespace Pronome.Mac
                                 while (gAction != null && gAction.Value.Item2 != actual)
                                 {
                                     actionsToAppend.AddFirst(gAction.Value);
-									gAction = gAction.Previous;
+                                    gAction = gAction.Previous;
                                     lstCell.GroupActions.RemoveLast();
                                 }
                                 after.Cells.Last().GroupActions = new LinkedList<(bool, AbstractGroup)>(after.Cells.Last().GroupActions.Concat(actionsToAppend));
@@ -566,29 +564,29 @@ namespace Pronome.Mac
                             double curOffset = before.Length * before.Times;
                             if (before.Times > 0)
                             {
-								foreach (Cell c in actual.Cells)
-								{
-									c.Position += curOffset;
-									foreach (var action in c.GroupActions)
-									{
-										if (action.Item1)
-											action.Item2.Position += curOffset;
-									}
-								}
-                            }
-
-                            curOffset += actual.Length;
-                            if (after.Times > 0)
-                            {
-								foreach (Cell c in after.Cells)
-								{
+                                foreach (Cell c in actual.Cells)
+                                {
                                     c.Position += curOffset;
                                     foreach (var action in c.GroupActions)
                                     {
                                         if (action.Item1)
                                             action.Item2.Position += curOffset;
                                     }
-								}
+                                }
+                            }
+
+                            curOffset += actual.Length;
+                            if (after.Times > 0)
+                            {
+                                foreach (Cell c in after.Cells)
+                                {
+                                    c.Position += curOffset;
+                                    foreach (var action in c.GroupActions)
+                                    {
+                                        if (action.Item1)
+                                            action.Item2.Position += curOffset;
+                                    }
+                                }
                             }
 
                             // add the copies to the row
@@ -614,83 +612,84 @@ namespace Pronome.Mac
                             Source = row.Layer.BaseStreamInfo
                         };
 
-                        // add cell to repeat groups
-                        Repeat lastRep = null;
-                        foreach (var pair in repToInsertInto)
-                        {
-                            pair.Key.Cells.AddFirst(newCell);
-                            lastRep = pair.Key;
-                        }
-                        if (lastRep != null)
-                        {
-                            // transfer the group action if it's the last cell
-                            Cell lastCell = lastRep.Cells.Last.Value;
-                            if (lastCell == cellNode.Cell)
-                            {
-                                newCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => !x.Item1));
-                                lastCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => x.Item1));
-                                // move new cell to the back
-                                lastRep.Cells.RemoveFirst();
-                                lastRep.Cells.AddLast(newCell);
-                            }
-                            // it's exclusive for the last rep group
-                            lastRep.ExclusiveCells.AddLast(newCell);
-                        }
-
-                        // add cell to mult groups
-                        Multiply lastMult = null;
-                        foreach (Multiply mult in cellNode.Cell.MultGroups)
-                        {
-                            mult.Cells.AddLast(newCell);
-                            lastMult = mult;
-                        }
-                        if (lastMult != null)
-                        {
-                            // transfer group actions if it's the new last cell
-                            Cell lastCell = lastMult.Cells.Last.Value;
-                            if (lastCell == cellNode.Cell)
-                            {
-                                newCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => !x.Item1));
-                                lastCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => x.Item1));
-                                // move new cell to the back
-                                lastMult.Cells.RemoveFirst();
-                                lastMult.Cells.AddLast(newCell);
-                            }
-                            // will have the same multfactor as former last cell
-                            newCell.MultFactor = lastCell.MultFactor;
-                            lastMult.ExclusiveCells.AddLast(newCell);
-                        }
-
-						if (repWithLtmToInsertInto == null)
-						{
-							// insert new cell
-							Cell below = cellNode.Cell;
-							
-							string newCellValue = BeatCell.Subtract(below.GetValueWithMultFactors(true), belowValue);
-
-                            newCell.Duration = below.Duration - qPos;
-                                
-							newCell.Value = BeatCell.SimplifyValue(newCell.GetValueDividedByMultFactors(newCellValue, true));
-							// modify below cell
-							below.Value = BeatCell.SimplifyValue(below.GetValueDividedByMultFactors(belowValue, true));
-							below.ResetMultipliedValue();
-							below.Duration = qPos;
-						}
-						else
-						{
-							string newCellValue = BeatCell.Subtract(repWithLtmToInsertInto.GetLtmWithMultFactor(true), belowValue);
-                            // insert into LTM
-                            newCell.Duration = BeatCell.Parse(repWithLtmToInsertInto.LastTermModifier) - qPos;
-
-							newCell.Value = BeatCell.SimplifyValue(repWithLtmToInsertInto.GetValueDividedByMultFactor(newCellValue, true));
-							// modify the rep group
-							repWithLtmToInsertInto.LastTermModifier = BeatCell.SimplifyValue(repWithLtmToInsertInto.GetValueDividedByMultFactor(belowValue, true));
-							repWithLtmToInsertInto.ResetMultedLtm();
-
-                        }
-
                         // add cell to row
-						row.Cells.Insert(newCell);
+                        if (row.Cells.Insert(newCell))
+                        {
+                            // add cell to repeat groups
+                            Repeat lastRep = null;
+                            foreach (var pair in repToInsertInto)
+                            {
+                                pair.Key.Cells.AddFirst(newCell);
+                                lastRep = pair.Key;
+                            }
+                            if (lastRep != null)
+                            {
+                                // transfer the group action if it's the last cell
+                                Cell lastCell = lastRep.Cells.Last.Value;
+                                if (lastCell == cellNode.Cell)
+                                {
+                                    newCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => !x.Item1));
+                                    lastCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => x.Item1));
+                                    // move new cell to the back
+                                    lastRep.Cells.RemoveFirst();
+                                    lastRep.Cells.AddLast(newCell);
+                                }
+                                // it's exclusive for the last rep group
+                                lastRep.ExclusiveCells.AddLast(newCell);
+                            }
+
+                            // add cell to mult groups
+                            Multiply lastMult = null;
+                            foreach (Multiply mult in cellNode.Cell.MultGroups)
+                            {
+                                mult.Cells.AddLast(newCell);
+                                lastMult = mult;
+                            }
+                            if (lastMult != null)
+                            {
+                                // transfer group actions if it's the new last cell
+                                Cell lastCell = lastMult.Cells.Last.Value;
+                                if (lastCell == cellNode.Cell)
+                                {
+                                    newCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => !x.Item1));
+                                    lastCell.GroupActions = new LinkedList<(bool, AbstractGroup)>(lastCell.GroupActions.Where(x => x.Item1));
+                                    // move new cell to the back
+                                    lastMult.Cells.RemoveFirst();
+                                    lastMult.Cells.AddLast(newCell);
+                                }
+                                // will have the same multfactor as former last cell
+                                newCell.MultFactor = lastCell.MultFactor;
+                                lastMult.ExclusiveCells.AddLast(newCell);
+                            }
+
+                            if (repWithLtmToInsertInto == null)
+                            {
+                                // insert new cell
+                                Cell below = cellNode.Cell;
+
+                                string newCellValue = BeatCell.Subtract(below.GetValueWithMultFactors(true), belowValue);
+
+                                newCell.Duration = below.Duration - qPos;
+
+                                newCell.Value = BeatCell.SimplifyValue(newCell.GetValueDividedByMultFactors(newCellValue, true));
+                                // modify below cell
+                                below.Value = BeatCell.SimplifyValue(below.GetValueDividedByMultFactors(belowValue, true));
+                                below.ResetMultipliedValue();
+                                below.Duration = qPos;
+                            }
+                            else
+                            {
+                                string newCellValue = BeatCell.Subtract(repWithLtmToInsertInto.GetLtmWithMultFactor(true), belowValue);
+                                // insert into LTM
+                                newCell.Duration = BeatCell.Parse(repWithLtmToInsertInto.LastTermModifier) - qPos;
+
+                                newCell.Value = BeatCell.SimplifyValue(repWithLtmToInsertInto.GetValueDividedByMultFactor(newCellValue, true));
+                                // modify the rep group
+                                repWithLtmToInsertInto.LastTermModifier = BeatCell.SimplifyValue(repWithLtmToInsertInto.GetValueDividedByMultFactor(belowValue, true));
+                                repWithLtmToInsertInto.ResetMultedLtm();
+
+                            }
+                        }
                     }
                     else
                     {
@@ -707,9 +706,7 @@ namespace Pronome.Mac
 
             Layer.Controller.HighlightBeatCodeSyntax();
 
-            IsListening = false;
-
-            Presentor.DismissViewController(this);
+            Close();
         }
 
         #endregion

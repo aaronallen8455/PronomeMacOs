@@ -314,14 +314,14 @@ namespace Pronome.Mac
 
             if (inputNum > -1)
             {
-                if (isOn)
-                {
-                    stream.IsMuted = false;
-                }
-                else
-                {
-                    stream.IsMuted = true;
-                }
+                //if (isOn)
+                //{
+                //    stream.IsMuted = false;
+                //}
+                //else
+                //{
+                //    stream.IsMuted = true;
+                //}
 
                 if (MixerNode.SetParameter(AudioUnitParameterType.MultiChannelMixerEnable, Convert.ToSingle(isOn), AudioUnitScopeType.Input, (uint)inputNum) != AudioUnitStatus.OK)
                 {
@@ -434,10 +434,22 @@ namespace Pronome.Mac
                 // if the countoff pad doesn't align with cycle, we need to set an offset on the
                 // count off source
                 _countOff.Offset = Metronome.Instance.ConvertSamplesToBpm(countOffPad);
+
+                var lastStream = Streams[Streams.Count - 1];
+                if (lastStream.IsMuted)
+                {
+                    EnableInput(lastStream, true);
+                }
             }
             else
             {
                 CountOffSampleDuration = _countOffTotal = 0;
+
+                var lastStream = Streams[Streams.Count - 1];
+                if (lastStream.IsMuted)
+                {
+                    EnableInput(lastStream, false);
+                }
             }
         }
         #endregion
@@ -561,6 +573,13 @@ namespace Pronome.Mac
                 // skip all inputs but the last one so that non-count off cycle starts with bus 0
                 if (busNumber != Streams.Count - 1) return AudioUnitStatus.InvalidElement;
 
+                var stream = Streams[(int)busNumber];
+
+                //if (stream.IsMuted)
+                //{
+                //    EnableInput(stream, true);
+                //}
+
                 _countOff.Read(outLeft, outRight, numberFrames);
 
                 CountOffSampleDuration -= numberFrames;
@@ -570,6 +589,7 @@ namespace Pronome.Mac
                 {
                     Metronome.Instance.ElapsedBpm -= Metronome.Instance.ConvertSamplesToBpm(_countOffTotal);
                     cycle = -1;
+                    EnableInput(stream, !stream.IsMuted);
                 }
 
                 return AudioUnitStatus.OK;

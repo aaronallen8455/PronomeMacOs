@@ -384,6 +384,7 @@ namespace Pronome.Mac
         /// <param name="isOn">If set to <c>true</c> is on.</param>
         public void SetMutingOfMixerInput(IStreamProvider stream, bool isOn)
         {
+            stream.IsMuted = !isOn;
             Mixer.EnableInput(stream, isOn);
         }
 

@@ -45,15 +45,6 @@ namespace Pronome.Mac
             // only let one thread in at a time
             if (Interlocked.Increment(ref _inUseCount) == 1 && AnimationViews.Count > 0)
             {
-				//double elapsed = currentCycle - LastCycle;
-				//LastCycle = currentCycle;
-				
-				//double numFrames = elapsed * Mixer.BufferSize;
-				// convert frames to quarter-notes
-                //double bpm = Metronome.Instance.ConvertSamplesToBpm(numFrames);
-
-                //BpmAccumulator += bpm;
-
                 // send the info to each animation layer to draw the new frame
                 foreach (AbstractVisualizerView view in AnimationViews)
                 {
@@ -77,7 +68,6 @@ namespace Pronome.Mac
             {
 				LastCycle = 0;
             }
-            //BpmAccumulator = 0;
         }
 
         private AnimationHelper()
