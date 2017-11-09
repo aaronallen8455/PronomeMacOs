@@ -273,6 +273,8 @@ namespace Pronome.Mac
 				
 				// modify the layer
 				beatCode = string.Join(",", cellDurs);
+                // don't allow empty cells
+                beatCode = beatCode.Replace(",,", ",").Trim(',');
             }
             else if (ModeDropdown.SelectedTag == MODE_INSERT)
             {
