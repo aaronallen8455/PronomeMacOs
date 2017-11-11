@@ -849,7 +849,7 @@ Gw
                                 <rect key="frame" x="277" y="175" width="151" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Comma seperated list of beat values to listen for. e.g. '.5,2/3'" id="C5N-TE-gaI">
-                                    <font key="font" metaFont="system" size="9"/>
+                                    <font key="font" metaFont="miniSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -858,7 +858,7 @@ Gw
                                 <rect key="frame" x="277" y="137" width="153" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Overwrite the target layer's beat or insert new cells into it." id="cCh-vO-a8a">
-                                    <font key="font" metaFont="system" size="9"/>
+                                    <font key="font" metaFont="miniSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -867,7 +867,7 @@ Gw
                                 <rect key="frame" x="277" y="100" width="161" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Provides 4 clicks prior to start." id="0dm-Ct-eY5">
-                                    <font key="font" metaFont="system" size="9"/>
+                                    <font key="font" metaFont="miniSystem"/>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
@@ -1071,6 +1071,18 @@ Gw
                                         <menuItem title="Tapping" keyEquivalent="t" id="ZY0-jn-617">
                                             <connections>
                                                 <action selector="quantizedTap:" target="Ady-hI-5gd" id="2fv-Sz-d14"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Undo Tapping" id="m4Q-Ws-QSZ">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="undoTapping:" target="Ady-hI-5gd" id="h73-at-7Da"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Redo Tapping" id="YGT-Ii-dUk">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="redoTapping:" target="Ady-hI-5gd" id="MbN-E0-vvA"/>
                                             </connections>
                                         </menuItem>
                                     </items>

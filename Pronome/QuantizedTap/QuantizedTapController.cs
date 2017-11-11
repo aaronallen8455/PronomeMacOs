@@ -144,6 +144,19 @@ namespace Pronome.Mac
 
         #region Public fields
         public NSViewController Presentor;
+
+        #endregion
+
+        #region Static Public fields
+        /// <summary>
+        /// Stack of tuples of beatCode, offset holding the state before changes
+        /// </summary>
+        public static Stack<(string beatCode, string offset, Layer layer)> UndoStack = new Stack<(string beatCode, string offset, Layer layer)>(20);
+
+        /// <summary>
+        /// Stack of (beatCode, offset) tuples holding an undo'ed change.
+        /// </summary>
+        public static Stack<(string beatCode, string offset, Layer layer)> RedoStack = new Stack<(string beatCode, string offset, Layer layer)>(20);
         #endregion
 
         #region Protected Variables
@@ -163,10 +176,62 @@ namespace Pronome.Mac
         const int MODE_INSERT = 1;
         #endregion
 
+        #region Static protected fields
+        /// <summary>
+        /// True if a tap change was just performed so that the beat changed event can be interpreted correctly
+        /// </summary>
+        static protected bool JustChanged;
+        #endregion
+
         #region Constructor
         public QuantizedTapController(IntPtr handle) : base(handle)
         {
             _layerArray = new NSMutableArray<Layer>(Metronome.Instance.Layers.ToArray());
+        }
+
+        static QuantizedTapController()
+        {
+            // clear the undo/redo stacks if a foreign beat change occured
+            Metronome.Instance.BeatChanged += (sender, e) => {
+                if (!JustChanged)
+                {
+                    UndoStack.Clear();
+                    RedoStack.Clear();
+                }
+                else JustChanged = false;
+            };
+        }
+        #endregion
+
+        #region Static public methods
+        /// <summary>
+        /// Pop the undo stack and apply it's state while pushing to redo stack
+        /// </summary>
+        static public void Undo()
+        {
+            if (UndoStack.TryPop(out var state))
+            {
+                RedoStack.Push((state.layer.ParsedString, state.layer.ParsedOffset, state.layer));
+
+                JustChanged = true;
+                state.layer.SetBeatCode(state.beatCode, state.offset);
+                state.layer.Controller.HighlightBeatCodeSyntax();
+            }
+        }
+
+        /// <summary>
+        /// Pop the redo stack and apply it's state while pushing to undo stack
+        /// </summary>
+        static public void Redo()
+        {
+            if (RedoStack.TryPop(out var state))
+            {
+                UndoStack.Push((state.layer.ParsedString, state.layer.ParsedOffset, state.layer));
+
+                JustChanged = true;
+                state.layer.SetBeatCode(state.beatCode, state.offset);
+                state.layer.Controller.HighlightBeatCodeSyntax();
+            }
         }
         #endregion
 
@@ -704,13 +769,16 @@ namespace Pronome.Mac
                 offset = row.OffsetValue;
             }
 
+            // add prev state to undo stack
+            UndoStack.Push((Layer.ParsedString, Layer.ParsedOffset, Layer));
+
+            JustChanged = true;
             Layer.SetBeatCode(beatCode, offset == string.Empty ? "0" : offset);
 
             Layer.Controller.HighlightBeatCodeSyntax();
 
             Close();
         }
-
         #endregion
 
         #region Protected Methods

@@ -229,16 +229,32 @@ namespace Pronome.Mac
             PerformSegue("QuantizedTapSegue", this);
         }
 
-        //[Action("validateMenuItem:")]
-        //public bool ValidateMenuAction(NSMenuItem item)
-        //{
-        //    if (item.Action.Name == "quantizedTap:")
-        //    {
-        //        return true;
-        //    }
-		//
-        //    return true;
-        //}
+        [Action("undoTapping:")]
+        public void UndoTapping(NSObject sender)
+        {
+            QuantizedTapController.Undo();
+        }
+
+        [Action("redoTapping:")]
+        public void RedoTapping(NSObject sender)
+        {
+            QuantizedTapController.Redo();
+        }
+
+        [Action("validateMenuItem:")]
+        public bool ValidateMenuAction(NSMenuItem item)
+        {
+            if (item.Action.Name == "undoTapping:")
+            {
+                return QuantizedTapController.UndoStack.Any();
+            }
+            if (item.Action.Name == "redoTapping:")
+            {
+                return QuantizedTapController.RedoStack.Any();
+            }
+		
+            return true;
+        }
 
         partial void TempoButtonAction(NSObject sender)
         {
