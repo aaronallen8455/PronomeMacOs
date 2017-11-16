@@ -435,6 +435,8 @@ namespace Pronome.Mac
                 // count off source
                 _countOff.Offset = Metronome.Instance.ConvertSamplesToBpm(countOffPad);
 
+                _countOffTotal = (long)(CountOffSampleDuration + _countOff.Offset);
+
                 var lastStream = Streams[Streams.Count - 1];
                 if (lastStream.IsMuted)
                 {

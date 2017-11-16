@@ -102,7 +102,7 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		public int Index;
 
-		public Row(Layer layer)
+		public Row(Layer layer, bool ignoreScalingSetting = false)
 		{
 			Layer = layer;
             Index = Metronome.Instance.Layers.IndexOf(Layer);
@@ -115,14 +115,14 @@ namespace Pronome.Mac.Editor
 			MultGroups.Clear();
 			ReferencedLayers.Clear();
 
-			FillFromBeatCode(layer.ParsedString);
+            FillFromBeatCode(layer.ParsedString, ignoreScalingSetting);
 		}
 
 		/// <summary>
 		/// Generate the UI from a beat code string. Sets the BeatCode to the input string.
 		/// </summary>
 		/// <param name="beatCode"></param>
-		public void FillFromBeatCode(string beatCode)
+		public void FillFromBeatCode(string beatCode, bool ignoreScalingSetting = false)
 		{
             // track current multiply factor through entire process (including references)
             OpenMultFactor = new Stack<double>();
@@ -135,7 +135,7 @@ namespace Pronome.Mac.Editor
 
             CellIndex = 0;
             //double pos;
-			(Cells, Duration) = ParseBeat(beatCode);
+            (Cells, Duration) = ParseBeat(beatCode, ignoreScalingSetting);
 			//Cells = result.Cells;
 			// set the new beatcode string
 			BeatCode = beatCode;
@@ -164,7 +164,7 @@ namespace Pronome.Mac.Editor
 		/// </summary>
 		/// <param name="beat"></param>
 		/// <returns></returns>
-        protected (CellTree cells, double position) ParseBeat(string beat)
+        protected (CellTree cells, double position) ParseBeat(string beat, bool ignoreScalingSetting = false)
 		{
             // cells are stored in red black tree
             CellTree cells = new CellTree();
@@ -274,7 +274,7 @@ namespace Pronome.Mac.Editor
 						OpenMultGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
 
                         // track the factor if we need to scale.
-                        if (UserSettings.GetSettings().DrawMultToScale)
+                        if (ignoreScalingSetting || UserSettings.GetSettings().DrawMultToScale)
                         {
 							OpenMultFactor.Push(OpenMultFactor.Peek() * OpenMultGroups.Peek().Factor);
                             OpenMultFactorValue.Push(BeatCell.MultiplyTerms(OpenMultFactorValue.Peek(), OpenMultGroups.Peek().FactorValue));
@@ -326,7 +326,7 @@ namespace Pronome.Mac.Editor
                     // remember the position and duration of the reference
                     ReferencePositionAndDurations.Add((position, duration));
 
-                    if (UserSettings.GetSettings().DrawMultToScale)
+                    if (ignoreScalingSetting || UserSettings.GetSettings().DrawMultToScale)
                     {
                         // using mult factors
                         duration *= OpenMultFactor.Peek();
@@ -363,7 +363,7 @@ namespace Pronome.Mac.Editor
 
                         double duration = BeatCell.Parse(bpm);
 
-                        if (UserSettings.GetSettings().DrawMultToScale)
+                        if (ignoreScalingSetting || UserSettings.GetSettings().DrawMultToScale)
                         {
                             duration *= OpenMultFactor.Peek();
                         }
@@ -396,7 +396,7 @@ namespace Pronome.Mac.Editor
 					if (multIndex > -1 && (multIndex < repIndex || repIndex == -1))
 					{
                         // close mult group
-                        if (UserSettings.GetSettings().DrawMultToScale)
+                        if (ignoreScalingSetting || UserSettings.GetSettings().DrawMultToScale)
                         {
 							OpenMultFactor.Pop();
 							OpenMultFactorValue.Pop();

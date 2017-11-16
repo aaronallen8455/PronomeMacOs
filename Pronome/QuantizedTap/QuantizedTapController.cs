@@ -371,7 +371,7 @@ namespace Pronome.Mac
                 // if a tap occurs during a reference, we desugar the reference
 
                 // get the objects representing the beatcode
-                Row row = new Row(Layer)
+                Row row = new Row(Layer, true)
                 {
                     Offset = Layer.OffsetBpm,
                     OffsetValue = Layer.Offset
