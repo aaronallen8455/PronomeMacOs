@@ -22,6 +22,11 @@ namespace Pronome.Mac
         LinkedListNode<double> _currentFrequency;
 
         /// <summary>
+        /// Generates the sin wave values
+        /// </summary>
+        protected IEnumerator<float> SinWave;
+
+        /// <summary>
         /// The current frequency.
         /// </summary>
         protected double Frequency;
@@ -29,7 +34,7 @@ namespace Pronome.Mac
         /// <summary>
         /// Index of the sample within the wave.
         /// </summary>
-        int _sample = 0;
+        float _sample = 0;
 
         /// <summary>
         /// The volume.
@@ -138,6 +143,7 @@ namespace Pronome.Mac
         }
         private float sampleValue = 0;
 
+
         public unsafe override void Read(float* leftBuffer, float* rightBuffer, uint count, bool writeToBuffer = true)
         {
             // account for any offset
@@ -161,16 +167,38 @@ namespace Pronome.Mac
 						if (!oldFreq.Equals(Frequency))
 						{
 							WaveLength = Metronome.SampleRate / Frequency;
-						}
+                        }
 						// set the sample index if transitioning from an active note
-						if (Gain > 0)
+                        if (Gain > 0 && SinWave != null)
 						{
-							_sample = (int)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength) + 1;
+                            // why does it still chop?
+                            _sample = (float)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength);
+
+							float next = SinWave.Current;
+                            if (sampleValue >= 0)
+                            {
+                                if (next < sampleValue) 
+                                {
+                                    _sample = (float)(WaveLength / 4 + (WaveLength / 4 - _sample));
+                                    //_sample += (float)WaveLength / 4;
+                                }
+                            }
+                            else
+                            {
+                                if (next > sampleValue)
+                                {
+                                    _sample = (float)(WaveLength * 3 / 4 + (WaveLength * 3 / 4 - _sample));
+                                    //_sample += (float)WaveLength / 4;
+                                }
+                            }
 						}
 						else
 						{
 							_sample = 0;
 						}
+						
+						SinWave = new SinWaveGenerator(_sample, Frequency).GetEnumerator();
+						SinWave.MoveNext();
 						
 						Gain = 1; // back to full volume
 						
@@ -181,8 +209,10 @@ namespace Pronome.Mac
 
 				if (Gain > 0)
 				{
-					sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
-					_sample++;
+                    sampleValue = (float)(SinWave.Current * Gain);
+                    SinWave.MoveNext();
+					//sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
+					//_sample++;
 					Gain -= GainStep;
 					
 					if (writeToBuffer)
