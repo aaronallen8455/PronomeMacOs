@@ -58,5 +58,10 @@ namespace Pronome.Mac.Visualizer.Bounce
 
             return elapsedBpm;
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+        }
     }
 }

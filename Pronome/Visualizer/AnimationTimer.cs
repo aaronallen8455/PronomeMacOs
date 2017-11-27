@@ -42,14 +42,6 @@ namespace Pronome.Mac.Visualizer
 				_stopwatch = new Stopwatch();
 			}
 
-			//if (_stopwatch.IsRunning)
-			//{
-			//	lastTime = _stopwatch.ElapsedMilliseconds;
-			//}
-			//else
-			//{
-			//	lastTime = 0;
-			//}
 		}
 
         /// <summary>

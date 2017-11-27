@@ -100,6 +100,12 @@ namespace Pronome.Mac
                 // send the change ratio in event arg
                 if (value > 0)
                 {
+                    if (PlayState != PlayStates.Stopped)
+                    {
+                        // update the eBpm before changing tempo
+                        var x = ElapsedBpm;
+                    }
+                    
                     float oldTempo = (float)_tempo;
                     _tempo = value;
                     OnTempoChanged(new TempoChangedEventArgs(oldTempo, (float)_tempo));
@@ -606,7 +612,7 @@ namespace Pronome.Mac
         protected virtual void OnTempoChanged(TempoChangedEventArgs e)
         {
             // update the elapsed BPM
-            ElapsedBpm *= e.ChangeRatio;
+            //ElapsedBpm *= e.ChangeRatio;
 
             TempoChanged?.Invoke(this, e);
         }

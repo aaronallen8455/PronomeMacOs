@@ -181,11 +181,7 @@ namespace Pronome.Mac
 
             ReturnToInitialState();
 
-			//Timer.Reset();
             BounceHelper.ElapsedBpm = Metronome.Instance.ElapsedBpm;
-
-            // progress the tick layer
-            //((TickMarksDelegate)TickLayer.Delegate).BpmToProgress = Metronome.Instance.ElapsedBpm;
 
             DrawElements();
         }

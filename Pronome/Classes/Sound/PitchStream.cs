@@ -164,6 +164,9 @@ namespace Pronome.Mac
 					if (!WillMute())
 					{
 						Frequency = newFreq;
+
+                        var wavePosition = (_sample % WaveLength) / WaveLength;
+
 						if (!oldFreq.Equals(Frequency))
 						{
 							WaveLength = Metronome.SampleRate / Frequency;
@@ -171,35 +174,19 @@ namespace Pronome.Mac
 						// set the sample index if transitioning from an active note
                         if (Gain > 0 && SinWave != null)
 						{
-                            // why does it still chop?
-                            _sample = (float)(Math.Asin(sampleValue / Volume) / TwoPI / WaveLength);
+                            _sample = (float)(wavePosition * WaveLength);
 
-							float next = SinWave.Current;
-                            if (sampleValue >= 0)
-                            {
-                                if (next < sampleValue) 
-                                {
-                                    _sample = (float)(WaveLength / 4 + (WaveLength / 4 - _sample));
-                                    //_sample += (float)WaveLength / 4;
-                                }
-                            }
-                            else
-                            {
-                                if (next > sampleValue)
-                                {
-                                    _sample = (float)(WaveLength * 3 / 4 + (WaveLength * 3 / 4 - _sample));
-                                    //_sample += (float)WaveLength / 4;
-                                }
-                            }
-						}
-						else
-						{
-							_sample = 0;
-						}
+							var t = SinWave.Current;
+                        }
+                        else
+                        {
+                            _sample = 0;
+                        }
+
 						
 						SinWave = new SinWaveGenerator(_sample, Frequency).GetEnumerator();
 						SinWave.MoveNext();
-						
+                        var tt = SinWave.Current;
 						Gain = 1; // back to full volume
 						
 						// propagate a change of the gain step
@@ -212,7 +199,7 @@ namespace Pronome.Mac
                     sampleValue = (float)(SinWave.Current * Gain);
                     SinWave.MoveNext();
 					//sampleValue = (float)(Math.Sin(_sample * TwoPI / WaveLength) * Gain);
-					//_sample++;
+					_sample++;
 					Gain -= GainStep;
 					
 					if (writeToBuffer)

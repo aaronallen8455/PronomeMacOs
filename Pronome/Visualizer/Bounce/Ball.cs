@@ -71,15 +71,6 @@ namespace Pronome.Mac.Visualizer.Bounce
 
         #region Public methods
 
-        //public void SetXPosition()
-        //{
-        //    var frame = BallLayer.Frame;
-		//
-        //    frame.X = (nfloat)(BounceHelper.LanePadding + BounceHelper.TopLaneSpacing * Index + BounceHelper.BallPadding);
-		//
-        //    BallLayer.Frame = frame;
-        //}
-
         /// <summary>
         /// Place the ball at it's starting position
         /// </summary>
@@ -223,6 +214,7 @@ namespace Pronome.Mac.Visualizer.Bounce
 
             return (apex, bounceHeight, beatIndex, currentInterval);
         }
+
         #endregion
 
         /// <summary>
