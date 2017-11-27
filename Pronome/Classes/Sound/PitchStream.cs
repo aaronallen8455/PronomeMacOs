@@ -165,28 +165,36 @@ namespace Pronome.Mac
 					{
 						Frequency = newFreq;
 
-                        var wavePosition = (_sample % WaveLength) / WaveLength;
+                        double wavePosition = (_sample % WaveLength) / WaveLength;
 
-						if (!oldFreq.Equals(Frequency))
-						{
-							WaveLength = Metronome.SampleRate / Frequency;
+                        if (!oldFreq.Equals(Frequency))
+                        {
+                            WaveLength = Metronome.SampleRate / Frequency;
                         }
-						// set the sample index if transitioning from an active note
-                        if (Gain > 0 && SinWave != null)
-						{
-                            _sample = (float)(wavePosition * WaveLength);
 
-							var t = SinWave.Current;
+                        // set the sample index if transitioning from an active note
+                        if (Gain > 0 && SinWave != null)
+                        {
+							_sample = (float)(Math.Asin(sampleValue) / TwoPI * WaveLength);
+							
+                            // reposition to correct quadrant of waveform
+							if (wavePosition > .25 && wavePosition <= .5) 
+							{
+								_sample += (float)(WaveLength / 4 - _sample) * 2;
+							}
+							else if (wavePosition > .5 && wavePosition <= .75)
+							{
+								_sample -= (float)(WaveLength / 4 + _sample) * 2;
+							}
                         }
                         else
                         {
                             _sample = 0;
                         }
 
-						
 						SinWave = new SinWaveGenerator(_sample, Frequency).GetEnumerator();
 						SinWave.MoveNext();
-                        var tt = SinWave.Current;
+
 						Gain = 1; // back to full volume
 						
 						// propagate a change of the gain step
