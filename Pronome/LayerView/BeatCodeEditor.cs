@@ -105,7 +105,7 @@ namespace Pronome.Mac
             new Rule(NSColor.FromRgb(204,185,110), "{"), // group multiply
             new Rule(NSColor.FromRgb(204,185,110), "}", "1234567890.+-/*xX"),
 
-            new Rule(NSColor.FromRgb(209,66,235), "@", "1234567890ABCDEFGabcdefgXpu"), // source modifier
+            new Rule(NSColor.FromRgb(209,66,235), "@", "1234567890ABCDEFGabcdefgXpu#"), // source modifier
 
             new Rule(NSColor.FromRgb(152,118,170), "$", "1234567890s"), // reference
 

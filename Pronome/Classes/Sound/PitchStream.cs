@@ -104,22 +104,22 @@ namespace Pronome.Mac
 			}
 			string o = new string(symbol.SkipWhile((x) => !char.IsNumber(x)).ToArray());
 			int octave;
-			if (o != string.Empty) octave = Convert.ToInt32(o) - 5;
+            if (o != string.Empty) octave = Convert.ToInt32(o);
 			else octave = 4;
 
-			float index = Notes[note];
+			float index = Notes[note] - 9;
 			index += octave * 12;
-			double frequency = 440 * Math.Pow(2, index / 12);
+            double frequency = 440 * Math.Pow(2, (index-48) / 12);
 			return frequency;
 		}
 
 		/**<summary>Used in converting symbols to pitches.</summary>*/
 		protected static Dictionary<string, int> Notes = new Dictionary<string, int>
 		{
-			{ "a", 12 }, { "a#", 13 }, { "bb", 13 }, { "b", 14 }, { "c", 3 },
-			{ "c#", 4 }, { "db", 4 }, { "d", 5 }, { "d#", 6 }, { "eb", 6 },
-			{ "e", 7 }, { "f", 8 }, { "f#", 9 }, { "gb", 9 }, { "g", 10 },
-			{ "g#", 11 }, { "ab", 11 }
+			{ "a", 9 }, { "a#", 10 }, { "bb", 10 }, { "b", 11 }, { "c", 0 },
+			{ "c#", 1 }, { "db", 1 }, { "d", 2 }, { "d#", 3 }, { "eb", 3 },
+			{ "e", 4 }, { "f", 5 }, { "f#", 6 }, { "gb", 6 }, { "g", 7 },
+			{ "g#", 8 }, { "ab", 8 }
 		};
         #endregion
 
