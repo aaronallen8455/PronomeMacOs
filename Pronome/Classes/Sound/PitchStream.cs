@@ -107,8 +107,9 @@ namespace Pronome.Mac
             if (o != string.Empty) octave = Convert.ToInt32(o);
 			else octave = 4;
 
-			float index = Notes[note] - 9;
+			float index = Notes[note];
 			index += octave * 12;
+            index = ApplyStretch(index);
             double frequency = 440 * Math.Pow(2, (index-48) / 12);
 			return frequency;
 		}
@@ -116,11 +117,42 @@ namespace Pronome.Mac
 		/**<summary>Used in converting symbols to pitches.</summary>*/
 		protected static Dictionary<string, int> Notes = new Dictionary<string, int>
 		{
-			{ "a", 9 }, { "a#", 10 }, { "bb", 10 }, { "b", 11 }, { "c", 0 },
-			{ "c#", 1 }, { "db", 1 }, { "d", 2 }, { "d#", 3 }, { "eb", 3 },
-			{ "e", 4 }, { "f", 5 }, { "f#", 6 }, { "gb", 6 }, { "g", 7 },
-			{ "g#", 8 }, { "ab", 8 }
+			{ "a", 0 }, { "a#", 1 }, { "bb", 1 }, { "b", 2 }, { "c", -9 },
+			{ "c#", -8 }, { "db", -8 }, { "d", -7 }, { "d#", -6 }, { "eb", -6 },
+			{ "e", -5 }, { "f", -4 }, { "f#", -3 }, { "gb", -3 }, { "g", -2 },
+			{ "g#", -1 }, { "ab", -1 }
 		};
+
+        protected static float ApplyStretch(float index)
+        {
+            float cents = 0;
+
+            if (index > 48)
+            {
+                cents = StretchSharp.TakeWhile(x => x.Key <= index).Select(x => x.Value).Sum();
+            }
+            else if (index < 48)
+            {
+                cents = StretchFlat.TakeWhile(x => x.Key >= index).Select(x => x.Value).Sum();
+            }
+
+            return index + cents;
+        }
+
+        protected static Dictionary<int, float> StretchSharp = new Dictionary<int, float>
+        {
+            {54, .01f}, {60, .01f}, {64, .01f}, {68, .01f}, {70, .01f}, {72, .01f}, {73, .01f}, {74, .01f},
+            {75, .01f}, {76, .01f}, {77, .01f}, {78, .01f}, {79, .01f}, {80, .01f}, {81, .02f}, {82, .02f},
+            {83, .02f}, {84, .02f}, {85, .02f}, {86, .02f}, {87, .03f}
+        };
+
+        protected static Dictionary<int, float> StretchFlat = new Dictionary<int, float>
+        {
+            {47, -.01f}, {41, -.01f}, {24, -.01f}, {22, -.01f}, {17, -.01f}, {15, -.01f}, {13, -.01f},
+            {12, -.01f}, {11, -.01f}, {10, -.01f}, {9, -.01f}, {8, -.01f}, {7, -.01f}, {6, -.01f}, {5, -.01f},
+            {4, -.01f}, {3, -.01f}, {2, -.01f}, {1, -.01f}, {0, -.01f}
+        };
+
         #endregion
 
         #region public methods
