@@ -735,6 +735,8 @@ namespace Pronome.Mac.Editor
             }
             rg.MultFactor = multGroupFactorValue;
 
+            rg.FullDuration = position - rg.Position;
+
             position += ltmDur;
 
 			return position;

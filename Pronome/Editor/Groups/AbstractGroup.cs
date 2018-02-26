@@ -62,7 +62,8 @@ namespace Pronome.Mac.Editor.Groups
 					MultFactor = r.MultFactor,
 					Position = r.Position,
 					Row = r.Row,
-					Times = r.Times
+					Times = r.Times,
+                    BreakCell = r.BreakCell
 				};
             }
             else if (group is Multiply)

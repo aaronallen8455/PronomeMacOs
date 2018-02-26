@@ -343,32 +343,11 @@ namespace Pronome.Mac
             }
             else if (ModeDropdown.SelectedTag == MODE_INSERT)
             {
-                // how to deal with inserting cells into a rep group?
-                // easy way is to just flatten it out, use raw values from .Beat
-                // ideally we want to insert the cell and retain the original beatCode aspects
-
-                // retain a int for the current cell index in the beatcode
-                // so when we run a rep group, the index will backtrack as needed
-
-                // will also need to deal with mult groups
-                // when accumulating cell values, we 'expand' out the multgroups
-                // so that we are dealing with actual values
-                // after all work is done, we 'contract' the multgroups
-
-                // could use the modeling objects from the editor?
-
-                // could reuse the editor insert cell operation
-                // only difference is that if we insert a cell into a rep group,
-                // theres some special cases:
-                // 1) if inserting into first or last group of a rep with >2 times,
-                // we break off the cycle being inserted into and decrement
-                // the times of the group
-                // 2) if the group has times == 2 then the group is de-sugared.
-                // this entails adding the LTM to the last cell
-                // 3) if the same insertion is made on each repeat, we can use the
-                // default behaviour of the editor insert action.
-
-                // if a tap occurs during a reference, we desugar the reference
+                if (Taps.Count == 0)
+                {
+                    Close();
+                    return;
+                }
 
                 // get the objects representing the beatcode
                 Row row = new Row(Layer, true)
@@ -382,7 +361,7 @@ namespace Pronome.Mac
 
                 //string offset = "";
 
-                foreach (double t in Taps)
+                foreach (double t in Taps.Select(x => x % bpmLength).OrderBy(x => x))
                 {
                     // check if tap was done in the offset area
                     if (t <= Layer.OffsetBpm)
@@ -418,10 +397,10 @@ namespace Pronome.Mac
                     }
 
                     // get the number of elapsed cycles
-                    int cycles = (int)((t - Layer.OffsetBpm) / bpmLength);
+                    //int cycles = (int)((t - Layer.OffsetBpm) / bpmLength);
 
                     // subtract the elapsed cycles
-                    double pos = (t - Layer.OffsetBpm) - cycles * bpmLength;
+                    double pos = t - Layer.OffsetBpm;// - cycles * bpmLength;
                     string belowValue = Quantize(pos);
                     double qPos = BeatCell.Parse(belowValue); // quantized BPM position double
                     double newCellPosition = qPos;
@@ -456,7 +435,7 @@ namespace Pronome.Mac
                                 // see if the total duration of this rep group is shorter than tap position
                                 // then we know that we will be inserting into this rep group at one of it's times. need to know which one.
                                 // rep.Length does not include the times, it's only one cycle
-                                if (qPos < rep.Position + rep.Length * rep.Times * (completeReps + 1))
+                                if (qPos < rep.Position + rep.FullDuration * (completeReps + 1))
                                 {
                                     // find the cycle on which the tap is placed
                                     int times = (int)((qPos - rep.Times * rep.Length * completeReps) / rep.Length);
@@ -465,6 +444,11 @@ namespace Pronome.Mac
 
 									completeReps *= rep.Times;
 									completeReps += times;
+
+                                    if (rep.BreakCell != null && rep.BreakCell.Position < c.Position)
+                                    {
+                                        completeReps--;
+                                    }
 								}
 								else
 								{
@@ -585,12 +569,21 @@ namespace Pronome.Mac
                             {
                                 after.Cells.First().GroupActions.RemoveFirst();
                                 after.Cells.Last().GroupActions.RemoveLast();
+
+                                // remove the cells in the break zone
+                                if (after.BreakCell != null)
+                                {
+                                    while (!after.Cells.Last.Value.IsBreak) after.Cells.RemoveLast();
+                                }
+
                                 foreach (Cell c in after.Cells)
                                 {
                                     c.RepeatGroups.Remove(after);
+                                    c.IsBreak = false;
                                 }
                             }
 
+                            double curOffset = before.Length * before.Times;
                             // if the before-copy isn't nulled, and the first cell of
                             // this inner nested rep group is also the first cell of it's
                             // containing group, then we need to transfer ownership of the
@@ -610,7 +603,27 @@ namespace Pronome.Mac
                                 }
                                 // transfer the groups
                                 before.Cells.First().GroupActions = new LinkedList<(bool, AbstractGroup)>(actionsToPrepend.Concat(before.Cells.First().GroupActions));
+
+                                // reposition the actual group
+                                foreach (Cell c in actual.Cells)
+                                {
+                                    c.Position += curOffset;
+                                    foreach (var action in c.GroupActions)
+                                    {
+                                        if (action.Item1) action.Item2.Position += curOffset;
+                                    }
+                                }
+
+                                // add the copies to the row
+                                foreach (Cell c in before.Cells)
+                                {
+                                    row.Cells.Insert(c);
+                                    // no breaks occur in before
+                                    c.IsBreak = false;
+                                }
                             }
+
+                            curOffset += actual.Length;
                             // copy actions from last cell of actual group to the after-copy
                             if (after.Times > 0)
                             {
@@ -625,51 +638,37 @@ namespace Pronome.Mac
                                     lstCell.GroupActions.RemoveLast();
                                 }
                                 after.Cells.Last().GroupActions = new LinkedList<(bool, AbstractGroup)>(after.Cells.Last().GroupActions.Concat(actionsToAppend));
-                            }
 
-                            // reposition the actual group and the after-copy
-                            double curOffset = before.Length * before.Times;
-                            if (before.Times > 0)
-                            {
+                                // remove break from the original group
                                 foreach (Cell c in actual.Cells)
                                 {
+                                    c.IsBreak = false;
+                                }
+								actual.BreakCell = null;
+
+                                foreach (Cell c in after.Cells)
+                                {
+                                    // reposition cells
                                     c.Position += curOffset;
                                     foreach (var action in c.GroupActions)
                                     {
                                         if (action.Item1)
                                             action.Item2.Position += curOffset;
                                     }
-                                }
-                            }
 
-                            curOffset += actual.Length;
-                            if (after.Times > 0)
-                            {
-                                foreach (Cell c in after.Cells)
-                                {
-                                    c.Position += curOffset;
-                                    foreach (var action in c.GroupActions)
-                                    {
-                                        if (action.Item1)
-                                            action.Item2.Position += curOffset;
-                                    }
-                                }
-                            }
-
-                            // add the copies to the row
-                            if (before.Times > 0)
-                            {
-                                foreach (Cell c in before.Cells)
-                                {
+                                    // add cell to the row
                                     row.Cells.Insert(c);
                                 }
                             }
-                            if (after.Times > 0)
+                            else
                             {
-                                foreach (Cell c in after.Cells)
+                                // need to delete the break zone of actual
+                                if (actual.BreakCell != null)
                                 {
-                                    row.Cells.Insert(c);
+                                    while (!actual.Cells.Last.Value.IsBreak) actual.Cells.RemoveLast();
                                 }
+
+                                actual.Cells.Last.Value.IsBreak = false;
                             }
                         }
 

@@ -18,22 +18,7 @@ namespace Pronome.Mac.Editor
 			get => _duration;
 			set
 			{
-				//HashSet<RepeatGroup> touchedRepGroups = new HashSet<RepeatGroup>();
-				//HashSet<MultGroup> touchedMultGroups = new HashSet<MultGroup>();
-                //HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
-				//double diff = value - _duration;
 				_duration = value;
-				// resize groups of which this cell is a part
-                //foreach (Repeat rg in RepeatGroups)
-				//{
-				//	touchedGroups.Add(rg);
-                //    rg.Length += diff;
-				//}
-                //foreach (Multiply mg in MultGroups)
-				//{
-				//	touchedGroups.Add(mg);
-                //    mg.Length += diff;
-				//}
 			}
 		}
 
@@ -69,8 +54,6 @@ namespace Pronome.Mac.Editor
 			set
 			{
 				_position = value;
-				//Canvas.SetLeft(Rectangle, value * EditorWindow.Scale * EditorWindow.BaseFactor);
-
 			}
 		}
 

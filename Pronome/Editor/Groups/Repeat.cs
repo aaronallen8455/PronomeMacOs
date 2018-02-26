@@ -16,6 +16,16 @@ namespace Pronome.Mac.Editor.Groups
         /// Aggregated mult factors, used to effect the LTM
         /// </summary>
         public string MultFactor = "1";
+
+        /// <summary>
+        /// If this repeat group contains a break, this is the cell that is directly before the break occurs.
+        /// </summary>
+        public Cell BreakCell;
+
+        /// <summary>
+        /// The duration expanded to include rep times and break point. Does not include the LTM
+        /// </summary>
+        public double FullDuration;
         #endregion
 
         #region Protected Fields
