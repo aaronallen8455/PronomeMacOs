@@ -16,6 +16,10 @@ namespace Pronome.Mac.Editor.Action
 
         protected HashSet<Multiply> MultGroups = new HashSet<Multiply>();
 
+        protected LinkedList<AbstractGroup> OpenedGroups = new LinkedList<AbstractGroup>();
+
+        protected LinkedList<AbstractGroup> ClosedGroups = new LinkedList<AbstractGroup>();
+
 		/// <summary>
 		/// Total duration in BPM of the group
 		/// </summary>
@@ -44,18 +48,18 @@ namespace Pronome.Mac.Editor.Action
 			StringBuilder duration = new StringBuilder();
 			// find all groups that are encompassed by the selection
             HashSet<AbstractGroup> touchedGroups = new HashSet<AbstractGroup>();
-            Repeat groupBeingAppendedTo = null; // a group who's LTM is actively being augemented
+            Repeat groupBeingAppendedTo = null; // a group who's LTM is actively being augmented
             Queue<Repeat> rgToAppendTo = new Queue<Repeat>(); // RGs that may need to have their LTM added to
-            LinkedList<AbstractGroup> openedGroups = new LinkedList<AbstractGroup>();
-            LinkedList<AbstractGroup> closedGroups = new LinkedList<AbstractGroup>();
+            //LinkedList<AbstractGroup> openedGroups = new LinkedList<AbstractGroup>();
+            //LinkedList<AbstractGroup> closedGroups = new LinkedList<AbstractGroup>();
 
 			foreach (Cell c in Cells)
 			{
                 //if (!string.IsNullOrEmpty(c.Reference)) continue;
                 foreach ((bool begun, AbstractGroup group) in c.GroupActions)
                 {
-                    if (begun) openedGroups.AddFirst(group);
-                    else closedGroups.AddFirst(group);
+                    if (begun) OpenedGroups.AddFirst(group);
+                    else ClosedGroups.AddFirst(group);
                 }
 
 				// add to the LTM of groups with a previous cell in the selection but not this cell
@@ -76,28 +80,36 @@ namespace Pronome.Mac.Editor.Action
 				{
 					// remove cell from group
 					rg.ExclusiveCells.Remove(c);
+                    rg.Cells.Remove(c);
+
+                    // remove break cells
+                    if (rg.BreakCell == c) rg.BreakCell = null;
+
 					if (touchedGroups.Contains(rg)) continue;
 
 					rgToAppendTo.Enqueue(rg);
 					touchedGroups.Add(rg);
 
 					if (
-                        (StartNode.Cell == rg.ExclusiveCells.First?.Value || rg.Position >= StartNode.Cell.Position)
-                        && (EndNode.Cell == rg.ExclusiveCells.Last?.Value || rg.Position + rg.Length <= EndNode.Cell.Position))
+                        (StartNode.Cell == rg.ExclusiveCells.First?.Value || rg.Position > StartNode.Cell.Position)
+                        && (EndNode.Cell == rg.ExclusiveCells.Last?.Value || rg.Position + rg.Length < EndNode.Cell.Position))
 					{
 						RepGroups.Add(rg);
 
-						times *= rg.Times;
+                        bool cellAboveBreak = rg.BreakCell != null && c.Position > rg.BreakCell.Position;
+
+                        times *= rg.Times - (cellAboveBreak ? 1 : 0);
 						// multiply all nested rgs' LTMs by this groups repeat times.
 						foreach (KeyValuePair<Repeat, int> kv in lcmTimes)
 						{
-							lcmTimes[kv.Key] *= rg.Times;
+                            bool aboveBreak = rg.BreakCell != null && kv.Key.Position > rg.BreakCell.Position;
+
+                            lcmTimes[kv.Key] *= rg.Times - (aboveBreak ? 1 : 0);
 						}
 						lcmTimes.Add(rg, 1);
-						touchedGroups.Add(rg);
 					}
-					
 				}
+
                 foreach (Multiply mg in c.MultGroups)
 				{
 					// remove cell from group
@@ -105,8 +117,8 @@ namespace Pronome.Mac.Editor.Action
 					if (touchedGroups.Contains(mg)) continue;
 					touchedGroups.Add(mg);
 					if (
-                        (StartNode.Cell == mg.ExclusiveCells.First.Value || mg.Position >= StartNode.Cell.Position)
-                        && (EndNode.Cell == mg.ExclusiveCells.Last.Value || mg.Position + mg.Length <= EndNode.Cell.Position + EndNode.Cell.Duration))
+                        (StartNode.Cell == mg.ExclusiveCells.First.Value || mg.Position > StartNode.Cell.Position)
+                        && (EndNode.Cell == mg.ExclusiveCells.Last.Value || mg.Position + mg.Length < EndNode.Cell.Position + EndNode.Cell.Duration))
 					{
 						MultGroups.Add(mg);
 					}
@@ -131,30 +143,30 @@ namespace Pronome.Mac.Editor.Action
 			}
 
             // Transfer group actions from deleted cells to the 2 cells outside the deleted group
-            CellTreeNode after = EndNode.Next();
-            CellTreeNode before = StartNode.Prev();
-
-            if (after != null)
-            {
-				foreach (AbstractGroup group in openedGroups)
-				{
-					if (group.ExclusiveCells.Count > 0)
-					{
-                        after.Cell.GroupActions.AddFirst((true, group));
-					}
-				}
-            }
-
-            if (before != null)
-            {
-				foreach (AbstractGroup group in closedGroups)
-				{
-					if (group.ExclusiveCells.Count > 0)
-					{
-                        before.Cell.GroupActions.AddFirst((false, group));
-					}
-				}
-            }
+            //CellTreeNode after = EndNode.Next();
+            //CellTreeNode before = StartNode.Prev();
+			//
+            //if (after != null)
+            //{
+			//	foreach (AbstractGroup group in openedGroups)
+			//	{
+			//		if (group.ExclusiveCells.Count > 0)
+			//		{
+            //            after.Cell.GroupActions.AddFirst((true, group));
+			//		}
+			//	}
+            //}
+			//
+            //if (before != null)
+            //{
+			//	foreach (AbstractGroup group in closedGroups)
+			//	{
+			//		if (group.ExclusiveCells.Count > 0)
+			//		{
+            //            before.Cell.GroupActions.AddFirst((false, group));
+			//		}
+			//	}
+            //}
 
 			BeatCodeDuration = BeatCell.SimplifyValue(duration.ToString());
 		}
@@ -225,8 +237,35 @@ namespace Pronome.Mac.Editor.Action
 						// but only if it is not the cell prior to a repgroup for which first cell of select is first cell of the rep group.
 						prevCell.Value = BeatCell.Add(prevCell.Value, BeatCodeDuration);
 					}
+
+                    // transfer the closing group actions to prev cell
+                    foreach (AbstractGroup group in ClosedGroups)
+                    {
+                        if (RepGroups.Contains(group) || MultGroups.Contains(group)) continue;
+
+                        if (prevCell.RepeatGroups.Contains(group) || prevCell.MultGroups.Contains(group))
+                        {
+                            prevCell.GroupActions.AddLast((false, group));
+                        }
+                    }
                 }
 			}
+
+            // do the transition of group actions
+            if (EndNode.Cell != Row.Cells.Max.Cell)
+            {
+                Cell nextCell = EndNode.Next().Cell;
+                // need to transfer the repeat group creation point to the next cell (if not a 1 cell group)
+                foreach (AbstractGroup group in OpenedGroups)
+                {
+                    if (RepGroups.Contains(group) || MultGroups.Contains(group)) continue;
+
+                    if (nextCell.RepeatGroups.Contains(group) || nextCell.MultGroups.Contains(group))
+                    {
+                        nextCell.GroupActions.AddFirst((true, group));
+                    }
+                }
+            }
 
             // remove cells from tree
             while (StartNode != null)
