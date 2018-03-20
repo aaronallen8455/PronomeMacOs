@@ -115,9 +115,9 @@ namespace Pronome.Mac.Editor.Action
 				bool inGroup = false;
 				foreach (Repeat rg in Row.RepeatGroups)
 				{
-                    if (Position < rg.Position + rg.Length) break;
+                    if (Position < rg.ActualPosition + rg.Length) break;
 
-					double range = rg.Position + rg.Length * rg.Times - pad;
+                    double range = rg.ActualPosition + rg.FullDuration - pad;
                     if (rg.Position + rg.Length <= Position && Position < range)
 					{
 						inGroup = true;
@@ -433,7 +433,7 @@ namespace Pronome.Mac.Editor.Action
                    .Select(x => x.Times);
                 int ltmFactor = sequence.Any() ? sequence.Aggregate((x, y) => x * y) : 1;
 
-                CellTreeNode c = cellNode.Next();
+                CellTreeNode c = cellNode;
 
                 while (c != FirstSelected)
                 {
@@ -476,7 +476,7 @@ namespace Pronome.Mac.Editor.Action
         /// <param name="below">Below.</param>
         private static void AddToGroups(Cell cell, Cell below)
         {
-            foreach (Repeat rg in below.RepeatGroups.Where(x => x.Position + x.Length > cell.Position))
+            foreach (Repeat rg in below.RepeatGroups.Where(x => x.ActualPosition + x.Length > cell.Position))
             {
                 //rg.Cells.Last.Value.GroupActions.Remove();
                 cell.RepeatGroups.AddLast(rg);
@@ -488,7 +488,7 @@ namespace Pronome.Mac.Editor.Action
                     cell.GroupActions.AddLast((false, rg));
                 }
             }
-            foreach (Multiply mg in below.MultGroups.Where(x => x.Position + x.Length > cell.Position))
+            foreach (Multiply mg in below.MultGroups.Where(x => x.ActualPosition + x.Length > cell.Position))
             {
                 cell.MultGroups.AddLast(mg);
                 if (UserSettings.GetSettings().DrawMultToScale)

@@ -250,6 +250,7 @@ namespace Pronome.Mac.Editor
 						OpenRepeatGroups.Peek().ExclusiveCells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer
                         OpenRepeatGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
+                        OpenRepeatGroups.Peek().ActualPosition = position;
 
                         chunk = chunk.Remove(repIndex, 1);
 
@@ -272,7 +273,7 @@ namespace Pronome.Mac.Editor
 						OpenMultGroups.Peek().ExclusiveCells.AddLast(cell);
 						// need to subtract repeat groups offset because contents is in new CGLayer starting at 0
 						OpenMultGroups.Peek().Position = position - OpenRepeatGroups.Select(x => x.Position).Sum();
-
+                        OpenMultGroups.Peek().ActualPosition = position;
                         // track the factor if we need to scale.
                         if (ignoreScalingSetting || UserSettings.GetSettings().DrawMultToScale)
                         {

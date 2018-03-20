@@ -7,7 +7,15 @@ namespace Pronome.Mac.Editor.Groups
     public abstract class AbstractGroup
     {
         #region Public Fields
+        /// <summary>
+        /// The position in BPM. If it's nested inside a rep group, will be position from start of that group. 
+        /// </summary>
         public double Position;
+
+        /// <summary>
+        /// The position in BPM. Unlike Position, this field does not reflect the presence of an enclosing repeat group.
+        /// </summary>
+        public double ActualPosition;
 
         /// <summary>
         /// The bpm length of a single cycle, not including the LTM
