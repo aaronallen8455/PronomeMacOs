@@ -467,9 +467,18 @@ namespace Pronome.Mac
         {
             if (LayersToChange.ContainsKey(Layers.IndexOf(layer))) return;
 
+            StreamInfoProvider streamInfo;
+
+            // if changing from a wav source to a pitch, we have to restore the previous pitch frequency.
+            if (layer.BaseStreamInfo.IsPitch && !(layer.BaseAudioSource is PitchStream)) {
+                streamInfo = StreamInfoProvider.GetFromPitch(layer.PitchInput);
+            } else {
+                streamInfo = layer.BaseStreamInfo;
+            }
+
             Layer copyLayer = new Layer(
                 "1",
-                layer.BaseStreamInfo,
+                streamInfo,
                 "",
                 (float)layer.Pan,
                 (float)layer.Volume

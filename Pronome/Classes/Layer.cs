@@ -941,12 +941,9 @@ namespace Pronome.Mac
                     {
                         Volume = Volume
                     };
-                    BaseAudioSource = PitchSource;
                 }
-                else
-                {
-                    BaseAudioSource = PitchSource;
-                }
+
+                BaseAudioSource = PitchSource;
 
                 //IsPitch = true;
             }
@@ -957,24 +954,13 @@ namespace Pronome.Mac
                     Metronome.Instance.RemoveAudioSource(BaseAudioSource);
                 }
 
-                //if (AudioSources.ContainsKey(""))
-                //{
-                //    Metronome.GetInstance().RemoveAudioSource(AudioSources[""]);
-                //    AudioSources.Remove("");
-                //}
-
                 BaseAudioSource = new WavFileStream(baseSource, this)
                 {
                     Volume = Volume
                 };
 
-                //AudioSources.Add("", BaseAudioSource);
-                //IsPitch = false;
-
                 HasHiHatClosed = baseSource.HiHatStatus == StreamInfoProvider.HiHatStatuses.Down;
                 HasHiHatOpen = baseSource.HiHatStatus == StreamInfoProvider.HiHatStatuses.Open;
-                //if (BeatCell.HiHatOpenFileNames.Contains(baseSourceName)) HasHiHatOpen = true;a
-                //else if (BeatCell.HiHatClosedFileNames.Contains(baseSourceName)) HasHiHatClosed = true;
             }
 
             BaseSourceName = baseSource.Uri;
